@@ -1,3 +1,5 @@
 *.csv
 *.pyc
 *.xml
+*.log
+
