@@ -1,0 +1,39 @@
+[2017-12-29 08:13:46,517] {jobs.py:344} DagFileProcessor0 INFO - Started process (PID=57) to work on /usr/local/airflow/dags/process_eri_3g4g_cm_data.py
+[2017-12-29 08:13:46,524] {jobs.py:1524} DagFileProcessor0 INFO - Processing file /usr/local/airflow/dags/process_eri_3g4g_cm_data.py for tasks to queue
+[2017-12-29 08:13:46,524] {models.py:168} DagFileProcessor0 INFO - Filling up the DagBag from /usr/local/airflow/dags/process_eri_3g4g_cm_data.py
+[2017-12-29 08:13:46,886] {jobs.py:1538} DagFileProcessor0 INFO - DAG(s) dict_keys(['process_eri_3g4g_cm_data']) retrieved from /usr/local/airflow/dags/process_eri_3g4g_cm_data.py
+/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/default_comparator.py:161: SAWarning: The IN-predicate on "dag_stats.dag_id" was invoked with an empty sequence. This results in a contradiction, which nonetheless can be expensive to evaluate.  Consider alternative strategies for improved performance.
+  'strategies for improved performance.' % expr)
+[2017-12-29 08:13:46,925] {models.py:323} DagFileProcessor0 INFO - Finding 'running' jobs without a recent heartbeat
+[2017-12-29 08:13:46,926] {models.py:329} DagFileProcessor0 INFO - Failing jobs without heartbeat after 2017-12-29 08:08:46.926273
+[2017-12-29 08:13:46,936] {jobs.py:352} DagFileProcessor0 INFO - Processing /usr/local/airflow/dags/process_eri_3g4g_cm_data.py took 0.419 seconds
+[2017-12-29 08:13:47,536] {jobs.py:344} DagFileProcessor1 INFO - Started process (PID=60) to work on /usr/local/airflow/dags/process_eri_3g4g_cm_data.py
+[2017-12-29 08:13:47,545] {jobs.py:1524} DagFileProcessor1 INFO - Processing file /usr/local/airflow/dags/process_eri_3g4g_cm_data.py for tasks to queue
+[2017-12-29 08:13:47,554] {models.py:168} DagFileProcessor1 INFO - Filling up the DagBag from /usr/local/airflow/dags/process_eri_3g4g_cm_data.py
+[2017-12-29 08:13:47,554] {jobs.py:355} DagFileProcessor1 ERROR - Got an exception! Propagating...
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.6/site-packages/airflow/jobs.py", line 347, in helper
+    pickle_dags)
+  File "/usr/local/lib/python3.6/site-packages/airflow/utils/db.py", line 53, in wrapper
+    result = func(*args, **kwargs)
+  File "/usr/local/lib/python3.6/site-packages/airflow/jobs.py", line 1529, in process_file
+    dagbag = models.DagBag(file_path)
+  File "/usr/local/lib/python3.6/site-packages/airflow/models.py", line 168, in __init__
+    self.logger.info("Filling up the DagBag from {}".format(dag_folder))
+  File "/usr/local/lib/python3.6/logging/__init__.py", line 1306, in info
+    self._log(INFO, msg, args, **kwargs)
+  File "/usr/local/lib/python3.6/logging/__init__.py", line 1442, in _log
+    self.handle(record)
+  File "/usr/local/lib/python3.6/logging/__init__.py", line 1452, in handle
+    self.callHandlers(record)
+  File "/usr/local/lib/python3.6/logging/__init__.py", line 1514, in callHandlers
+    hdlr.handle(record)
+  File "/usr/local/lib/python3.6/logging/__init__.py", line 863, in handle
+    self.emit(record)
+  File "/usr/local/lib/python3.6/logging/__init__.py", line 996, in emit
+    self.flush()
+  File "/usr/local/lib/python3.6/logging/__init__.py", line 976, in flush
+    self.stream.flush()
+  File "/usr/local/lib/python3.6/site-packages/airflow/bin/cli.py", line 69, in sigint_handler
+    sys.exit(0)
+SystemExit: 0
