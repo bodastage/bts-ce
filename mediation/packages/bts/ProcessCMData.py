@@ -189,6 +189,7 @@ class ProcessCMData(object):
 		
 	def extract_ericsson_3g_cell_params(self):
 		"""Extract Ericsson UMTS cell parameters"""
+		
 		Session = sessionmaker(bind=self.db_engine)
 		session = Session()
 		
@@ -207,10 +208,10 @@ class ProcessCMData(object):
 			print("Extracting cells for site_pk: {0}, site_name: {1}".format(site_pk,site_name))
 			
 			sql = """
-				insert into live_network.umts_cells_data
+				INSERT INTO live_network.umts_cells_data
 				(pk, date_added, date_modified, added_by, modified_by,bch_power,cell_id,cell_pk,lac,latitude, longitude, maximum_transmission_power, "name", notes, cpich_power, primary_sch_power, scrambling_code, rac, sac, secondary_sch_power, site_pk, tech_pk, vendor_pk, uarfcn_dl,uarfcn_ul, ura_list, azimuth, cell_range, height, site_sector_carrier)
-				select 
-				nextval('live_network.seq_umts_cells_data_pk'),
+				SELECT 
+				NEXTVAL('live_network.seq_umts_cells_data_pk'),
 				t1."varDateTime" as date_added, 
 				t1."varDateTime" as date_modified, 
 				0 as added_by,
@@ -240,7 +241,7 @@ class ProcessCMData(object):
 				t5."cellRange"::integer, -- cellrange,
 				t6."height"::integer, -- height
 				concat(t2."MeContext_id", '_', t2."vsDataRbsLocalCell_id") as site_sector_carrier
-				from 
+				FROM 
 				eri_cm_3g4g.utrancell t1
 				INNER JOIN eri_cm_3g4g.vsdatarbslocalcell t2 on t2."localCellId" = t1."cId" and t2."SubNetwork_2_id" = t1."SubNetwork_2_id" 
 					-- and t2."MeContext_id" = t1."MeContext_id"
@@ -252,7 +253,7 @@ class ProcessCMData(object):
 				INNER JOIN eri_cm_3g4g.vsdatasector t6 on t6."SubNetwork_2_id" = t1."SubNetwork_2_id"
 					and t6."MeContext_id" = t5."MeContext_id"
 					and t6."vsDataSector_id" = t5."vsDataSector_id"
-				where t6."MeContext_id" = '{0}';
+				WHERE t6."MeContext_id" = '{0}';
 			""".format(site_name)
 			
 			self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -265,7 +266,45 @@ class ProcessCMData(object):
 		
 	def extract_ericsson_3g3g_nbrs(self):
 		"""Extract Ericsson UMTS-UMTS neighbour relations"""
-		pass
+		Session = sessionmaker(bind=self.db_engine)
+		session = Session()
+		
+		sql = """
+			INSERT INTO live_network.relations 
+			(pk, svrnode_pk,svrsite_pk,svrtech_pk,svrvendor_pk,svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+			SELECT 
+			NEXTVAL('live_network.seq_relations_pk'),
+			-- serving side
+			t4.node_pk as svrnode_pk, 
+			t3.site_pk as svrsite_pk, 
+			t3.tech_pk as svrtech_pk,
+			t3.vendor_pk as svrvendor_pk ,
+			t3.pk as svrcell_pk,
+			-- nbr side 
+			t7.node_pk as nbrnode_pk, 
+			t6.site_pk as nbrsite_pk, 
+			t6.tech_pk as nbrtech_pk,
+			t6.vendor_pk as nbrvendor_pk ,
+			t6.pk as nbrcell_pk,
+			-- meta fields 
+			t1."varDateTime" ,
+			t1."varDateTime" ,
+			0, -- system
+			0
+			FROM eri_cm_3g4g.utranrelation t1 
+			INNER JOIN eri_cm_3g4g.utrancell t2 on t1."adjacentCell" = concat('SubNetwork=ONRM_ROOT_MO_R,SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
+			-- serving side
+			INNER JOIN live_network.cells t3 on t3."name" = t1."UtranCell_id" and t3.vendor_pk = 1 and t3.tech_pk = 2
+			INNER JOIN live_network.sites t4 on t4.pk = t3.site_pk
+			INNER JOIN live_network.nodes t5 on t5.pk = t4.node_pk 
+			-- nbr side 
+			INNER JOIN live_network.cells t6 on t6."name" = t1."UtranRelation_id" and t3.vendor_pk = 1 and t3.tech_pk = 2
+			INNER JOIN live_network.sites t7 on t7.pk = t6.site_pk
+		"""
+		
+		self.db_engine.execute(text(sql).execution_options(autocommit=True))
+		
+		session.close()
 		
 		
 	def extract_ericsson_3g4g_nbrs(self):
