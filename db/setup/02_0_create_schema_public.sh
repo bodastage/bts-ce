@@ -100,8 +100,6 @@ ALTER TABLE public.users
 	(
 		pk bigint NOT NULL,
 		added_by integer NOT NULL,
-		datecreated timestamp without time zone,
-		datemodified timestamp without time zone,
 		modified_by integer NOT NULL,
 		name character varying(255) COLLATE pg_catalog."default",
 		notes text COLLATE pg_catalog."default",
@@ -130,7 +128,7 @@ CREATE TABLE public.managedobjects_schemas
     date_modified timestamp without time zone,
     modified_by integer NOT NULL,
     notes text COLLATE pg_catalog."default",
-    schema_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    name character varying(255) COLLATE pg_catalog."default" NOT NULL,
     tech_pk bigint NOT NULL,
     vendor_pk bigint NOT NULL,
     CONSTRAINT managedobjects_schemas_pkey PRIMARY KEY (pk)
@@ -171,7 +169,58 @@ TABLESPACE pg_default;
 ALTER TABLE public.managedobjects
     OWNER to bodastage;
 	
--- 
+-- Table: public.settings
+
+-- DROP TABLE public.settings;
+
+CREATE TABLE public.settings
+(
+    pk integer NOT NULL,
+    name character varying COLLATE pg_catalog."default" NOT NULL,
+    data_type character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    integer_value integer,
+    float_value double precision,
+    string_value character varying(200) COLLATE pg_catalog."default",
+    long_string_value text COLLATE pg_catalog."default",
+    timestamp_value date,
+    label character varying(200) COLLATE pg_catalog."default",
+    category character varying(200) COLLATE pg_catalog."default",
+    CONSTRAINT setttings_pkey PRIMARY KEY (pk),
+    CONSTRAINT settings_name_unique UNIQUE (name)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.settings
+    OWNER to bodastage;
+	
+----------------------------------
+-- Table: public.cache
+
+-- DROP TABLE public.cache;
+
+CREATE TABLE public.cache
+(
+    pk bigint NOT NULL,
+    name character varying(200) COLLATE pg_catalog."default",
+    data text COLLATE pg_catalog."default",
+    date_created date,
+    date_modified date,
+    modifed_by bigint,
+    added_by bigint NOT NULL,
+    CONSTRAINT cache_pkey PRIMARY KEY (pk),
+    CONSTRAINT unique_cache_name UNIQUE (name)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.cache
+    OWNER to bodastage;
+-- -------------------------------
 CREATE SEQUENCE public.seq_vendors_pk
     INCREMENT 1
     START 1
@@ -183,7 +232,7 @@ ALTER SEQUENCE public.seq_vendors_pk
     OWNER TO bodastage;
 	
 -- -----------------------------
-CREATE SEQUENCE public.seq_users
+CREATE SEQUENCE public.seq_users_pk
     INCREMENT 1
    START 1
     MINVALUE 1
@@ -237,5 +286,24 @@ ALTER SEQUENCE public.seq_managedobjects_pk
     OWNER TO bodastage;
 	
 -- --------------------------------------------------
+CREATE SEQUENCE public.seq_settings_pk
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    CACHE 1;
 
+ALTER SEQUENCE public.seq_settings_pk
+    OWNER TO bodastage;
+
+------------------------------------------------------
+CREATE SEQUENCE public.seq_cache_pk
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    CACHE 1;
+
+ALTER SEQUENCE public.seq_cache_pk
+    OWNER TO bodastage;
 EOSQL

@@ -26,34 +26,34 @@ conn.autocommit = True
 
 cur = conn.cursor()
 
-		
-with open(parser_config_file, 'r') as f:
-	
-	for line in f:
-		mo_and_params = line.split(":")
-		mo = mo_and_params[0]
-		print(mo)
-		cur.execute("""select count(1) as count FROM managedobjects where "name" = %s """, (mo,))
-		row = cur.fetchone()
-		count = row[0]
 
-		if count == 0:
-			cur.execute("""
-				INSERT INTO managedobjects
-				(pk, added_by,date_added,date_modified,modified_by, "name", notes, parent_pk, tech_pk, vendor_pk)
-				VALUES (
-				nextval('seq_managedobjects_pk'),
-				0,
-				now()::timestamp,
-				now()::timestamp,
-				0,
-				%s,
-				%s,
-				0, -- parent pk
-				2,
-				1
-				);
-			""", (mo,mo,))
+with open(parser_config_file, 'r') as f:
+
+    for line in f:
+        mo_and_params = line.split(":")
+        mo = mo_and_params[0]
+        print(mo)
+        cur.execute("""select count(1) as count FROM managedobjects where "name" = %s """, (mo,))
+        row = cur.fetchone()
+        count = row[0]
+
+        if count == 0:
+            cur.execute("""
+                INSERT INTO managedobjects
+                (pk, added_by,date_added,date_modified,modified_by, "name", notes, parent_pk, tech_pk, vendor_pk)
+                VALUES (
+                nextval('seq_managedobjects_pk'),
+                0,
+                now()::timestamp,
+                now()::timestamp,
+                0,
+                %s,
+                %s,
+                0, -- parent pk
+                2,
+                1
+                );
+            """, (mo,mo,))
 
 sql="""
 
@@ -61,7 +61,7 @@ sql="""
 
 #cur.execute( sql)
 
-		
+
 elapsed = timeit.default_timer() - start_time
 
 print( "Execution time: {0}".format(elapsed))

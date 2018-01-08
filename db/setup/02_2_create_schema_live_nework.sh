@@ -9,47 +9,48 @@ psql -v ON_ERROR_STOP=1 --username "bodastage" -d bts  <<-EOSQL
 	CREATE SCHEMA live_network
 		AUTHORIZATION bodastage;
 
-	-- Table: live_network.nodes
+-- Table: live_network.nodes
 
-	-- DROP TABLE live_network.nodes;
+-- DROP TABLE live_network.nodes;
 
-	CREATE TABLE live_network.nodes
-	(
-		pk integer NOT NULL,
-		name character varying(100) COLLATE pg_catalog."default" NOT NULL,
-		date_added timestamp without time zone,
-		date_modified timestamp without time zone,
-		added_by integer,
-		modified_by integer,
-		type character varying(20) COLLATE pg_catalog."default",
-		notes text COLLATE pg_catalog."default",
-		vendor_pk integer NOT NULL,
-		tech_pk integer NOT NULL
-	)
-	WITH (
-		OIDS = FALSE
-	)
-	TABLESPACE pg_default;
+CREATE TABLE live_network.nodes
+(
+    pk integer NOT NULL,
+    name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    date_added timestamp without time zone,
+    date_modified timestamp without time zone,
+    added_by integer,
+    modified_by integer,
+    type character varying(20) COLLATE pg_catalog."default",
+    notes text COLLATE pg_catalog."default",
+    vendor_pk integer NOT NULL,
+    tech_pk integer NOT NULL,
+    CONSTRAINT nodes_pkey PRIMARY KEY (pk)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
 
-	ALTER TABLE live_network.nodes
-		OWNER to bodastage;
-	COMMENT ON TABLE live_network.nodes
-		IS 'Network RAN nodes: BSC,MSC,RNC';
+ALTER TABLE live_network.nodes
+    OWNER to bodastage;
+COMMENT ON TABLE live_network.nodes
+    IS 'Network RAN nodes: BSC,MSC,RNC';
 
-	COMMENT ON COLUMN live_network.nodes.pk
-		IS 'Primary key';
+COMMENT ON COLUMN live_network.nodes.pk
+    IS 'Primary key';
 
-	COMMENT ON COLUMN live_network.nodes.name
-		IS 'Node name';
+COMMENT ON COLUMN live_network.nodes.name
+    IS 'Node name';
 
-	COMMENT ON COLUMN live_network.nodes.type
-		IS 'Network Node type: MSC,RNC,BSC';
+COMMENT ON COLUMN live_network.nodes.type
+    IS 'Network Node type: MSC,RNC,BSC';
 
-	COMMENT ON COLUMN live_network.nodes.vendor_pk
-		IS 'Vendor primary key';
+COMMENT ON COLUMN live_network.nodes.vendor_pk
+    IS 'Vendor primary key';
 
-	COMMENT ON COLUMN live_network.nodes.tech_pk
-		IS 'Technology primary key';
+COMMENT ON COLUMN live_network.nodes.tech_pk
+    IS 'Technology primary key';
 	-- ---------------------------------------------------
 	
 	CREATE TABLE live_network.base_line_values
@@ -235,18 +236,18 @@ psql -v ON_ERROR_STOP=1 --username "bodastage" -d bts  <<-EOSQL
 	ALTER SEQUENCE live_network.seq_cells_pk
 		OWNER TO bodastage;
 		
-	-- seq_node_pk
-	CREATE SEQUENCE live_network.seq_node_pk
+	-- seq_nodes_pk
+	CREATE SEQUENCE live_network.seq_nodes_pk
 		INCREMENT 1
 		START 302
 		MINVALUE 1
 		MAXVALUE 9223372036854775807
 		CACHE 1;
 
-	ALTER SEQUENCE live_network.seq_node_pk
+	ALTER SEQUENCE live_network.seq_nodes_pk
 		OWNER TO bodastage;
 
-	COMMENT ON SEQUENCE live_network.seq_node_pk
+	COMMENT ON SEQUENCE live_network.seq_nodes_pk
 		IS 'Generates the node pk';
 		
 	-- seq_relations_pk
@@ -337,6 +338,41 @@ psql -v ON_ERROR_STOP=1 --username "bodastage" -d bts  <<-EOSQL
 	ALTER TABLE live_network.vw_relations
 		OWNER TO bodastage;
 
+
+-- View: live_network.vw_nodes
+
+-- DROP VIEW live_network.vw_nodes;
+
+CREATE OR REPLACE VIEW live_network.vw_nodes AS
+ SELECT t1.pk AS id,
+    t1.name AS nodename,
+    t1.type,
+    t2.name AS technology,
+    t3.name AS vendor,
+    t1.date_added
+   FROM live_network.nodes t1
+     JOIN technologies t2 ON t2.pk = t1.tech_pk
+     JOIN vendors t3 ON t3.pk = t1.vendor_pk;
+
+ALTER TABLE live_network.vw_nodes
+    OWNER TO bodastage;
+
+	
+-- View: live_network.vw_sites
+
+-- DROP VIEW live_network.vw_sites;
+
+CREATE OR REPLACE VIEW live_network.vw_sites AS
+ SELECT t1.name,
+    t2.name AS technology,
+    t3.name AS vendor,
+    t1.date_added
+   FROM live_network.sites t1
+     JOIN technologies t2 ON t2.pk = t1.tech_pk
+     JOIN vendors t3 ON t3.pk = t1.vendor_pk;
+
+ALTER TABLE live_network.vw_sites
+    OWNER TO bodastage;
 
 
 
