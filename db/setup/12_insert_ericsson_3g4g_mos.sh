@@ -698,7 +698,7 @@ COPY managedobjects (pk, added_by, date_added, date_modified, label, modified_by
 
 
 -- Manually added to reset the seq start value
-ALTER SEQUENCE live_network.seq_node_pk RESTART WITH 601;
+ALTER SEQUENCE seq_managedobjects_pk RESTART WITH 601;
 
 -- Completed on 2017-12-28 11:19:59
 

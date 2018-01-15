@@ -239,7 +239,7 @@ CREATE SEQUENCE public.seq_users_pk
     MAXVALUE 9223372036854775807
     CACHE 1;
 
-ALTER SEQUENCE public.seq_users
+ALTER SEQUENCE public.seq_users_pk
     OWNER TO bodastage;
 	
 -- -------------------------------

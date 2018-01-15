@@ -7,7 +7,6 @@ import json
 class Utils(object):
     """Utility class"""
 
-
     def __init__(self, dbname = None, dbuser = None, dbpass = None, dbhost = None):
         """ Constructor for this class. """
 
