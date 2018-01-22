@@ -214,6 +214,134 @@ COMMENT ON COLUMN live_network.nodes.tech_pk
 	ALTER TABLE live_network.umts_cells_data
 		OWNER to bodastage;
 		
+	
+	-- --------------------------------------------------------------------------------
+-- Table: live_network.gsm_cells_data
+
+-- DROP TABLE live_network.gsm_cells_data;
+
+CREATE TABLE live_network.gsm_cells_data
+(
+    pk bigint NOT NULL,
+    name character varying(200) COLLATE pg_catalog."default",
+    cell_pk bigint,
+    bcc integer,
+    ncc integer,
+    bsic character varying(5) COLLATE pg_catalog."default",
+    bcch integer,
+    lac bigint,
+    latitude double precision,
+    longitude double precision,
+    cgi character varying(200) COLLATE pg_catalog."default",
+    azimuth integer,
+    height integer,
+    mechanical_tilt integer,
+    electrical_tilt integer,
+    hsn integer,
+    hopping_type character varying(100) COLLATE pg_catalog."default",
+    tch_carriers character varying(255)[] COLLATE pg_catalog."default",
+    CONSTRAINT gsm_cells_data_pkey PRIMARY KEY (pk)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE live_network.gsm_cells_data
+    OWNER to bodastage;
+	
+    -----------------------------------------------------------------------------------
+-- Table: live_network.lte_cells_data
+
+-- DROP TABLE live_network.lte_cells_data;
+
+CREATE TABLE live_network.lte_cells_data
+(
+    pk bigint NOT NULL,
+    name character varying(100) COLLATE pg_catalog."default",
+    cell_pk bigint,
+    pci bigint,
+    uarfcn_dl bigint,
+    uarfcn_ul bigint,
+    tac bigint,
+    ecgi character varying(200) COLLATE pg_catalog."default",
+    rach_root_sequence character varying(100) COLLATE pg_catalog."default",
+    max_tx_power integer,
+    latitude double precision,
+    longitude double precision,
+    ta_mode character varying(50) COLLATE pg_catalog."default",
+    ta integer,
+    tx_elements integer,
+    rx_elements integer,
+    azimuth integer,
+    height integer,
+    mechanical_tilt integer,
+    electrical_tilt integer,
+    CONSTRAINT lte_cells_data_pkey PRIMARY KEY (pk)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE live_network.lte_cells_data
+    OWNER to bodastage;
+	-----------------------------------------------------------------------------------
+-- Table: live_network.umts_external_cells
+
+-- DROP TABLE live_network.umts_external_cells;
+
+CREATE TABLE live_network.umts_external_cells
+(
+    pk bigint NOT NULL,
+    cell_name character varying(200) COLLATE pg_catalog."default",
+    cell_pk bigint,
+    rac integer,
+    lac integer,
+    primary_cpich_power integer,
+    secondary_cpich_power integer,
+    uarfcn_dl integer,
+    uarfcn_ul integer,
+    mnc integer,
+    mcc integer,
+    rnc_id integer,
+    ci integer,
+    CONSTRAINT umts_external_cells_pkey PRIMARY KEY (pk)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE live_network.umts_external_cells
+    OWNER to bodastage;
+	-----------------------------------------------------------------------------------
+-- Table: live_network.gsm_external_cells
+
+-- DROP TABLE live_network.gsm_external_cells;
+
+CREATE TABLE live_network.gsm_external_cells
+(
+    pk bigint NOT NULL,
+    cell_name character varying(200) COLLATE pg_catalog."default",
+    cell_pk bigint,
+    node_pk bigint,
+    mcc integer,
+    mnc integer,
+    lac integer,
+    bcch integer,
+    ncc integer,
+    bcc integer,
+    ci integer,
+    CONSTRAINT gsm_externals_pkey PRIMARY KEY (pk)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE live_network.gsm_external_cells
+    OWNER to bodastage;
 	-- --------------------------------------------------------------------------------
 	CREATE SEQUENCE live_network.seq_base_line_values_pk
 		INCREMENT 1
@@ -282,6 +410,61 @@ COMMENT ON COLUMN live_network.nodes.tech_pk
 		CACHE 1;
 
 	ALTER SEQUENCE live_network.seq_umts_cells_data_pk
+		OWNER TO bodastage;
+		
+	-- seq_gsm_cells_data_pk
+	CREATE SEQUENCE live_network.seq_gsm_cells_data_pk
+		INCREMENT 1
+		START 1
+		MINVALUE 1
+		MAXVALUE 9223372036854775807
+		CACHE 1;
+
+	ALTER SEQUENCE live_network.seq_gsm_cells_data_pk
+		OWNER TO bodastage;
+		
+    -- seq_lte_cells_data
+	CREATE SEQUENCE live_network.seq_lte_cells_data
+		INCREMENT 1
+		START 1
+		MINVALUE 1
+		MAXVALUE 9223372036854775807
+		CACHE 1;
+
+	ALTER SEQUENCE live_network.seq_lte_cells_data
+		OWNER TO bodastage;
+	
+	-- seq_gsm_external_cells_pk
+	CREATE SEQUENCE live_network.seq_gsm_external_cells_pk
+		INCREMENT 1
+		START 1
+		MINVALUE 1
+		MAXVALUE 9223372036854775807
+		CACHE 1;
+
+	ALTER SEQUENCE live_network.seq_gsm_external_cells_pk
+		OWNER TO bodastage;
+		
+	-- seq_gsm_external_cells_pk
+	CREATE SEQUENCE live_network.seq_gsm_external_cells_pk
+		INCREMENT 1
+		START 1
+		MINVALUE 1
+		MAXVALUE 9223372036854775807
+		CACHE 1;
+
+	ALTER SEQUENCE live_network.seq_gsm_external_cells_pk
+		OWNER TO bodastage;
+
+    -- seq_umts_external_cells_pk
+	CREATE SEQUENCE live_network.seq_umts_external_cells_pk
+		INCREMENT 1
+		START 1
+		MINVALUE 1
+		MAXVALUE 9223372036854775807
+		CACHE 1;
+
+	ALTER SEQUENCE live_network.seq_umts_external_cells_pk
 		OWNER TO bodastage;
 		
 	-- ------------------------------------------------------
@@ -413,4 +596,80 @@ CREATE OR REPLACE VIEW live_network.vw_umts_cell_data AS
 ALTER TABLE live_network.vw_umts_cell_data
     OWNER TO bodastage;
 
+-- View: live_network.vw_lte_cells_data
+
+-- DROP VIEW live_network.vw_lte_cells_data;
+
+CREATE OR REPLACE VIEW live_network.vw_lte_cells_data AS
+ SELECT lte_cells_data.pk,
+    lte_cells_data.name,
+    lte_cells_data.cell_pk,
+    lte_cells_data.pci,
+    lte_cells_data.uarfcn_dl,
+    lte_cells_data.uarfcn_ul,
+    lte_cells_data.tac,
+    lte_cells_data.ecgi,
+    lte_cells_data.rach_root_sequence,
+    lte_cells_data.max_tx_power,
+    lte_cells_data.latitude,
+    lte_cells_data.longitude,
+    lte_cells_data.ta_mode,
+    lte_cells_data.ta,
+    lte_cells_data.tx_elements,
+    lte_cells_data.rx_elements,
+    lte_cells_data.azimuth,
+    lte_cells_data.height,
+    lte_cells_data.mechanical_tilt,
+    lte_cells_data.electrical_tilt
+   FROM live_network.lte_cells_data;
+
+ALTER TABLE live_network.vw_lte_cells_data
+    OWNER TO bodastage;
+
+
+-- ----------------------------------------
+-- View: live_network.vw_gsm_external_cells
+
+-- DROP VIEW live_network.vw_gsm_external_cells;
+
+CREATE OR REPLACE VIEW live_network.vw_gsm_external_cells AS
+ SELECT gsm_external_cells.pk,
+    gsm_external_cells.cell_name,
+    gsm_external_cells.cell_pk,
+    gsm_external_cells.node_pk,
+    gsm_external_cells.mcc,
+    gsm_external_cells.mnc,
+    gsm_external_cells.lac,
+    gsm_external_cells.bcch,
+    gsm_external_cells.ncc,
+    gsm_external_cells.bcc,
+    gsm_external_cells.ci
+   FROM live_network.gsm_external_cells;
+
+ALTER TABLE live_network.vw_gsm_external_cells
+    OWNER TO bodastage;
+
+
+-- ----------------------------------------
+-- View: live_network.vw_sites
+
+-- DROP VIEW live_network.vw_sites;
+
+CREATE OR REPLACE VIEW live_network.vw_sites AS
+ SELECT t1.pk AS id,
+    t1.name,
+    t4.name AS node,
+    t2.name AS technology,
+    t3.name AS vendor,
+    t1.date_added
+   FROM live_network.sites t1
+     LEFT JOIN live_network.nodes t4 ON t4.pk = t1.node_pk
+     JOIN technologies t2 ON t2.pk = t1.tech_pk
+     JOIN vendors t3 ON t3.pk = t1.vendor_pk;
+
+ALTER TABLE live_network.vw_sites
+    OWNER TO bodastage;
+
+
+	
 EOSQL

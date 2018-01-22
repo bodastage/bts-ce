@@ -69,6 +69,38 @@ TABLESPACE pg_default;
 ALTER TABLE network_audit.audit_rules
     OWNER to bodastage;
 	
+-- ------------------------------------------------
+-- Table: network_audit.baseline_parameter_discrepancies
+
+-- DROP TABLE network_audit.baseline_parameter_discrepancies;
+
+CREATE TABLE network_audit.baseline_parameter_discrepancies
+(
+    pk bigint NOT NULL,
+    pseudo_parameter character varying(200) COLLATE pg_catalog."default",
+    managed_object character varying(200) COLLATE pg_catalog."default",
+    vendor_parameter character varying(200) COLLATE pg_catalog."default",
+    network_value character varying(200) COLLATE pg_catalog."default",
+    baseline_value character varying(200) COLLATE pg_catalog."default",
+    vendor character varying(200) COLLATE pg_catalog."default",
+    technology character varying(200) COLLATE pg_catalog."default",
+    date_added date,
+    added_by integer,
+    date_modified date,
+    modified_by integer,
+    node_name character varying(200) COLLATE pg_catalog."default",
+    site_name character varying(200) COLLATE pg_catalog."default",
+    cell_name character varying(200) COLLATE pg_catalog."default",
+    CONSTRAINT baseline_parameter_discrepancies_pkey PRIMARY KEY (pk)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE network_audit.baseline_parameter_discrepancies
+    OWNER to bodastage;
+	
 -- ------------------------
 CREATE SEQUENCE network_audit.seq_audit_categories_pk
     INCREMENT 1
@@ -88,5 +120,16 @@ CREATE SEQUENCE network_audit.seq_audit_rules_pk
     CACHE 1;
 
 ALTER SEQUENCE network_audit.seq_audit_rules_pk
+    OWNER TO bodastage;
+	
+-- ------------------------------
+CREATE SEQUENCE network_audit.seq_baseline_parameter_discrepancies_pk
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    CACHE 1;
+
+ALTER SEQUENCE network_audit.seq_baseline_parameter_discrepancies_pk
     OWNER TO bodastage;
 EOSQL

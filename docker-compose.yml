@@ -1,47 +1,54 @@
 version: "3"
 services:
-    docker-bts-cache:
-        image: redis:latest
-        deploy:
-        replicas: 1
-        restart: always
-    docker-bts-api:
-        image: bodastage/bts-api
+    bts-api:
+        image: bodastage/bts-ce-api-server
         ports:
-          - "8080:80"
+          - 8181:8181
         restart: always
-        networks:
-          - host
-    docker-bts-web:
-        image: nginx:alpine
+        volumes:
+          - ./bts-api:/app
+        depends_on: 
+            - bts-database
+        links:
+          - "bts-database:database"
+        network_mode: "bridge"
+        container_name: "bts-api"
+    bts-web:
+        image: nginx:latest
         ports:
           - "80:80"
         volumes:
-            - $(pwd)/www:/usr/share/nginx/html
-        networks:
-          - host
-    docker-bts-mediation:
+          - ./www:/usr/share/nginx/html
+        network_mode: "bridge"
+        container_name: "bts-web"
+    bts-database:
+        image: postgres:latest
+        restart: always
+        environment:
+          - POSTGRES_PASSWORD=password
+        volumes:
+            - C:/Bodastage/BTS-CE/db/setup:/docker-entrypoint-initdb.d
+        ports:
+            - "5432:5432"
+        network_mode: "bridge"
+        container_name: "bts-database"
+    bts-mediation:
         image: bodastage/bts-mediation
         restart: always
         ports:
-          - "3141:8080"
+          - "8080:8080"
         environment:
-            POSTGRES_HOST: $(docker-machine ip)
+            - POSTGRES_HOST=database
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgres+psycopg2://airflow:airflow@database:5432/airflow
+            - LOAD_EX=n
+            - EXECUTOR=Local
         volumes:
-           - $(pwd)/dags:/usr/local/airflow/dags
-           - $(pwd)/logs:/usr/local/airflow/logs
-           - $(pwd)/mediation:/mediation
-        networks:
-          - host
-    docker-bts-database:
-        image: postgres:9.6
-        restart: always
-        environment:
-          POSTGRES_PASSWORD: password
-        volumes:
-            - $(pwd)/db/setup:/docker-entrypoint-initdb.d
-            - $(pwd)/db/data:/var/lib/postgresql/data
-        ports:
-            - "5432:5432"
-        networks:
-          - bts-net
+           - ./mediation/dags:/usr/local/airflow/dags
+           - ./mediation:/mediation
+        command: webserver
+        depends_on: 
+           - bts-database
+        network_mode: "bridge"
+        container_name: "bts-mediation"
+        links:
+            - "bts-database:database"
