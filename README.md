@@ -1,8 +1,8 @@
-# Boda Telecom Suite Commuty Edition
+## Boda Telecom Suite Commuty Edition
 
 Boda Telecom Suite Commuty Edition - An open source telecommunication management platform
 
-# Requirements 
+## Requirements 
 
 * 4GB memory
 * 64 bit OS
@@ -10,12 +10,12 @@ Boda Telecom Suite Commuty Edition - An open source telecommunication management
 * 5GB Hard disk space
 * Latest Web Browser
 
-# Deployment
+## Deployment
 
-## Windows
+### Windows
 * Download latest release files from https://github.com/bodastage/bts-ce/releases
 * Unzip them to Drive:/Bodastage
-* Launch cmd as an Administrator
+* Launch the windows command line terminal as an administrator
 * Move to Drive:/Bodastage/bts-ce
   ```batch 
   > cd  Drive:/Bodastage/bts-ce
@@ -24,9 +24,11 @@ Boda Telecom Suite Commuty Edition - An open source telecommunication management
   ```batch 
   > bts setup
   ```
+  > 
+  
 * Access application at http://localhost from the supported browsers
 
-# Support Web Browsers
+## Supported Web Browsers
 
 | Desktop Browsers | Tablets |  Phones |
 | -------- | ------- | ----------- |
@@ -35,5 +37,5 @@ Boda Telecom Suite Commuty Edition - An open source telecommunication management
 | Microsoft Edge |  |  |
 | Firefox 27+ | | |
 
-# Copyright / License
+## Copyright / License
 Copyright 2017 - 2018 Bodastage Solutions

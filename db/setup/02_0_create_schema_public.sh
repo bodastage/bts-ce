@@ -8,39 +8,56 @@ psql -v ON_ERROR_STOP=1 --username "bodastage" -d bts  <<-EOSQL
 
 CREATE SCHEMA airflow;
 
--- Users table 
--- Table: public.users
 
--- DROP TABLE public.users;
-
-CREATE TABLE public.users
-(
+CREATE TABLE users (
     pk bigint NOT NULL,
-    password character varying(60) COLLATE pg_catalog."default",
-    username character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    password character varying(60),
+    username character varying(255) NOT NULL,
     enabled smallint,
-    token character varying(255) COLLATE pg_catalog."default",
+    token character varying(255),
     is_account_non_expired boolean DEFAULT true,
     is_account_non_locked boolean DEFAULT true,
     is_credentials_non_expired boolean DEFAULT true,
     is_enabled boolean DEFAULT true,
-    first_name character varying(255) COLLATE pg_catalog."default",
-    last_name character varying(255) COLLATE pg_catalog."default",
-    other_names character varying(255) COLLATE pg_catalog."default",
-    job_title character varying(255) COLLATE pg_catalog."default",
-    phone_number character varying(255) COLLATE pg_catalog."default",
-    photo text COLLATE pg_catalog."default",
-    CONSTRAINT users_pkey PRIMARY KEY (pk),
-    CONSTRAINT uk_r43af9ap4edm43mmtq01oddj6 UNIQUE (username)
-)
-WITH (
-    OIDS = FALSE
-)
-TABLESPACE pg_default;
+    first_name character varying(255),
+    last_name character varying(255),
+    other_names character varying(255),
+    job_title character varying(255),
+    phone_number character varying(255),
+    photo text
+);
 
-ALTER TABLE public.users
-    OWNER to bodastage;
-	
+
+ALTER TABLE users OWNER TO bodastage;
+
+--
+-- TOC entry 18038 (class 0 OID 16389)
+-- Dependencies: 224
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: bodastage
+--
+
+COPY users (pk, password, username, enabled, token, is_account_non_expired, is_account_non_locked, is_credentials_non_expired, is_enabled, first_name, last_name, other_names, job_title, phone_number, photo) FROM stdin;
+1	password	user@bts.bodastage.org	1	12345678912345678	t	t	t	t	Bodastage	Solutions	Boda Telecom Suite - CE	RF Engineer	+0000	\N
+\.
+
+
+--
+-- TOC entry 17905 (class 2606 OID 16402)
+-- Name: users uk_r43af9ap4edm43mmtq01oddj6; Type: CONSTRAINT; Schema: public; Owner: bodastage
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT uk_r43af9ap4edm43mmtq01oddj6 UNIQUE (username);
+
+
+--
+-- TOC entry 17907 (class 2606 OID 16400)
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: bodastage
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (pk);
+-- -----------------------------------------------------------------------------------------------------
 -- Vendors
 	-- Table: public.vendors
 
@@ -230,6 +247,8 @@ CREATE SEQUENCE public.seq_vendors_pk
 
 ALTER SEQUENCE public.seq_vendors_pk
     OWNER TO bodastage;
+	
+ALTER SEQUENCE seq_users_pk RESTART WITH 2;
 	
 -- -----------------------------
 CREATE SEQUENCE public.seq_users_pk

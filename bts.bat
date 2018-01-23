@@ -44,7 +44,7 @@ Rem -------------------------
 If "%~1"=="setup" ( 
     Echo Running BTS-CE setup...
 	Echo. 
-	Powershell win\Setup.ps1
+	Powershell -ExecutionPolicy ByPass -File win\Setup.ps1
 )
 
 Rem start 
