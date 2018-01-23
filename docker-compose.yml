@@ -18,7 +18,7 @@ services:
         ports:
           - "80:80"
         volumes:
-          - ./www:/usr/share/nginx/html
+          - ./web:/usr/share/nginx/html
         network_mode: "bridge"
         container_name: "bts-web"
     bts-database:
