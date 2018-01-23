@@ -1,0 +1,14 @@
+flask
+psycopg2
+marshmallow
+sqlalchemy
+flask-sqlalchemy
+flask-jsontools
+flask-marshmallow
+marshmallow-sqlalchemy
+flask-bcrypt
+flask-testing
+flask-cors
+sqlalchemy-datatables
+flask-login
+blinker
