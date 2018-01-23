@@ -133,7 +133,7 @@ If( $IsVirtualBoxInstalled -eq "True" ){
 	}
 
 }else{
-	Write-Host "Download and installed Oracle VirtualBox from https://www.virtualbox.org/wiki/Downloads and run the setup again"
+	Write-Host "Download and install Oracle VirtualBox from https://www.virtualbox.org/wiki/Downloads and run the setup again"
 	Write-Host ""
 }
 

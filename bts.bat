@@ -64,11 +64,11 @@ If "%~1"=="status" (
 
 Rem restart 
 Rem -------------------------
-If "%~1"=="start" ( 
+If "%~1"=="restart" ( 
     docker-compose restart
 )
 
-Rem restart 
+Rem version 
 Rem -------------------------
 If "%~1"=="version" ( 
     Echo Version: 1.0.0

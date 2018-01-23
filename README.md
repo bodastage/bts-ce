@@ -1,4 +1,4 @@
-## Boda Telecom Suite Commuty Edition
+## Boda Telecom Suite Commuty Edition (BTS-CE)
 
 Boda Telecom Suite Commuty Edition - An open source telecommunication management platform
 
@@ -6,9 +6,9 @@ Boda Telecom Suite Commuty Edition - An open source telecommunication management
 
 * 4GB memory
 * 64 bit OS
-* Docker
-* 5GB Hard disk space
-* Latest Web Browser
+* [Docker](https://www.docker.com/get-docker)
+* 5GB hard disk space
+* Latest web browser
 
 ## Deployment
 
@@ -26,7 +26,7 @@ Boda Telecom Suite Commuty Edition - An open source telecommunication management
   ```
   > 
   
-* Access application at http://localhost from the supported browsers
+* Access application at http://localhost from a supported browsers
 
 
 ## Supported Web Browsers
@@ -38,5 +38,10 @@ Boda Telecom Suite Commuty Edition - An open source telecommunication management
 | Microsoft Edge |  |  |
 | Firefox 27+ | | |
 
+## Resources
+
+* [Communtiy Forum at TelecomHall.net](http://telecomHall.net)
+* [Online Documentation](http://bts.bodastage.org)
+
 ## Copyright / License
-Copyright 2017 - 2018 Bodastage Solutions
+Copyright 2017 - 2018 [Bodastage Solutions](http://www.bodastage.com)
