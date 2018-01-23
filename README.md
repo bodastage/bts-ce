@@ -28,6 +28,7 @@ Boda Telecom Suite Commuty Edition - An open source telecommunication management
   
 * Access application at http://localhost from the supported browsers
 
+
 ## Supported Web Browsers
 
 | Desktop Browsers | Tablets |  Phones |
