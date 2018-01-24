@@ -97,6 +97,28 @@ If( $IsVTSupportedAndEnabled -eq $Null -and $IsHyperVFeatureAvailable -eq $Null)
 # Let's setup HyperV 
 if ( $UseHyperVDriver -eq $True ){
 
+	#Download and install Docker for Windows
+	$DockerForWindowsURI = "https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe"
+	$DFWInstaller = $ScriptDir + "\" + "Docker for Windows Installer.exe"
+	Write-Host "Downloading Docker for Windows..."
+	(New-Object System.Net.WebClient).DownloadFile($DockerForWindowsURI, $DFWInstaller)
+	if($LastExitCode -ne 0){
+		Write-Host "Failed."
+		Write-Host -NoNewline "Check your network connectivity"
+		Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe"
+		Write-Host ""
+		Exit 1
+	}else{
+		Write-Host "Completed."
+		Write-Host ""
+	}
+	
+	#Install Docker for Windows
+	Write-Host -NoNewline "Installing Docker for Windows..."
+	Start-Process -wait -FilePath $DFWInstaller -ArgumentList "/VERYSILENT LOG $ScriptDir+'\DockerForWindows.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
+	# @TODO: Check status of installation before continuing
+	Write-Host "Done"
+	
 	# Create virtual Switches
 	Import-Module Hyper-V
 
@@ -109,10 +131,13 @@ if ( $UseHyperVDriver -eq $True ){
 	New-VMSwitch -Name BTSWiFiExternalSwitch -NetAdapterName $wifi.Name -AllowManagementOS $true -Notes 'Parent OS, VMs, wifi'
 
 	New-VMSwitch -Name BTSPrivateSwitch -SwitchType Private -Notes 'Internal VMs only'
-	
+
 	# Create docker machine 
 	# @TODO: Attach to the interface with a connection. For now, use the WiFiExternalSwitch
+	Write-Host -NoNewline "Creating docker-machine..."
 	docker-machine create -d hyperv -hyper-virtual-switch "BTSWiFiExternalSwitch" default
+	Write-Host "Done"
+	Write-Host ""
 	
 	# Create the containers 
 	Write-Host "Creating and starting containers..."
@@ -125,7 +150,7 @@ if ( $UseHyperVDriver -eq $True ){
 
 
 $InstallVB = $False
-# Let's use Oracle VirtualBox 
+# Let's use Oracle VirtualBox if HyperV can't be used
 if( $UseHyperVDriver -eq $False ){
 	
 	# Check if VB is already intallled 
@@ -140,10 +165,18 @@ if( $UseHyperVDriver -eq $False ){
 	Write-Host ""
 }
 
+
+<# 
+
+Docker Toolbox automatically install virtualbox so this section is not needed
+
 # Install Oracle VirtualBox
 If($InstallVB -eq $True){
-	$fileURI = 'https://download.virtualbox.org/virtualbox/5.2.6/VirtualBox-5.2.6-120293-Win.exe';
-	$outputFile = $ScriptDir+"\OracleVirtualBox.exe"
+	$VBVersion="5.2.6"
+	$VBRevision="120293"
+	$VBInstaller="VirtualBox-"+$VBVersion+"-"+$VBRevision+"-Win.exe"
+	$fileURI = "https://download.virtualbox.org/virtualbox/"+$VBVersion+"/" + $VBInstaller
+	$outputFile = $ScriptDir+"\"+$VBInstaller
 	
 	Write-Host "Downloading Oracle VirtualBox from https://www.virtualbox.org..."
 	(New-Object System.Net.WebClient).DownloadFile($fileURI, $outputFile)
@@ -157,84 +190,57 @@ If($InstallVB -eq $True){
 		Write-Host "Download completed."
 	}
 	
-	#Install VirtualBox
-	
-}
-
-Exit 0
-
-
-# Check if docker is installed 
-$IsDockerInstalled = (docker version 2>&1 | Select-String "Version" | Measure-Object -Line | Select @{N="Installed"; E={$_.Lines -gt 0}} ).Installed
-
-If( $IsDockerInstalled -ne $True ){
-	Write-Host "Docker is not installed"
-	Write-Host "Download Docker for Windows from https://store.docker.com/editions/community/docker-ce-desktop-windows"
-    Exit 1
-}
-
-# Add docker version to setup.log
-docker version 2>&1 1> $BTSDir"\setup.log"
-
-# Start Docker service if it is not running 
-$StartStatus = StartService("*Docker*")
-
-if( $StartStatus -eq "-1"){
-    Write-Host "Docker service does not exits"
-	Write-Host "Download the lastest Docker installer for Windows from https://store.docker.com/editions/community/docker-ce-desktop-windows"
+	# Install VirtualBox
+	Write-Host -NoNewline "Installing Oracle VirtualBox..."
+	Start-Process -wait -FilePath $outputFile -ArgumentList "--extract --silent"
+	Start-Process msiexec.exe -ArgumentList "/i  $($Env:Temp + "\VirtualBox\VirtualBox-" + $VBVersion + '-r' + $VBRevision + '-MultiArch_amd64.msi') /passive /norestart" -Wait
+	Remove-Item –path $($Env:Temp + "\VirtualBox") -recurse
+	Write-Host "Done"
 	Write-Host ""
-	Exit 1
-}
+}#>
 
-
-Write-Host "Should we continue the deployment with Oracle VirtualBox or wait for Microsoft Hyper-V to be installed?[y]"
-$UseVirtualBox = read-host " y-continude with Oracle VirtualBox installation, n-Wait for Hyper-V to be installed"
-Write-Host ""
-if( $UseVirtualBox -eq "y" -Or $UseVirtualBox -eq "Y" -Or $UseVirtualBox -eq ""){
-    Write-Host "Continuing deployment using Oracle VirtualBox..."
-	Write-Host ""
-}else{
-    Write-Host "Install Microsoft-Hyper-V and run the setup again"
-	Write-Host ""
-    Exit 1
-}
-
-
-Write-Host "Checking whether Oracle VirtualBox is installed..."
-
-# Check if VirtualBox is istalled
-$IsVirtualBoxInstalled = Is-Installed("VirtualBox")
-
-If( $IsVirtualBoxInstalled -eq "True" ){
-    Write-Host "Oracle VirtualBox is installed."
+# Install Docker toolbox
+# First check if Docker tookbox is already instead 
+Write-Host -NoNewline "Checking if Docker Toolbox is installed..."
+$IsDockerToolBoxInstalled = Is-Installed("Docker Toolbox")
+if($IsDockerToolBoxInstalled -eq $False){
+	Write-Host "Not Installed"
 	Write-Host ""
 	
-	Write-Host "Checking whether default machine exists..."
+	# Download and Install Docker Toolbox
+	$DockerToolboxURI = "https://download.docker.com/win/stable/DockerToolbox.exe"
+	$DockerToolboxInstaller = $ScriptDir + "\" + "DockerToolbox.exe"
+	Write-Host "Downloading Docker Toolbox..."
+	(New-Object System.Net.WebClient).DownloadFile($DockerToolboxURI, $DockerToolboxInstaller)
 	
-    # Check if default docker-machine exists
-	$DockerMachineExist = (docker-machine ls | Select-String "default" | Measure-Object -Line | Select @{N="Exists"; E={$_.Lines -gt 0}} ).Exists
-	
-	if( $DockerMachineExist -eq  "True" ){
-	    Write-Host "Default Docker machine exists"
+	if($LastExitCode -ne 0){
+		Write-Host "Failed."
+		Write-Host -NoNewline "Check your network connectivity"
+		Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/DockerToolbox.exe"
 		Write-Host ""
-		
-		Write-Host "Creating and starting up BTS-CE services..."
-		docker-compose -d up  2>$null
-		
-		if( $LastExitCode -eq 0 ){
-			Write-Host "BTS-CE successfully deployed and started."
-			Write-Host ""
-		}else{
-		    Write-Host "B1TS-CE deployment failed. Contact support at TelecomHall.net"
-			Write-Host ""
-			Exit 1
-		}
-		
+		Exit 1
+	}else{
+		Write-Host "Completed."
+		Write-Host ""
 	}
-
+	
+	#Install Docker ToolBox
+	Write-Host -NoNewline "Installing Docker Toolbox..."
+	Start-Process -wait -FilePath $DockerToolboxInstaller -ArgumentList "/VERYSILENT LOG $ScriptDir+'\DockerToolbox.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
+	Write-Host "Done"
+	
+    # Create docker machine 
+	Write-Host "Creating default docker-machine..."
+	docker-machine create -d virtualbox default
+	Write-Host "Done"
+	Write-Host ""
+	
+	# Create the containers 
+	Write-Host "Creating and starting containers..."
+    docker-compose up -d
+	
+	Write-Host "Setup completed"
 }else{
-	Write-Host "Download and install Oracle VirtualBox from https://www.virtualbox.org/wiki/Downloads and run the setup again"
+	Write-Host "Installed"
 	Write-Host ""
 }
-
-
