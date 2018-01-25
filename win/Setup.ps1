@@ -36,7 +36,7 @@ Write-Host ""
 
 Write-Host  -NoNewline "Checking whether Microsoft Hyper-V is available and enabled..."
 # Enable : Feature is enable , Disabled: Featrue is disabled, "":Feature is not available
-$IsHyperVFeatureAvailable = (Get-WindowsOptionalFeature -FeatureName "Microsoft-Hyper-V" -Online).State
+$IsHyperVFeatureAvailable = (Get-WindowsOptionalFeature -FeatureName "Microsoft-Hyper-V" -Online).State -eq "Enabled"
 Write-host -NoNewline $(If ($IsHyperVFeatureAvailable -ne $True -and $IsHyperVFeatureAvailable -ne $False) {"Not available"} ) 
 Write-host -NoNewline $(If ($IsHyperVFeatureAvailable -eq $True) {"Enabled"} ElseIf ($IsHyperVFeatureAvailable -eq $False){"Disabled" } ) 
 Write-Host ""
@@ -104,7 +104,7 @@ if ( $UseHyperVDriver -eq $True ){
 	(New-Object System.Net.WebClient).DownloadFile($DockerForWindowsURI, $DFWInstaller)
 	if($LastExitCode -ne 0){
 		Write-Host "Failed."
-		Write-Host -NoNewline "Check your network connectivity"
+		Write-Host -NoNewline "Check your network connectivity. "
 		Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe"
 		Write-Host ""
 		Exit 1
@@ -149,6 +149,12 @@ if ( $UseHyperVDriver -eq $True ){
 }
 
 
+
+
+
+<# 
+# Docker Toolbox automatically install virtualbox so this section is not needed
+
 $InstallVB = $False
 # Let's use Oracle VirtualBox if HyperV can't be used
 if( $UseHyperVDriver -eq $False ){
@@ -165,11 +171,6 @@ if( $UseHyperVDriver -eq $False ){
 	Write-Host ""
 }
 
-
-<# 
-
-Docker Toolbox automatically install virtualbox so this section is not needed
-
 # Install Oracle VirtualBox
 If($InstallVB -eq $True){
 	$VBVersion="5.2.6"
@@ -182,7 +183,7 @@ If($InstallVB -eq $True){
 	(New-Object System.Net.WebClient).DownloadFile($fileURI, $outputFile)
 	
 	if($LastExitCode -ne 0){
-		Write-Host "Download failed. Check your network connectivity"
+		Write-Host "Download failed. Check your network connectivity. "
 		Write-Host "Or download and install Oracle VirtualBox from https://download.virtualbox.org/"
 		Write-Host ""
 		Exit 1
@@ -210,12 +211,12 @@ if($IsDockerToolBoxInstalled -eq $False){
 	# Download and Install Docker Toolbox
 	$DockerToolboxURI = "https://download.docker.com/win/stable/DockerToolbox.exe"
 	$DockerToolboxInstaller = $ScriptDir + "\" + "DockerToolbox.exe"
-	Write-Host "Downloading Docker Toolbox..."
+	Write-Host -NoNewline "Downloading Docker Toolbox..."
 	(New-Object System.Net.WebClient).DownloadFile($DockerToolboxURI, $DockerToolboxInstaller)
 	
 	if($LastExitCode -ne 0){
 		Write-Host "Failed."
-		Write-Host -NoNewline "Check your network connectivity"
+		Write-Host -NoNewline "Check your network connectivity. "
 		Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/DockerToolbox.exe"
 		Write-Host ""
 		Exit 1
