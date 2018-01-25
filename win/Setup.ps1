@@ -121,13 +121,10 @@ if ( $UseHyperVDriver -eq $True ){
 	# Create virtual Switches
 	Import-Module Hyper-V
 
-	$ethernet = Get-NetAdapter -Name ethernet
+	# Get active network connection by taking the first active physical interface
+	$activeInterfeceName = $(Get-NetAdapter -physical  | where status -eq 'up' | Select-Object -first 1).Name
 
-	$wifi = Get-NetAdapter -Name wi-fi
-
-	New-VMSwitch -Name BTSEthExternalSwitch -NetAdapterName $ethernet.Name -AllowManagementOS $true -Notes 'Parent OS, VMs, LAN'
-
-	New-VMSwitch -Name BTSWiFiExternalSwitch -NetAdapterName $wifi.Name -AllowManagementOS $true -Notes 'Parent OS, VMs, wifi'
+	New-VMSwitch -Name BTSExternalSwitch -NetAdapterName $activeInterfeceName -AllowManagementOS $true -Notes 'BTS External Switch'
 
 	New-VMSwitch -Name BTSPrivateSwitch -SwitchType Private -Notes 'Internal VMs only'
 
