@@ -27,7 +27,7 @@ services:
         environment:
           - POSTGRES_PASSWORD=password
         volumes:
-            - C:/Bodastage/BTS-CE/db/setup:/docker-entrypoint-initdb.d
+            - ./db/setup:/docker-entrypoint-initdb.d
         ports:
             - "5432:5432"
         network_mode: "bridge"

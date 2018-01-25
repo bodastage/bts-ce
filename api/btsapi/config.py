@@ -8,7 +8,8 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 # Define the database - we are working with
 # SQLite for this example
 #SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
-SQLALCHEMY_DATABASE_URI = 'postgresql://bodastage:password@192.168.99.100/bts'
+# SQLALCHEMY_DATABASE_URI = 'postgresql://bodastage:password@192.168.99.100/bts'
+SQLALCHEMY_DATABASE_URI = 'postgresql://bodastage:password@database/bts'
 DATABASE_CONNECT_OPTIONS = {}
 
 # Disable migration creation

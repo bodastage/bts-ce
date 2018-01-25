@@ -127,7 +127,16 @@ if ( $UseHyperVDriver -eq $True ){
 	New-VMSwitch -Name BTSExternalSwitch -NetAdapterName $activeInterfeceName -AllowManagementOS $true -Notes 'BTS External Switch'
 
 	New-VMSwitch -Name BTSPrivateSwitch -SwitchType Private -Notes 'Internal VMs only'
+	
+	Try{
+		# Add Docker env variables to powershell
+		(docker-machine env --shell=powershell "default") | Invoke-Expression
+	}catch{
+	    Write-Host "Docker commands in path. It may not be installed"
+		Exit 1
+	}
 
+	
 	# Create docker machine 
 	Write-Host -NoNewline "Creating docker-machine..."
 	docker-machine create -d hyperv -hyper-virtual-switch "BTSExternalSwitch" default
@@ -236,6 +245,8 @@ if($IsDockerToolBoxInstalled -eq $False){
 	Write-Host ""
 }
 
+
+
 #Check if default machine exits 
 $DockerMachineExist = (docker-machine ls | Select-String "default" | Measure-Object -Line | Select @{N="Exists"; E={$_.Lines -gt 0}} ).Exists
 if($DockerMachineExist -eq $True){
@@ -247,6 +258,15 @@ if($DockerMachineExist -eq $True){
 	docker-machine create -d virtualbox default
 	Write-Host "Done"
 	Write-Host ""
+}
+
+# Setup Docker environment variables
+Try{
+	# Add Docker env variables to powershell
+	(docker-machine env --shell=powershell "default") | Invoke-Expression
+}Catch{
+	Write-Host "Docker commands in path. It may not be installed"
+	Exit 1
 }
 
 # Create the containers 

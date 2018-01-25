@@ -7,6 +7,10 @@ Rem Date 22/01/2018
 Rem Author Emmanuel Robert Ssebaggala <emmanuel.ssebaggala@bodastage.com> 
 
 
+Rem Set docker env variables . Add so that docker commands can be run from cmd
+Rem Review this later.
+@FOR /f "tokens=*" %i IN ('docker-machine env 2^>nul') DO @%
+
 Rem Check if script is running in an elevated terminal 
 net session >nul 2>&1
 If Not %errorLevel% == 0 (
@@ -31,6 +35,7 @@ If "%~1"==""  (
 	Echo bts status            -- See process statuses
 	Echo bts logs              -- See logs from containers
 	Echo bts images            -- See images
+	Echo bts rm                -- Stop and remove
 	Echo.
 	Rem Echo manage upgrage -- Upgrade
 	Rem Echo manage list modules -- List installed modules
@@ -94,6 +99,20 @@ Rem  exit /b 0
 
 Rem images 
 Rem -------------------------
-If "%~1"=="logs" ( 
+If "%~1"=="images" ( 
     docker-compose images
+)
+
+Rem images 
+Rem -------------------------
+If "%~1"=="rm" ( 
+
+    if "%~2" == "" (
+	    docker-compose stop %~2
+		docker-compose rm -f %~2
+		Exit 0
+	)
+	
+    docker-compose stop
+    docker-compose rm -f
 )
