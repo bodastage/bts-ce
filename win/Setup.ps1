@@ -80,7 +80,7 @@ if($IsVTSupportedAndEnabled -eq $True -and $IsHyperVFeatureEnabled -eq "Disabled
 
 # If VT-X is supported but Hyper-V is not availabled
 If( $IsVTSupportedAndEnabled -ne $Null -and $IsHyperVFeatureEnabled -eq $Null){
-	Write-Host "Continuing setup with Oracle VirtualBox..."
+	Write-Host "Continuing setup with Oracle VirtualBox."
 	Write-Host ""
 	$UseHyperVDriver=$False
 }
@@ -98,7 +98,7 @@ if ( $UseHyperVDriver -eq $True ){
 
 	#Download and install Docker for Windows
 	$DockerForWindowsURI = "https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe"
-	$DFWInstaller = $ScriptDir + "\" + "Docker for Windows Installer.exe"
+	$DFWInstaller = $BTSDir + "\" + "Docker for Windows Installer.exe"
 	Write-Host "Downloading Docker for Windows..."
 	(New-Object System.Net.WebClient).DownloadFile($DockerForWindowsURI, $DFWInstaller)
 	if($LastExitCode -ne 0){
@@ -209,7 +209,7 @@ if($IsDockerToolBoxInstalled -eq $False){
 	
 	# Download and Install Docker Toolbox
 	$DockerToolboxURI = "https://download.docker.com/win/stable/DockerToolbox.exe"
-	$DockerToolboxInstaller = $ScriptDir + "\" + "DockerToolbox.exe"
+	$DockerToolboxInstaller = $BTSDir + "\" + "DockerToolbox.exe"
 	Write-Host -NoNewline "Downloading Docker Toolbox..."
 	(New-Object System.Net.WebClient).DownloadFile($DockerToolboxURI, $DockerToolboxInstaller)
 	
