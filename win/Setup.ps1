@@ -129,15 +129,19 @@ if ( $UseHyperVDriver -eq $True ){
 	New-VMSwitch -Name BTSPrivateSwitch -SwitchType Private -Notes 'Internal VMs only'
 
 	# Create docker machine 
-	# @TODO: Attach to the interface with a connection. For now, use the WiFiExternalSwitch
 	Write-Host -NoNewline "Creating docker-machine..."
-	docker-machine create -d hyperv -hyper-virtual-switch "BTSWiFiExternalSwitch" default
+	docker-machine create -d hyperv -hyper-virtual-switch "BTSExternalSwitch" default
 	Write-Host "Done"
 	Write-Host ""
 	
 	# Create the containers 
 	Write-Host "Creating and starting containers..."
     docker-compose up -d
+	if($LastExitCode -ne 0 ){
+		Write-Host ""
+		Write-Host "Setup has failed. Go to the telecomhall.net forum for help"
+		Exit 1
+	}
 	
 	Write-Host "Setup completed"
 	
@@ -210,6 +214,12 @@ if($IsDockerToolBoxInstalled -eq $False){
 	Write-Host -NoNewline "Downloading Docker Toolbox..."
 	(New-Object System.Net.WebClient).DownloadFile($DockerToolboxURI, $DockerToolboxInstaller)
 	
+	#Install Docker ToolBox
+	Write-Host -NoNewline "Installing Docker Toolbox..."
+	Start-Process -wait -FilePath $DockerToolboxInstaller -ArgumentList "/VERYSILENT LOG $ScriptDir+'\DockerToolbox.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
+	Write-Host "Done"
+	Write-Host ""
+
 	if($LastExitCode -ne 0){
 		Write-Host "Failed."
 		Write-Host -NoNewline "Check your network connectivity. "
@@ -220,24 +230,32 @@ if($IsDockerToolBoxInstalled -eq $False){
 		Write-Host "Completed."
 		Write-Host ""
 	}
-	
-	#Install Docker ToolBox
-	Write-Host -NoNewline "Installing Docker Toolbox..."
-	Start-Process -wait -FilePath $DockerToolboxInstaller -ArgumentList "/VERYSILENT LOG $ScriptDir+'\DockerToolbox.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
-	Write-Host "Done"
-	
-    # Create docker machine 
+
+}else{
+	Write-Host "Yes"
+	Write-Host ""
+}
+
+#Check if default machine exits 
+$DockerMachineExist = (docker-machine ls | Select-String "default" | Measure-Object -Line | Select @{N="Exists"; E={$_.Lines -gt 0}} ).Exists
+if($DockerMachineExist -eq $True){
+	Write-Host "default docker machine exits."
+	Write-Host ""
+}else{
+	# Create docker machine 
 	Write-Host "Creating default docker-machine..."
 	docker-machine create -d virtualbox default
 	Write-Host "Done"
 	Write-Host ""
-	
-	# Create the containers 
-	Write-Host "Creating and starting containers..."
-    docker-compose up -d
-	
-	Write-Host "Setup completed"
-}else{
-	Write-Host "Installed"
-	Write-Host ""
 }
+
+# Create the containers 
+Write-Host "Creating and starting containers..."
+docker-compose up -d
+
+if($LastExitCode -ne 0 ){
+	Write-Host ""
+	Write-Host "Setup has failed. Try the forum for help"
+	Exit 1
+}
+Write-Host "Setup completed"

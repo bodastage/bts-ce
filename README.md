@@ -16,7 +16,7 @@ Boda Telecom Suite Community Edition - An open source telecommunication manageme
 * Download latest release files from https://github.com/bodastage/bts-ce/releases
 * Unzip the downloaded files to Drive:/Bodastage
 * Launch the Windows **command prompt** as an administrator
-* Move to Drive:/Bodastage/bts-ce-<version> on the Windows command prompt.
+* Move to Drive:/Bodastage/bts-ce-**version** on the Windows command prompt.
   ```batch 
   > cd  Drive:/Bodastage/bts-ce-<version>
   ```
