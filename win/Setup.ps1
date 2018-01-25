@@ -29,21 +29,20 @@ $UseVirtualBoxDriver=$True
 Write-Host  -NoNewline "Checking whether hardware virtualization is supported and enabled..."
 #Check if Hardware Virtualization is supported and enabled
 $IsVTSupportedAndEnabled = (GWMI Win32_Processor).VirtualizationFirmwareEnabled
-Write-host -NoNewline $(If ($IsVTSupportedAndEnabled -ne $True -and $IsVTSupportedAndEnabled -ne $False) {"Not Supported"} ) 
+Write-host -NoNewline $(If ($IsVTSupportedAndEnabled -eq $Null ) {"Not Supported"} ) 
 Write-host -NoNewline $(If ($IsVTSupportedAndEnabled -eq $True ) {"Enabled"} ElseIf ($IsVTSupportedAndEnabled -eq $False){"Disabled" } ) 
 Write-Host ""
 Write-Host ""
 
 Write-Host  -NoNewline "Checking whether Microsoft Hyper-V is available and enabled..."
 # Enable : Feature is enable , Disabled: Featrue is disabled, "":Feature is not available
-$IsHyperVFeatureAvailable = (Get-WindowsOptionalFeature -FeatureName "Microsoft-Hyper-V" -Online).State -eq "Enabled"
-Write-host -NoNewline $(If ($IsHyperVFeatureAvailable -ne $True -and $IsHyperVFeatureAvailable -ne $False) {"Not available"} ) 
-Write-host -NoNewline $(If ($IsHyperVFeatureAvailable -eq $True) {"Enabled"} ElseIf ($IsHyperVFeatureAvailable -eq $False){"Disabled" } ) 
+$IsHyperVFeatureEnabled = (Get-WindowsOptionalFeature -FeatureName "Microsoft-Hyper-V" -Online).State
+Write-host -NoNewline $(If ($IsHyperVFeatureEnabled -eq $Null) {"Not available"}else{ $IsHyperVFeatureEnabled } ) 
 Write-Host ""
 Write-Host ""
 
 # If VT is disabled and HyperV is Disabled, ask user to enabled them before proceeding or continue with VB 
-if($IsVTSupportedAndEnabled -eq $False -and $IsHyperVFeatureAvailable -eq $False){
+if($IsVTSupportedAndEnabled -eq $False -and $IsHyperVFeatureEnabled -eq "Disabled"){
 		Write-Host "Hardware virtualization and Microsoft-Hyper-V are disabled."
 		Write-Host "Can we continue with Oracle VirtualBox?[y] Or stop the setup while you enable them?"
 		$continueWithVB = read-host " y-continude with Oracle VirtualBox installation, n-Let me try to enabled them."
@@ -59,7 +58,7 @@ if($IsVTSupportedAndEnabled -eq $False -and $IsHyperVFeatureAvailable -eq $False
 
 
 # If VT is enabled and HyperV is Disabled, enabled HyperV 
-if($IsVTSupportedAndEnabled -eq $True -and $IsHyperVFeatureAvailable -eq $False){
+if($IsVTSupportedAndEnabled -eq $True -and $IsHyperVFeatureEnabled -eq "Disabled"){
     # Enable Hyper-V
 	Enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V -All
 	
@@ -80,14 +79,14 @@ if($IsVTSupportedAndEnabled -eq $True -and $IsHyperVFeatureAvailable -eq $False)
 }
 
 # If VT-X is supported but Hyper-V is not availabled
-If( $IsVTSupportedAndEnabled -ne $Null -and $IsHyperVFeatureAvailable -eq $Null){
+If( $IsVTSupportedAndEnabled -ne $Null -and $IsHyperVFeatureEnabled -eq $Null){
 	Write-Host "Continuing setup with Oracle VirtualBox..."
 	Write-Host ""
 	$UseHyperVDriver=$False
 }
 
 #If VT-X is support but is not enabled  
-If( $IsVTSupportedAndEnabled -eq $Null -and $IsHyperVFeatureAvailable -eq $Null){
+If( $IsVTSupportedAndEnabled -eq $Null -and $IsHyperVFeatureEnabled -eq $Null){
 	Write-Host "Hardware virtualization is not supported by your processor and Microsoft-Hyper-V is not available"
 	Write-Host "Setup will continue with Oracle VirtualBox"
 	Write-Host ""
