@@ -1,6 +1,6 @@
 ## Boda Telecom Suite Community Edition (BTS-CE)
 
-Boda Telecom Suite Community Edition - An open source telecommunication management platform
+Boda Telecom Suite Community Edition - An open source telecommunication network management platform
 
 ## Requirements 
 
@@ -47,7 +47,7 @@ Boda Telecom Suite Community Edition - An open source telecommunication manageme
 
 ## Resources
 
-* [Communtiy Forum at TelecomHall.net](http://telecomHall.net)
+* [Community Forum at TelecomHall.net](http://telecomHall.net)
 * [Online Documentation](http://bts.bodastage.org)
 
 ## Copyright / License

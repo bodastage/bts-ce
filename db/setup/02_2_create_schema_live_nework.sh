@@ -444,17 +444,7 @@ ALTER TABLE live_network.gsm_external_cells
 
 	ALTER SEQUENCE live_network.seq_gsm_external_cells_pk
 		OWNER TO bodastage;
-		
-	-- seq_gsm_external_cells_pk
-	CREATE SEQUENCE live_network.seq_gsm_external_cells_pk
-		INCREMENT 1
-		START 1
-		MINVALUE 1
-		MAXVALUE 9223372036854775807
-		CACHE 1;
-
-	ALTER SEQUENCE live_network.seq_gsm_external_cells_pk
-		OWNER TO bodastage;
+	
 
     -- seq_umts_external_cells_pk
 	CREATE SEQUENCE live_network.seq_umts_external_cells_pk

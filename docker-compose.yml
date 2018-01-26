@@ -6,7 +6,7 @@ services:
           - 8181:8181
         restart: always
         volumes:
-          - ./bts-api:/app
+          - ./api:/app
         depends_on: 
             - bts-database
         links:

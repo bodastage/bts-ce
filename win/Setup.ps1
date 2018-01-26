@@ -254,7 +254,7 @@ If($InstallVB -eq $True){
 Write-Host -NoNewline "Checking if Docker Toolbox is installed..."
 $IsDockerToolBoxInstalled = Is-Installed("Docker Toolbox")
 if($IsDockerToolBoxInstalled -eq $False){
-	Write-Host "Not Installed"
+	Write-Host -ForegroundColor Yellow "Not Installed"
 	Write-Host ""
 	
 	# Download and Install Docker Toolbox
@@ -265,12 +265,13 @@ if($IsDockerToolBoxInstalled -eq $False){
 	
 	#Install Docker ToolBox
 	Write-Host -NoNewline "Installing Docker Toolbox..."
-	Start-Process -wait -FilePath $DockerToolboxInstaller -ArgumentList "/VERYSILENT LOG $ScriptDir+'\DockerToolbox.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
-	Write-Host "Done"
-	Write-Host ""
-
-	if($LastExitCode -ne 0){
-		Write-Host "Failed."
+	Start-Process -FilePath $DockerToolboxInstaller -ArgumentList "/VERYSILENT LOG $ScriptDir+'\DockerToolbox.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS" -Wait
+	
+	$IsDockerToolBoxInstalled = Is-Installed("Docker Toolbox")
+	if($IsDockerToolBoxInstalled -ne $True){
+		Write-Host --ForegroundColor Red "Failed."
+		Write-Host ""
+		
 		Write-Host -NoNewline "Check your network connectivity. "
 		Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/DockerToolbox.exe"
 		Write-Host ""
@@ -279,11 +280,17 @@ if($IsDockerToolBoxInstalled -eq $False){
 		Write-Host "Completed."
 		Write-Host ""
 	}
+	
+
+	# Run Docker Quick Start Terminal to setup default machine
+	Start-Process -FilePath "C:\Program Files\Git\bin\bash.exe" -WorkingDirectory "C:\Program Files\Docker Toolbox" -ArgumentList '--login -i "C:\Program Files\Docker Toolbox\start.sh" & exit 0' -Wait
 
 }else{
 	Write-Host "Yes"
 	Write-Host ""
 }
+
+
 
 # Setup Docker environment variables
 Try{

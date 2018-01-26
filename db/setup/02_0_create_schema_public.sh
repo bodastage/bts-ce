@@ -248,8 +248,6 @@ CREATE SEQUENCE public.seq_vendors_pk
 ALTER SEQUENCE public.seq_vendors_pk
     OWNER TO bodastage;
 	
-ALTER SEQUENCE seq_users_pk RESTART WITH 2;
-	
 -- -----------------------------
 CREATE SEQUENCE public.seq_users_pk
     INCREMENT 1
@@ -261,6 +259,7 @@ CREATE SEQUENCE public.seq_users_pk
 ALTER SEQUENCE public.seq_users_pk
     OWNER TO bodastage;
 	
+ALTER SEQUENCE seq_users_pk RESTART WITH 2;
 -- -------------------------------
 CREATE SEQUENCE public.seq_vendor_parameters_pk
     INCREMENT 1
