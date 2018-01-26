@@ -12,7 +12,6 @@
 #>
 
 
-
 $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 $ScriptPath = $script:MyInvocation.MyCommand.Path
@@ -21,6 +20,8 @@ $BTSDir = (get-item $ScriptDir).parent.FullName
 
 # Import functions file
 . $ScriptDir"\Functions.ps1"
+
+
 
 # Driver's to use to create container VMs
 $UseHyperVDriver=$False
@@ -36,8 +37,19 @@ Write-Host ""
 
 Write-Host  -NoNewline "Checking whether Microsoft Hyper-V is available and enabled..."
 # Enable : Feature is enable , Disabled: Featrue is disabled, "":Feature is not available
-$IsHyperVFeatureEnabled = (Get-WindowsOptionalFeature -FeatureName "Microsoft-Hyper-V" -Online).State
-Write-host -NoNewline $(If ($IsHyperVFeatureEnabled -eq $Null) {"Not available"}else{ $IsHyperVFeatureEnabled } ) 
+#$IsHyperVFeatureEnabled = (Get-WindowsOptionalFeature -FeatureName "Microsoft-Hyper-V" -Online).State
+$IsHyperVFeatureEnabled = $(Invoke-ElevatedCommand{(Get-WindowsOptionalFeature -FeatureName "Microsoft-Hyper-V" -Online).State}) 2> $BTSDir\error.log
+
+# Check if elevation of commands was cancelled
+$WasOperationCancelled = $(gc $BTSDir\error.log | Select-String "The operation was canceled by the user" | Measure -Line | Select @{N="Cancalled"; E={$_.Lines -eq 1 }}).Cancalled
+If($WasOperationCancelled -eq $True){
+	Write-Host "Operation cancelled!" -ForegroundColor red 
+	Write-Host ""
+	Write-Host -ForegroundColor Yellow "Setup not completed"
+	Exit 1
+}
+
+Write-host -ForegroundColor Yellow -NoNewline  $(If ($IsHyperVFeatureEnabled -eq $Null) {"Not available"}else{ $IsHyperVFeatureEnabled } ) 
 Write-Host ""
 Write-Host ""
 
@@ -60,10 +72,38 @@ if($IsVTSupportedAndEnabled -eq $False -and $IsHyperVFeatureEnabled -eq "Disable
 # If VT is enabled and HyperV is Disabled, enabled HyperV 
 if($IsVTSupportedAndEnabled -eq $True -and $IsHyperVFeatureEnabled -eq "Disabled"){
     # Enable Hyper-V
-	Enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V -All
+	# Enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V -All
+	# Start-Process -FilePath powershell.exe -ArgumentList "Enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V -All" -verb RunAs  -WindowStyle Hidden
+	Write-Host "Enabling Microsoft-Hyper-V..."
+    $(Invoke-ElevatedCommand{Enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V -All}) 2> $BTSDir\error.log
+	
+	$WasOperationCancelled = $(gc $BTSDir\error.log | Select-String "The operation was canceled by the user" | Measure -Line | Select @{N="Cancalled"; E={$_.Lines -eq 1 }}).Cancalled
+	If($WasOperationCancelled -eq $True){
+		Write-Host "Operation cancelled!" -ForegroundColor red
+		Write-Host ""
+		Write-Host -ForegroundColor Yellow "Setup not completed"
+		Exit 1
+	}
+	Write-Host "Done"
+	Write-Host ""
+
+	# Check if HyperV has been enabled 		
+	# $WasHyperVFeatureEnabled = (Get-WindowsOptionalFeature -FeatureName "Microsoft-Hyper-V" -Online).State
+	Write-Host "Confirming that Microsoft-Hyper-V is enabled..."
+	$WasHyperVFeatureEnabled = Invoked-ElevatedCommand{(Get-WindowsOptionalFeature -FeatureName "Microsoft-Hyper-V" -Online).State } 2> $BTSDir\error.log
+	$WasOperationCancelled = $(gc $BTSDir\error.log | Select-String "The operation was canceled by the user" | Measure -Line | Select @{N="Cancalled"; E={$_.Lines -eq 1 }}).Cancalled
+	If($WasOperationCancelled -eq $True){
+		Write-Host "Operation cancelled!" -ForegroundColor red
+		Write-Host ""
+		Write-Host -ForegroundColor Yellow "Setup not completed"
+		Exit 1
+	}
+	Write-Host "Enabled"
+	Write-Host ""
+	
 	
 	# Hyper-V successfully enabled
-	If($LastExitCode -eq 0 ){
+	If($WasHyperVFeatureEnabled -eq $True ){
 		$UseHyperVDriver=$True
 	}else{
 		Write-Host "Failed to enabled Microsoft-Hyper-V"
@@ -245,14 +285,26 @@ if($IsDockerToolBoxInstalled -eq $False){
 	Write-Host ""
 }
 
-
+# Setup Docker environment variables
+Try{
+	# Add Docker env variables to powershell
+	(docker-machine env --shell=powershell "default") | Invoke-Expression
+}Catch{
+	Write-Host -ForegroundColor Red "Docker commands nor in path. It may not be installed"
+	Write-Host ""
+	Exit 1
+}
 
 #Check if default machine exits 
+Write-Host -NoNewline "Checking whether default docker machine exits..."
 $DockerMachineExist = (docker-machine ls | Select-String "default" | Measure-Object -Line | Select @{N="Exists"; E={$_.Lines -gt 0}} ).Exists
 if($DockerMachineExist -eq $True){
-	Write-Host "default docker machine exits."
+	Write-Host "Yes"
 	Write-Host ""
 }else{
+    Write-Host -ForegroundColor Yellow "No"
+	Write-Host ""
+	
 	# Create docker machine 
 	Write-Host "Creating default docker-machine..."
 	docker-machine create -d virtualbox default
@@ -260,22 +312,26 @@ if($DockerMachineExist -eq $True){
 	Write-Host ""
 }
 
-# Setup Docker environment variables
-Try{
-	# Add Docker env variables to powershell
-	(docker-machine env --shell=powershell "default") | Invoke-Expression
-}Catch{
-	Write-Host "Docker commands in path. It may not be installed"
-	Exit 1
-}
-
 # Create the containers 
 Write-Host "Creating and starting containers..."
+
 docker-compose up -d
 
 if($LastExitCode -ne 0 ){
 	Write-Host ""
 	Write-Host "Setup has failed. Try the forum for help"
+	Write-Host ""
 	Exit 1
 }
+
+Remove-Item $BTSDir\error.log 2>$null
+
+Write-Host ""
 Write-Host "Setup completed"
+Write-Host ""
+
+Write-Host "Thanks for using Boda Telecom Suite - CE"
+Write-Host ""
+Write-Host "Copyright 2018. Bodastage Solutions. http://bodastage.com"
+Write-Host "For support visit the http://telecomhall.net"
+

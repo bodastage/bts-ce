@@ -7,16 +7,18 @@ Rem Date 22/01/2018
 Rem Author Emmanuel Robert Ssebaggala <emmanuel.ssebaggala@bodastage.com> 
 
 
-Rem Set docker env variables . Add so that docker commands can be run from cmd
-Rem Review this later.
-@FOR /f "tokens=*" %i IN ('docker-machine env 2^>nul') DO @%
-
 Rem Check if script is running in an elevated terminal 
 net session >nul 2>&1
-If Not %errorLevel% == 0 (
-    Echo Run as Administrator
-    Exit /b 1
+If %errorLevel% == 0 (
+   Echo Do not run as an Administrator
+   Exit /b 1
 )
+
+
+Rem Set docker env variables . Add so that docker commands can be run from cmd
+Rem Review this later.
+@FOR /f "tokens=*" %%i In ('docker-machine env 2^>Nul') Do @%%i
+
 
 Rem application root directory 
 For /F %%i In ("%~dp0") Do Set BD_ROOT_DIR=%%~fi
@@ -110,7 +112,7 @@ If "%~1"=="rm" (
     if "%~2" == "" (
 	    docker-compose stop %~2
 		docker-compose rm -f %~2
-		Exit 0
+		Exit /b 0
 	)
 	
     docker-compose stop

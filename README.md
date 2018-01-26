@@ -10,15 +10,15 @@ Boda Telecom Suite Community Edition - An open source telecommunication manageme
 * 5GB hard disk space
 * Latest web browser
 
-## Deployment
+## Deployment/Installation
 
 ### Windows
 * Download latest release files from https://github.com/bodastage/bts-ce/releases
 * Unzip the downloaded files to Drive:/Bodastage
-* Launch the Windows **command prompt** as an administrator
-* Move to Drive:/Bodastage/bts-ce-**version** on the Windows command prompt.
+* Launch the Windows **command prompt**
+* Change directory to **Drive**:/Bodastage/bts-ce-**version** from the Windows command prompt
   ```batch 
-  > cd  Drive:/Bodastage/bts-ce-<version>
+  > cd  <Drive>:/Bodastage/bts-ce-<version>
   ```
 * Run :  
   ```batch 
