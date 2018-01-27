@@ -22,7 +22,6 @@ $BTSDir = (get-item $ScriptDir).parent.FullName
 . $ScriptDir"\Functions.ps1"
 
 
-
 # Driver's to use to create container VMs
 $UseHyperVDriver=$False
 $UseVirtualBoxDriver=$True
@@ -139,24 +138,42 @@ if ( $UseHyperVDriver -eq $True ){
 	#Download and install Docker for Windows
 	$DockerForWindowsURI = "https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe"
 	$DFWInstaller = $BTSDir + "\" + "Docker for Windows Installer.exe"
-	Write-Host "Downloading Docker for Windows..."
-	(New-Object System.Net.WebClient).DownloadFile($DockerForWindowsURI, $DFWInstaller)
-	if($LastExitCode -ne 0){
-		Write-Host "Failed."
-		Write-Host -NoNewline "Check your network connectivity. "
-		Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe"
-		Write-Host ""
-		Exit 1
-	}else{
-		Write-Host "Completed."
-		Write-Host ""
+	
+	
+	# Check if file exits 
+	$InstallerExists = [System.IO.File]::Exists($DFWInstaller)
+	if($InstallerExists -ne $True){
+		Write-Host "Downloading Docker for Windows..."
+		(New-Object System.Net.WebClient).DownloadFile($DockerForWindowsURI, $DFWInstaller)
+		
+		if([System.IO.File]::Exists($DFWInstaller) -ne $True){
+			Write-Host -ForegroundColor Red "Failed."
+			Write-Host ""
+			
+			Write-Host -NoNewline "Check your network connectivity. "
+			Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe"
+			Write-Host ""
+			Exit 1
+		}else{
+			Write-Host "Completed."
+			Write-Host ""
+		}
 	}
 	
 	#Install Docker for Windows
 	Write-Host -NoNewline "Installing Docker for Windows..."
-	Start-Process -wait -FilePath $DFWInstaller -ArgumentList "/VERYSILENT LOG $ScriptDir+'\DockerForWindows.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
+	Start-Process -wait -FilePath $DFWInstaller -ArgumentList "/VERYSILENT LOG $BTSDir+'\DockerForWindows.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
 	# @TODO: Check status of installation before continuing
-	Write-Host "Done"
+	$IsDockerForWinInstalled = Is-Installed("Docker Toolbox")
+	If($IsDockerForWinInstalled -eq $True){
+		Write-Host "Done"
+		Write-Host ""
+	}else{
+		Write-Host -ForegroundColor Red "Failed"
+		Write-Host ""
+		Exit 1
+	}
+
 	
 	# Create virtual Switches
 	Import-Module Hyper-V
@@ -172,7 +189,7 @@ if ( $UseHyperVDriver -eq $True ){
 		# Add Docker env variables to powershell
 		(docker-machine env --shell=powershell "default") | Invoke-Expression
 	}catch{
-	    Write-Host "Docker commands in path. It may not be installed"
+	    Write-Host -ForegroundColor Read "Docker commands in path. It may not be installed"
 		Exit 1
 	}
 
@@ -188,7 +205,7 @@ if ( $UseHyperVDriver -eq $True ){
     docker-compose up -d
 	if($LastExitCode -ne 0 ){
 		Write-Host ""
-		Write-Host "Setup has failed. Go to the telecomhall.net forum for help"
+		Write-Host -ForegroundColor Red "Setup has failed. Go to the telecomhall.net forum for help"
 		Exit 1
 	}
 	
@@ -260,9 +277,23 @@ if($IsDockerToolBoxInstalled -eq $False){
 	# Download and Install Docker Toolbox
 	$DockerToolboxURI = "https://download.docker.com/win/stable/DockerToolbox.exe"
 	$DockerToolboxInstaller = $BTSDir + "\" + "DockerToolbox.exe"
-	Write-Host -NoNewline "Downloading Docker Toolbox..."
-	(New-Object System.Net.WebClient).DownloadFile($DockerToolboxURI, $DockerToolboxInstaller)
 	
+	# Check if file exits 
+	$InstallerExists = [System.IO.File]::Exists($DockerToolboxInstaller)
+	if($InstallerExists -ne $True){
+		Write-Host -NoNewline "Downloading Docker Toolbox..."
+		(New-Object System.Net.WebClient).DownloadFile($DockerToolboxURI, $DockerToolboxInstaller)
+		if([System.IO.File]::Exists($DockerToolboxInstaller) -ne $True){
+			Write-Host -ForegroundColor Red "Failed"
+			Write-Host ""
+			Write-Host -NoNewline "Check your network connectivity. "
+			Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/DockerToolbox.exe"
+			Exit 1
+		}
+		Write-Host "Done"
+		Write-Host ""
+	}
+
 	#Install Docker ToolBox
 	Write-Host -NoNewline "Installing Docker Toolbox..."
 	Start-Process -FilePath $DockerToolboxInstaller -ArgumentList "/VERYSILENT LOG $ScriptDir+'\DockerToolbox.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS" -Wait

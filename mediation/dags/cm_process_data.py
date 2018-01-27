@@ -39,7 +39,7 @@ args = {
 }
 
 dag = DAG(
-    dag_id='process_eri_3g4g_cm_data', default_args=args,
+    dag_id='cm_process_data', default_args=args,
     schedule_interval='0 0 * * *',
     max_active_runs = 1,
     concurrency = 1,
