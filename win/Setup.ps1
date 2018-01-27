@@ -190,7 +190,7 @@ if ( $UseHyperVDriver -eq $True ){
 	
 	Try{
 		# Add Docker env variables to powershell
-		(docker-machine env --shell=powershell "default") | Invoke-Expression
+		( "$DockerForWindows\docker-machine.exe" env --shell=powershell "default") | Invoke-Expression
 	}catch{
 	    Write-Host -ForegroundColor Read "Docker commands in path. It may not be installed"
 		Exit 1
@@ -199,13 +199,13 @@ if ( $UseHyperVDriver -eq $True ){
 	
 	# Create docker machine 
 	Write-Host -NoNewline "Creating docker-machine..."
-	docker-machine create -d hyperv -hyper-virtual-switch "BTSExternalSwitch" default
+	"$DockerForWindows\docker-machine.exe" create -d hyperv -hyper-virtual-switch "BTSExternalSwitch" default
 	Write-Host "Done"
 	Write-Host ""
 	
 	# Create the containers 
 	Write-Host "Creating and starting containers..."
-    docker-compose up -d
+    "$DockerForWindows\docker-compose.exe"  up -d
 	if($LastExitCode -ne 0 ){
 		Write-Host ""
 		Write-Host -ForegroundColor Red "Setup has failed. Go to the telecomhall.net forum for help"
