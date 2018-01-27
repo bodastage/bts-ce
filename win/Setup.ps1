@@ -21,6 +21,9 @@ $BTSDir = (get-item $ScriptDir).parent.FullName
 # Import functions file
 . $ScriptDir"\Functions.ps1"
 
+# Expeted Docker ToolBox installation forlder
+$DockerToolbox="C:\Program Files\Docker Toolbox"
+$DockerForWindows="C:\Program Files\Docker"
 
 # Driver's to use to create container VMs
 $UseHyperVDriver=$False
@@ -326,16 +329,16 @@ if($IsDockerToolBoxInstalled -eq $False){
 # Setup Docker environment variables
 Try{
 	# Add Docker env variables to powershell
-	(docker-machine env --shell=powershell "default") | Invoke-Expression
+	( "$DockerToolbox\docker-machine.exe" env --shell=powershell "default") | Invoke-Expression
 }Catch{
-	Write-Host -ForegroundColor Red "Docker commands nor in path. It may not be installed"
+	Write-Host -ForegroundColor Red "Docker commands not in path. It may not be installed"
 	Write-Host ""
 	Exit 1
 }
 
 #Check if default machine exits 
 Write-Host -NoNewline "Checking whether default docker machine exits..."
-$DockerMachineExist = (docker-machine ls | Select-String "default" | Measure-Object -Line | Select @{N="Exists"; E={$_.Lines -gt 0}} ).Exists
+$DockerMachineExist = ( "$DockerToolbox\docker-machine.exe" ls | Select-String "default" | Measure-Object -Line | Select @{N="Exists"; E={$_.Lines -gt 0}} ).Exists
 if($DockerMachineExist -eq $True){
 	Write-Host "Yes"
 	Write-Host ""
@@ -345,7 +348,7 @@ if($DockerMachineExist -eq $True){
 	
 	# Create docker machine 
 	Write-Host "Creating default docker-machine..."
-	docker-machine create -d virtualbox default
+	"$DockerToolbox\docker-machine.exe" create -d virtualbox default
 	Write-Host "Done"
 	Write-Host ""
 }
