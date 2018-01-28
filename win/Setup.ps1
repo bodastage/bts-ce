@@ -22,8 +22,8 @@ $BTSDir = (get-item $ScriptDir).parent.FullName
 . $ScriptDir"\Functions.ps1"
 
 # Expeted Docker ToolBox installation forlder
-$DockerToolbox="C:\Program Files\Docker Toolbox"
-$DockerForWindows="C:\Program Files\Docker"
+$DockerToolbox="$Env:ProgramFiles\Docker Toolbox"
+$DockerForWindows="$Env:ProgramFiles\Docker"
 
 # Driver's to use to create container VMs
 $UseHyperVDriver=$False
@@ -354,7 +354,7 @@ if($DockerMachineExist -eq $True){
 
 # Create the containers 
 Write-Host "Creating and starting containers..."
-
+("& '$DockerToolbox\docker-machine.exe' env --shell=powershell default") | Invoke-Expression
 ("& '$DockerToolbox\docker-compose.exe' up -d") | Invoke-Expression
 
 if($LastExitCode -ne 0 ){
