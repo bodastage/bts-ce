@@ -190,22 +190,21 @@ if ( $UseHyperVDriver -eq $True ){
 	
 	Try{
 		# Add Docker env variables to powershell
-		( "$DockerForWindows\docker-machine.exe env --shell=powershell default") | Invoke-Expression
+		( "& '$DockerForWindows\docker-machine.exe' env --shell=powershell default") | Invoke-Expression
 	}catch{
 	    Write-Host -ForegroundColor Read "Docker commands in path. It may not be installed"
 		Exit 1
 	}
 
-	
 	# Create docker machine 
 	Write-Host -NoNewline "Creating docker-machine..."
-	"$DockerForWindows\docker-machine.exe create -d hyperv -hyper-virtual-switch BTSExternalSwitch default" | Invoke-Expression
+	"& '$DockerForWindows\docker-machine.exe' create -d hyperv -hyper-virtual-switch BTSExternalSwitch default" | Invoke-Expression
 	Write-Host "Done"
 	Write-Host ""
 	
 	# Create the containers 
 	Write-Host "Creating and starting containers..."
-    ("$DockerForWindows\docker-compose.exe  up -d") | Invoke-Expression
+    ("& '$DockerForWindows\docker-compose.exe'  up -d") | Invoke-Expression
 	if($LastExitCode -ne 0 ){
 		Write-Host ""
 		Write-Host -ForegroundColor Red "Setup has failed. Go to the telecomhall.net forum for help"
@@ -303,7 +302,7 @@ if($IsDockerToolBoxInstalled -eq $False){
 	
 	$IsDockerToolBoxInstalled = Is-Installed("Docker Toolbox")
 	if($IsDockerToolBoxInstalled -ne $True){
-		Write-Host --ForegroundColor Red "Failed."
+		Write-Host -ForegroundColor Red "Failed."
 		Write-Host ""
 		
 		Write-Host -NoNewline "Check your network connectivity. "
@@ -329,7 +328,7 @@ if($IsDockerToolBoxInstalled -eq $False){
 # Setup Docker environment variables
 Try{
 	# Add Docker env variables to powershell
-	( "$DockerToolbox\docker-machine.exe env --shell=powershell default") | Invoke-Expression
+	( "& '$DockerToolbox\docker-machine.exe' env --shell=powershell default") | Invoke-Expression
 }Catch{
 	Write-Host -ForegroundColor Red "Docker commands not in path. It may not be installed"
 	Write-Host ""
@@ -338,7 +337,7 @@ Try{
 
 #Check if default machine exits 
 Write-Host -NoNewline "Checking whether default docker machine exits..."
-$DockerMachineExist = ( ("$DockerToolbox\docker-machine.exe ls") |Invoke-Expression | Select-String "default" | Measure-Object -Line | Select @{N="Exists"; E={$_.Lines -gt 0}} ).Exists
+$DockerMachineExist = ( ("& '$DockerToolbox\docker-machine.exe' ls") |Invoke-Expression | Select-String "default" | Measure-Object -Line | Select @{N="Exists"; E={$_.Lines -gt 0}} ).Exists
 if($DockerMachineExist -eq $True){
 	Write-Host "Yes"
 	Write-Host ""
@@ -348,7 +347,7 @@ if($DockerMachineExist -eq $True){
 	
 	# Create docker machine 
 	Write-Host "Creating default docker-machine..."
-	("$DockerToolbox\docker-machine.exe create -d virtualbox default") | Invoke-Expression
+	("& '$DockerToolbox\docker-machine.exe' create -d virtualbox default") | Invoke-Expression
 	Write-Host "Done"
 	Write-Host ""
 }
@@ -356,7 +355,7 @@ if($DockerMachineExist -eq $True){
 # Create the containers 
 Write-Host "Creating and starting containers..."
 
-("$DockerToolbox\docker-compose.exe up -d") | Invoke-Expression
+("& '$DockerToolbox\docker-compose.exe' up -d") | Invoke-Expression
 
 if($LastExitCode -ne 0 ){
 	Write-Host ""
