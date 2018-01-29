@@ -22,7 +22,7 @@ services:
         network_mode: "bridge"
         container_name: "bts-web"
     bts-database:
-        image: postgres:latest
+        image: postgres:10.1
         restart: always
         environment:
           - POSTGRES_PASSWORD=password

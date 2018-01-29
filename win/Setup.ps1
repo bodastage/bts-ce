@@ -314,10 +314,12 @@ if($IsDockerToolBoxInstalled -eq $False){
 		Write-Host ""
 	}
 	
-
+    Write-Host -NoNewline "Configuring system..."
 	# Run Docker Quick Start Terminal to setup default machine
 	Start-Process -FilePath "C:\Program Files\Git\bin\bash.exe" -WorkingDirectory "C:\Program Files\Docker Toolbox" -ArgumentList '--login -i "C:\Program Files\Docker Toolbox\start.sh" & exit 0' -Wait
-
+    Write-Host "Done"
+	Write-Host ""
+	
 }else{
 	Write-Host "Yes"
 	Write-Host ""
@@ -354,7 +356,7 @@ if($DockerMachineExist -eq $True){
 
 # Create the containers 
 Write-Host "Creating and starting containers..."
-("& '$DockerToolbox\docker-machine.exe' env --shell=powershell default") | Invoke-Expression
+& $DockerToolbox\docker-machine.exe env --shell=powershell default | Invoke-Expression
 ("& '$DockerToolbox\docker-compose.exe' up -d") | Invoke-Expression
 
 if($LastExitCode -ne 0 ){
@@ -375,3 +377,5 @@ Write-Host ""
 Write-Host "Copyright 2018. Bodastage Solutions. http://bodastage.com"
 Write-Host "For support visit the http://telecomhall.net"
 
+#Refresh environment variables
+$BTSDir\win\resetvars.bat
