@@ -1,3 +1,5 @@
+[![GitHub repo size in bytes](https://img.shields.io/github/repo-size/bodastage/bts-ce.svg)]() [![Read the Docs](https://img.shields.io/readthedocs/bts-ce-docs.svg)]() [![GitHub release](https://img.shields.io/github/release/bodastage/bts-ce.svg)]() [![license](https://img.shields.io/github/license/bodastage/bts-ce.svg)]()
+
 ## Boda Telecom Suite Community Edition (BTS-CE)
 
 Boda Telecom Suite Community Edition - An open source telecommunication network management platform
