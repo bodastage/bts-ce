@@ -550,11 +550,11 @@ ALTER TABLE live_network.vw_sites
     OWNER TO bodastage;
 
 
--- View: live_network.vw_umts_cell_data
+-- View: live_network.vw_umts_cells_data
 
--- DROP VIEW live_network.vw_umts_cell_data;
+-- DROP VIEW live_network.vw_umts_cells_data;
 
-CREATE OR REPLACE VIEW live_network.vw_umts_cell_data AS
+CREATE OR REPLACE VIEW live_network.vw_umts_cells_data AS
  SELECT t1.name,
     t2.name AS site,
     t4.name AS node,
@@ -583,7 +583,7 @@ CREATE OR REPLACE VIEW live_network.vw_umts_cell_data AS
      JOIN vendors t3 ON t3.pk = t1.vendor_pk
      JOIN live_network.nodes t4 ON t4.pk = t2.node_pk;
 
-ALTER TABLE live_network.vw_umts_cell_data
+ALTER TABLE live_network.vw_umts_cells_data
     OWNER TO bodastage;
 
 -- View: live_network.vw_lte_cells_data
@@ -659,6 +659,61 @@ CREATE OR REPLACE VIEW live_network.vw_sites AS
 
 ALTER TABLE live_network.vw_sites
     OWNER TO bodastage;
+
+-- ------------------------------------------
+-- View: live_network.vw_gsm_cells_data
+
+-- DROP VIEW live_network.vw_gsm_cells_data;
+
+CREATE OR REPLACE VIEW live_network.vw_gsm_cells_data AS
+ SELECT gsm_cells_data.pk,
+    gsm_cells_data.name,
+    gsm_cells_data.cell_pk,
+    gsm_cells_data.bcc,
+    gsm_cells_data.ncc,
+    gsm_cells_data.bsic,
+    gsm_cells_data.bcch,
+    gsm_cells_data.lac,
+    gsm_cells_data.latitude,
+    gsm_cells_data.longitude,
+    gsm_cells_data.cgi,
+    gsm_cells_data.azimuth,
+    gsm_cells_data.height,
+    gsm_cells_data.mechanical_tilt,
+    gsm_cells_data.electrical_tilt,
+    gsm_cells_data.hsn,
+    gsm_cells_data.hopping_type,
+    gsm_cells_data.tch_carriers
+   FROM live_network.gsm_cells_data;
+
+ALTER TABLE live_network.vw_gsm_cells_data
+    OWNER TO bodastage;
+
+
+-- ---------------------------------------------------------
+-- View: live_network.vw_umts_external_cells
+
+-- DROP VIEW live_network.vw_umts_external_cells;
+
+CREATE OR REPLACE VIEW live_network.vw_umts_external_cells AS
+ SELECT umts_external_cells.pk,
+    umts_external_cells.cell_name,
+    umts_external_cells.cell_pk,
+    umts_external_cells.rac,
+    umts_external_cells.lac,
+    umts_external_cells.primary_cpich_power,
+    umts_external_cells.secondary_cpich_power,
+    umts_external_cells.uarfcn_dl,
+    umts_external_cells.uarfcn_ul,
+    umts_external_cells.mnc,
+    umts_external_cells.mcc,
+    umts_external_cells.rnc_id,
+    umts_external_cells.ci
+   FROM live_network.umts_external_cells;
+
+ALTER TABLE live_network.vw_umts_external_cells
+    OWNER TO bodastage;
+
 
 
 	

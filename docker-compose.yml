@@ -1,7 +1,7 @@
 version: "3"
 services:
     bts-api:
-        image: bodastage/bts-ce-api-server
+        image: bodastage/bts-ce-api
         ports:
           - 8181:8181
         restart: always

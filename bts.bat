@@ -78,7 +78,7 @@ If "%~1"=="restart" (
 Rem version 
 Rem -------------------------
 If "%~1"=="version" ( 
-    Echo Version: 1.0.17
+    Echo Version: 1.0.18
 	Echo Boda Telecom Suite - Community Edition
 	Echo Copyright 2017-2018. Bodastage Solutions. http://www.bodastage.com
 )
