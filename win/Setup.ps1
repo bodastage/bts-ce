@@ -11,7 +11,6 @@
  
 #>
 
-
 $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 $ScriptPath = $script:MyInvocation.MyCommand.Path
@@ -378,4 +377,4 @@ Write-Host "Copyright 2018. Bodastage Solutions. http://bodastage.com"
 Write-Host "For support visit the http://telecomhall.net"
 
 #Refresh environment variables
-$BTSDir\win\resetvars.bat
+("$BTSDir\win\resetvars.bat") | Invoke-Expression
