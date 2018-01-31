@@ -1,4 +1,4 @@
-[![GitHub repo size in bytes](https://img.shields.io/github/repo-size/bodastage/bts-ce.svg)]() [![Read the Docs](https://img.shields.io/readthedocs/bts-ce-docs.svg)]() [![GitHub release](https://img.shields.io/github/release/bodastage/bts-ce.svg)]() [![license](https://img.shields.io/github/license/bodastage/bts-ce.svg)]()
+[![Github All Releases](https://img.shields.io/github/downloads/bodastage/bts-ce/total.svg)](https://github.com/bodastage/bts-ce/releases/latest) [![GitHub repo size in bytes](https://img.shields.io/github/repo-size/bodastage/bts-ce.svg)](https://github.com/bodastage/bts-ce) [![Read the Docs](https://img.shields.io/readthedocs/bts-ce-docs.svg)]() [![GitHub release](https://img.shields.io/github/release/bodastage/bts-ce.svg)](https://github.com/bodastage/bts-ce/releases) [![license](https://img.shields.io/github/license/bodastage/bts-ce.svg)](https://raw.githubusercontent.com/bodastage/bts-ce/master/LICENCE)
 
 ## Boda Telecom Suite Community Edition (BTS-CE)
 
