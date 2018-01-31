@@ -1,0 +1,3 @@
+[submodule "bts-ce-api"]
+	path = bts-ce-api
+	url = https://github.com/bodastage/bts-ce-api
