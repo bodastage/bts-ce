@@ -1,12 +1,23 @@
 version: "3"
 services:
+    bts-database:
+        image: postgres:10.1
+        restart: always
+        environment:
+          - POSTGRES_PASSWORD=password
+        volumes:
+            - ./db/setup:/docker-entrypoint-initdb.d
+        ports:
+            - "5432:5432"
+        network_mode: "bridge"
+        container_name: "bts-database"
     bts-api:
         image: bodastage/bts-ce-api
         ports:
           - 8181:8181
         restart: always
         volumes:
-          - ./api:/app
+          - ./bts-ce-api:/app
         depends_on: 
             - bts-database
         links:
@@ -21,17 +32,6 @@ services:
           - ./web:/usr/share/nginx/html
         network_mode: "bridge"
         container_name: "bts-web"
-    bts-database:
-        image: postgres:10.1
-        restart: always
-        environment:
-          - POSTGRES_PASSWORD=password
-        volumes:
-            - ./db/setup:/docker-entrypoint-initdb.d
-        ports:
-            - "5432:5432"
-        network_mode: "bridge"
-        container_name: "bts-database"
     bts-mediation:
         image: bodastage/bts-mediation
         restart: always
