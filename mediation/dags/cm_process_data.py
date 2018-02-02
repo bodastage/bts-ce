@@ -27,6 +27,10 @@ sys.path.append('/mediation/packages');
 
 from bts import NetworkBaseLine, Utils, ProcessCMData;
 
+bts_utils = Utils();
+
+schedule_interval = bts_utils.get_setting('cm_dag_schedule_interval')
+
 args = {
     'owner': 'bodastage',
     'depends_on_past': False,
@@ -40,7 +44,7 @@ args = {
 
 dag = DAG(
     dag_id='cm_process_data', default_args=args,
-    schedule_interval='0 0 * * *',
+    schedule_interval=schedule_interval,
     max_active_runs = 1,
     concurrency = 1,
     catchup                        = False,

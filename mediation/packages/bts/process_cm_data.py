@@ -18,7 +18,8 @@ class ProcessCMData(object):
         if dbpass is None: self._dbpass="password"
         if dbhost is None: self._dbhost="locahost"
 
-        self.db_engine = create_engine('postgresql://{0}:{1}@{2}/{3}'.format(self._dbuser, self._dbpass, self._dbhost, self._dbname))
+        # self.db_engine = create_engine('postgresql://{0}:{1}@{2}/{3}'.format(self._dbuser, self._dbpass, self._dbhost, self._dbname))
+        self.db_engine = create_engine('postgresql://bodastage:password@database/bts')
 
     def extract_rncs(self, vendor= None):
         """Extract RNCs from provided vendors or else get from all vendors"""

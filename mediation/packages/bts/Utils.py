@@ -19,12 +19,11 @@ class Utils(object):
         if dbuser is None: self._dbuser="bodastage"
         if dbpass is None: self._dbpass="password"
         if dbhost is None: self._dbhost="locahost"
+        self.db_engine = create_engine('postgresql://bodastage:password@database/bts')
 
     def truncate_schema_tables(self, schema = "public", tables = None):
         """Truncate cm tables"""
-        engine = create_engine('postgresql://{0}:{1}@{2}/{3}'.format(self._dbuser, self._dbpass, self._dbhost, self._dbname))
-
-        Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
         sql="""
@@ -32,58 +31,55 @@ class Utils(object):
         WHERE table_schema = '{0}'
         """.format(schema)
 
-        result = engine.execute(sql)
+        result = self.db_engine.execute(sql)
 
         for row in result:
             table=row[0]
             qry="truncate {0}.{1}".format(schema,table)
-            engine.execute(text(qry).execution_options(autocommit=True))
+            self.db_engine.execute(text(qry).execution_options(autocommit=True))
 
     def reset_database(self):
         """Reset the entire database"""
-
-        engine = create_engine('postgresql://{0}:{1}@{2}/{3}'.format(self._dbuser, self._dbpass, self._dbhost, self._dbname))
-
-        Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
         # Truncate relations table
-        engine.execute(
+        self.db_engine.execute(
             text("TRUNCATE TABLE live_network.relations;").execution_options(
                 autocommit=True))
-        engine.execute(
+        self.db_engine.execute(
            text("ALTER SEQUENCE live_network.seq_relations_pk RESTART WITH 1;").execution_options(
                autocommit=True))
 
         # Truncate cell parameter values
-        engine.execute(
+        self.db_engine.execute(
             text("TRUNCATE TABLE live_network.umts_cells_data;").execution_options(
                 autocommit=True))
-        engine.execute(
+        self.db_engine.execute(
             text("ALTER SEQUENCE live_network.seq_umts_cells_data_pk RESTART WITH 1;").execution_options(
                 autocommit=True))
 
         # Truncate cells
-        engine.execute(
+        self.db_engine.execute(
             text("TRUNCATE TABLE live_network.cells;").execution_options(
                 autocommit=True))
-        engine.execute(
+        self.db_engine.execute(
             text("ALTER SEQUENCE live_network.seq_cells_pk RESTART WITH 1;").execution_options(
                 autocommit=True))
 
         # Truncate sites
-        engine.execute(
+        self.db_engine.execute(
             text("TRUNCATE TABLE live_network.sites;").execution_options(
                 autocommit=True))
-        engine.execute(
+        self.db_engine.execute(
             text("ALTER SEQUENCE live_network.seq_sites_pk RESTART WITH 1;").execution_options(
                 autocommit=True))
 
         # Truncate nodes
-        engine.execute(
+        self.db_engine.execute(
             text("TRUNCATE TABLE live_network.nodes;").execution_options(
                 autocommit=True))
-        engine.execute(
+        self.db_engine.execute(
             text("ALTER SEQUENCE live_network.seq_nodes_pk RESTART WITH 1;").execution_options(
                 autocommit=True))
 
@@ -281,3 +277,22 @@ class Utils(object):
                        """)
         stmt = stmt.execution_options(autocommit=True).bindparams(tree=aci_tree)
         engine.execute(stmt)
+
+    def get_setting(self, name):
+        """Get the value of a setting """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        metadata = MetaData()
+        settings = Table('settings', metadata, autoload=True, autoload_with=self.db_engine, schema='public')
+        setting = session.query(settings).filter_by(name=name).first()
+
+        data_type = setting.data_type
+        value = None
+
+        if data_type == 'string': value = setting.string_value
+        if data_type == 'integer': value = setting.integer_value
+        if data_type == 'float': value  = setting.float_value
+        if data_type == 'timestamp': value  = setting.timestamp_value
+
+        return value

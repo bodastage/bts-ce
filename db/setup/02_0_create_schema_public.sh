@@ -186,6 +186,7 @@ TABLESPACE pg_default;
 ALTER TABLE public.managedobjects
     OWNER to bodastage;
 	
+-- ---------------------------------------------------------------
 -- Table: public.settings
 
 -- DROP TABLE public.settings;
@@ -198,10 +199,10 @@ CREATE TABLE public.settings
     integer_value integer,
     float_value double precision,
     string_value character varying(200) COLLATE pg_catalog."default",
-    long_string_value text COLLATE pg_catalog."default",
+    text_value text COLLATE pg_catalog."default",
     timestamp_value date,
     label character varying(200) COLLATE pg_catalog."default",
-    category character varying(200) COLLATE pg_catalog."default",
+    category_id character varying(200) COLLATE pg_catalog."default",
     CONSTRAINT setttings_pkey PRIMARY KEY (pk),
     CONSTRAINT settings_name_unique UNIQUE (name)
 )
@@ -213,7 +214,7 @@ TABLESPACE pg_default;
 ALTER TABLE public.settings
     OWNER to bodastage;
 	
-----------------------------------
+-- --------------------------------
 -- Table: public.cache
 
 -- DROP TABLE public.cache;

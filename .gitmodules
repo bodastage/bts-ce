@@ -1,3 +1,6 @@
 [submodule "bts-ce-api"]
 	path = bts-ce-api
 	url = https://github.com/bodastage/bts-ce-api
+[submodule "bts-ce-database"]
+	path = bts-ce-database
+	url = https://github.com/bodastage/bts-ce-database.git
