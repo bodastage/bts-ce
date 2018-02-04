@@ -72,6 +72,7 @@ ALTER TABLE ONLY users
 		modified_by integer NOT NULL,
 		name character varying(255) COLLATE pg_catalog."default",
 		notes text COLLATE pg_catalog."default",
+		supproted boolean default FALSE, 
 		CONSTRAINT vendors_pkey PRIMARY KEY (pk)
 	)
 	WITH (

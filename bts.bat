@@ -17,7 +17,7 @@ If %errorLevel% == 0 (
 
 Rem Set docker env variables . Add so that docker commands can be run from cmd
 Rem Review this later.
-@FOR /f "tokens=*" %%i In ('docker-machine env 2^>Nul') Do @%%i
+@FOR /f "tokens=*" %%i In ('docker-machine env --shell=cmd 2^>Nul') Do @%%i
 
 
 Rem application root directory 
@@ -30,14 +30,20 @@ If "%~1"==""  (
  
 	Echo Boda Telecom Suite CE - Management Utility
 	Echo -----------------------------------------------------
-	Echo bts version           -- Application version
-	Echo bts setup             -- Setup application
-	Echo bts start             -- Start application services
-	Echo bts stop              -- Stop application
-	Echo bts status            -- See process statuses
-	Echo bts logs              -- See logs from containers
-	Echo bts images            -- See images
-	Echo bts rm                -- Stop and remove
+	Echo bts version                        -- Application version
+	Echo bts setup                          -- Setup application, create and start services
+	Echo bts start [service_name]           -- Start application services
+	Echo bts stop [service_name]            -- Stop application
+	Echo bts status                         -- See process statuses
+	Echo bts logs [service_name]            -- See logs from containers
+	Echo bts images                         -- See images
+	Echo bts rm [service_name]              -- Stop and remove
+	Echo bts create [service_name]          -- Create services
+	Echo bts ps [service_name]              -- Display running processes
+	Echo bts pause [service_name]           -- Pause services
+	Echo bts unpause [service_name]         -- Pause services
+	Echo bts exec service_name command      -- Run command in service's container
+	Echo bts recreate                       -- Re-create the services. Useful when working with a version update
 	Echo.
 	Rem Echo manage upgrage -- Upgrade
 	Rem Echo manage list modules -- List installed modules
@@ -78,7 +84,8 @@ If "%~1"=="restart" (
 Rem version 
 Rem -------------------------
 If "%~1"=="version" ( 
-    Echo Version: 1.0.18
+    Set /p Release=<VERSION
+    Echo Version:%Release%
 	Echo Boda Telecom Suite - Community Edition
 	Echo Copyright 2017-2018. Bodastage Solutions. http://www.bodastage.com
 )
@@ -87,12 +94,23 @@ If "%~1"=="version" (
 Rem stop 
 Rem -------------------------
 If "%~1"=="stop" ( 
+    if Not "%~2" == "" (
+	    docker-compose stop %~2
+		Exit /b 0
+	)
+	
     docker-compose stop
 )
 
 Rem logs 
 Rem -------------------------
 If "%~1"=="logs" ( 
+
+    if Not "%~2" == "" (
+	    docker-compose logs %~2
+		Exit /b 0
+	)
+	
     docker-compose logs
 )
 
@@ -105,11 +123,11 @@ If "%~1"=="images" (
     docker-compose images
 )
 
-Rem images 
+Rem remove  
 Rem -------------------------
 If "%~1"=="rm" ( 
 
-    if "%~2" == "" (
+    if Not "%~2" == "" (
 	    docker-compose stop %~2
 		docker-compose rm -f %~2
 		Exit /b 0
@@ -117,4 +135,74 @@ If "%~1"=="rm" (
 	
     docker-compose stop
     docker-compose rm -f
+)
+
+Rem Create container and start service  
+Rem -------------------------
+If "%~1"=="create" ( 
+
+    if Not "%~2" == "" (
+	    docker-compose up -d %~2
+		Exit /b 0
+	)
+	
+    docker-compose up -d
+)
+
+
+Rem Display running processes
+Rem -------------------------
+If "%~1"=="ps" ( 
+
+    if Not "%~2" == "" (
+	    docker-compose top %~2
+		Exit /b 0
+	)
+	
+    docker-compose top
+)
+
+Rem Pause services
+Rem -------------------------
+If "%~1"=="pause" ( 
+
+    if Not "%~2" == "" (
+	    docker-compose pause %~2
+		Exit /b 0
+	)
+	
+    docker-compose pause
+)
+
+
+Rem un pause services
+Rem -------------------------
+If "%~1"=="unpause" ( 
+
+    if Not "%~2" == "" (
+	    docker-compose unpause %~2
+		Exit /b 0
+	)
+	
+    docker-compose unpause
+)
+
+Rem  Exec
+Rem -------------------------
+If "%~1"=="exec" ( 
+
+    if Not "%~2" == ""  (
+	    docker-compose %*
+		Exit /b 0
+	)
+	
+    docker-compose unpause
+)
+
+Rem  Recreate services
+Rem -------------------------
+If "%~1"=="recreate" ( 
+    bts stop 
+	bts rm 
+	bts create
 )

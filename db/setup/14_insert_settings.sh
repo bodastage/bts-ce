@@ -31,5 +31,4 @@ VALUES
 );
 
 ALTER SEQUENCE seq_settings_pk RESTART WITH 3;
-
 EOSQL
