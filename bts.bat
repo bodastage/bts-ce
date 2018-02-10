@@ -202,7 +202,6 @@ If "%~1"=="exec" (
 Rem  Recreate services
 Rem -------------------------
 If "%~1"=="recreate" ( 
-    bts stop 
-	bts rm 
+    @FOR /f "tokens=*" %%i In ('docker ps -q 2^>Nul') Do ( docker stop %%i & docker rm %%i )
 	bts create
 )
