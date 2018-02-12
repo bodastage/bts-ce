@@ -22,6 +22,9 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import DAG
 from datetime import timedelta
 from datetime import datetime
+from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import text
 
 sys.path.append('/mediation/packages');
 
@@ -295,10 +298,61 @@ t22 = BashOperator(
     dag=dag)
 
 
+# Task to check whether ericsson is supported in the network
+def is_vendor_supported(vendor_id):
+    metadata = MetaData()
+    engine = create_engine('postgresql://bodastage:password@database/bts')
+    vendors = Table('vendors', metadata, autoload=True, autoload_with=engine)
+    vendor = session.query(vendors).filter_by(pk=1).first()
+    if vendor.supported is False:
+        raise Exception('Vendor not supported!')
+
+
+def is_ericsson_supported():
+    is_vendor_supported(1)
+
+
+def is_huawei_supported():
+    is_vendor_supported(2)
+
+
+def is_zte_supported():
+    is_vendor_supported(3)
+
+def is_nokia_supported():
+    is_vendor_supported(4)
+
+t23 = PythonOperator(
+    task_id='is_ericsson_supported',
+    python_callable=is_ericsson_supported,
+    dag=dag)
+
+
+# Dummy start task
+t24 = DummyOperator(task_id='process_cm_data', dag=dag)
+
+t25 = PythonOperator(
+    task_id='is_huawei_supported',
+    python_callable=is_huawei_supported,
+    dag=dag)
+
+t26 = PythonOperator(
+    task_id='is_zte_supported',
+    python_callable=is_zte_supported,
+    dag=dag)
+
+
+t27 = PythonOperator(
+    task_id='is_nokia_supported',
+    python_callable=is_nokia_supported,
+    dag=dag)
+
 # extract_ericsson_3g_sites
 # Build dependency graph
-dag.set_dependency('check_if_3g4g_raw_files_exist','backup_prev_eri_3g4g_csv_files')	
-dag.set_dependency('backup_prev_eri_3g4g_csv_files','run_eri_3g4g_parser')	
+dag.set_dependency('process_cm_data','is_ericsson_supported')
+dag.set_dependency('is_ericsson_supported','check_if_3g4g_raw_files_exist')
+dag.set_dependency('check_if_3g4g_raw_files_exist','backup_prev_eri_3g4g_csv_files')
+dag.set_dependency('backup_prev_eri_3g4g_csv_files','run_eri_3g4g_parser')
 dag.set_dependency('run_eri_3g4g_parser','clear_eri_3g4g_cm_tables')
 dag.set_dependency('clear_eri_3g4g_cm_tables','import_eri_3g4g_cm_data')
 dag.set_dependency('import_eri_3g4g_cm_data','backup_3g4g_raw_files')
@@ -322,28 +376,28 @@ dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g_cell_params'
 
 # ###########################################################################
 
-#Check if 2G files exist
+dag.set_dependency('is_ericsson_supported','check_if_2g_raw_files_exist')
 dag.set_dependency('check_if_2g_raw_files_exist','backup_ericsson_2g_csv_files')
-
-# Back up any previous csv files
 dag.set_dependency('backup_ericsson_2g_csv_files','run_ericsson_2g_parser')
-
-# Parser E// 2G data
 dag.set_dependency('run_ericsson_2g_parser','clear_ericsson_2g_cm_tables')
-
-# Clear Ericsson 2G CM data
 dag.set_dependency('clear_ericsson_2g_cm_tables','import_ericsson_2g_cm_data')
-
-# Import E// 2G CM data
 dag.set_dependency('import_ericsson_2g_cm_data','process_ericsson_bscs')
-
-# Extract E// BSCs
 dag.set_dependency('process_ericsson_bscs','extract_ericsson_2g_sites')
-
-# Process E// 2g sites
 dag.set_dependency('extract_ericsson_2g_sites','extract_ericsson_2g_cells')
 
 # Build network tree
 dag.set_dependency('extract_ericsson_2g_cells','build_network_tree')
 dag.set_dependency('extract_ericsson_3g_cells','build_network_tree')
 dag.set_dependency('extract_ericsson_4g_cells','build_network_tree')
+
+# Huawei
+# ##############################################
+dag.set_dependency('process_cm_data','is_huawei_supported')
+
+# ZTE
+# ##############################################
+dag.set_dependency('process_cm_data','is_zte_supported')
+
+# Nokia
+# ##############################################
+dag.set_dependency('process_cm_data','is_nokia_supported')

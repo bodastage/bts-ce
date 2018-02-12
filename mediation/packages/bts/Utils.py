@@ -278,7 +278,7 @@ class Utils(object):
         stmt = stmt.execution_options(autocommit=True).bindparams(tree=aci_tree)
         engine.execute(stmt)
 
-    def get_setting(self, name):
+    def get_setting(self, name, default=None):
         """Get the value of a setting """
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
@@ -295,4 +295,7 @@ class Utils(object):
         if data_type == 'float': value  = setting.float_value
         if data_type == 'timestamp': value  = setting.timestamp_value
 
-        return value
+        if value is not None:
+            return value
+        else:
+            return default
