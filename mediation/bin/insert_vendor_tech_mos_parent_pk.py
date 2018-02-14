@@ -4,7 +4,7 @@
 #@author Bodastage Solutions<info@bodastage.com>
 #@licence: Apache 2.0
 #
-#python /mediation/bin/insert_eri_3g4g_mos_parent_pk.py /mediation/conf/eri_cm_3g4g_parser.conf
+#python /mediation/bin/insert_vendor_tech_mos_parent_pk.py vendor technology /mediation/conf/cm/vendor_cm_tech_parser.conf
 
 import psycopg2
 import time 
@@ -14,7 +14,19 @@ import os
 
 start_time =  timeit.default_timer()
 
-parser_config_file = schema=sys.argv[1] 
+vendors = {"ericsson":1,"huawei":2, "zte":3, "nokia":4, "samsung":5, "alcatel":6, "bodastage":7}
+technologies = {"gsm":1, "umts":2, "lte":3}
+
+#vendor 
+vendor=sys.argv[1] 
+
+#output folder
+technology=sys.argv[2] 
+
+vendor_pk = vendors[vendor]
+tech_pk = technologies[technology]
+
+parser_config_file = schema=sys.argv[3] 
 
 host = os.environ.get('POSTGRES_HOST')
 

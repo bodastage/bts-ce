@@ -18,6 +18,7 @@ import airflow
 from builtins import range
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import BranchPythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import DAG
 from datetime import timedelta
@@ -46,7 +47,7 @@ args = {
 }
 
 dag = DAG(
-    dag_id='cm_process_data', default_args=args,
+    dag_id='cm_etlp', default_args=args,
     schedule_interval=schedule_interval,
     max_active_runs = 1,
     concurrency = 1,
@@ -55,7 +56,7 @@ dag = DAG(
 
 
 t1 = BashOperator(
-    task_id='check_if_3g4g_raw_files_exist',
+    task_id='check_if_eri_3g4g_raw_files_exist',
     bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/ericsson/3g4g/raw/in | wc -l` ]; then exit 1; fi',
     dag=dag)
 
@@ -74,13 +75,13 @@ t3 = BashOperator(
 # Backup raw files that have been parsed
 t4 = BashOperator(
     task_id='backup_3g4g_raw_files',
-    bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ >/dev/null',
+    bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ 2>/dev/null',
     dag=dag)
 
 # Backup previously generate csv files from parsing
 t5 = BashOperator(
     task_id='backup_prev_eri_3g4g_csv_files',
-    bash_command='mv -f /mediation/data/cm/ericsson/3g4g/parsed/in/* /mediation/data/cm/ericsson/3g4g/parsed/out/ >/dev/null',
+    bash_command='mv -f /mediation/data/cm/ericsson/3g4g/parsed/in/* /mediation/data/cm/ericsson/3g4g/parsed/out/ 2>/dev/null',
     dag=dag)
 
 
@@ -110,8 +111,8 @@ t7 = PythonOperator(
 
 # Process ericsson RNCs
 def process_eri_rncs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_ericsson_rncs()
+    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    start_cm_etlp.extract_ericsson_rncs()
 
 
 t8 = PythonOperator(
@@ -122,8 +123,8 @@ t8 = PythonOperator(
 
 # Process ericsson ENodeBs
 def process_eri_enodebs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_ericsson_enodebs()
+    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    start_cm_etlp.extract_ericsson_enodebs()
 
 
 t9 = PythonOperator(
@@ -134,8 +135,8 @@ t9 = PythonOperator(
 
 # Process Ericsson 3G Sites
 def extract_ericsson_3g_sites():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_ericsson_3g_sites()
+    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    start_cm_etlp.extract_ericsson_3g_sites()
 
 
 t10 = PythonOperator(
@@ -146,8 +147,8 @@ t10 = PythonOperator(
 
 # Process Ericsson 3G Sites
 def extract_ericsson_3g_cells():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_ericsson_3g_cells()
+    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    start_cm_etlp.extract_ericsson_3g_cells()
 
 
 t10 = PythonOperator(
@@ -158,8 +159,8 @@ t10 = PythonOperator(
 
 # Process Ericsson 3G Sites
 def extract_ericsson_4g_cells():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_ericsson_4g_cells()
+    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    start_cm_etlp.extract_ericsson_4g_cells()
 
 
 t11 = PythonOperator(
@@ -170,8 +171,8 @@ t11 = PythonOperator(
 
 # Process Erisson 3g-2g relations
 def extract_ericsson_3g3g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_ericsson_3g3g_nbrs()
+    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    start_cm_etlp.extract_ericsson_3g3g_nbrs()
 
 
 t12 = PythonOperator(
@@ -182,8 +183,8 @@ t12 = PythonOperator(
 
 # Process Ericsson 4G cell parameters
 def extract_ericsson_4g_cell_params():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_ericsson_4g_cell_params()
+    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    start_cm_etlp.extract_ericsson_4g_cell_params()
 
 
 t13 = PythonOperator(
@@ -194,8 +195,8 @@ t13 = PythonOperator(
 
 # Process Ericsson 3G cell parameters
 def extract_ericsson_3g_cell_params():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_ericsson_3g_cell_params()
+    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    start_cm_etlp.extract_ericsson_3g_cell_params()
 
 
 t14 = PythonOperator(
@@ -206,8 +207,8 @@ t14 = PythonOperator(
 
 # Process Erisson 3g-2g relations
 def extract_ericsson_4g4g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_ericsson_4g4g_nbrs()
+    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    start_cm_etlp.extract_ericsson_4g4g_nbrs()
 
 
 t15 = PythonOperator(
@@ -283,13 +284,13 @@ t19 = PythonOperator(
 
 t20 = BashOperator(
     task_id='run_ericsson_2g_parser',
-    bash_command='echo "Parsing E// 2G CM data"',
+    bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/in /mediation/data/cm/ericsson/2g/parsed/in /mediation/conf/cm/eri_cm_2g_parser.cfg',
     dag=dag)
 
 # Backup E// 2G raw files that have been parsed
 t21 = BashOperator(
     task_id='backup_ericsson_2g_csv_files',
-    bash_command='mv -f /mediation/data/cm/ericsson/2g/parsed/in/* /mediation/data/cm/ericsson/2g/parsed/out/ >/dev/null',
+    bash_command='mv -f /mediation/data/cm/ericsson/2g/parsed/in/* /mediation/data/cm/ericsson/2g/parsed/out/ 2>/dev/null',
     dag=dag)
 
 t22 = BashOperator(
@@ -300,20 +301,28 @@ t22 = BashOperator(
 
 # Task to check whether ericsson is supported in the network
 def is_vendor_supported(vendor_id):
-    metadata = MetaData()
     engine = create_engine('postgresql://bodastage:password@database/bts')
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    metadata = MetaData()
     vendors = Table('vendors', metadata, autoload=True, autoload_with=engine)
     vendor = session.query(vendors).filter_by(pk=1).first()
+    session.close()
     if vendor.supported is False:
-        raise Exception('Vendor not supported!')
+        return False
+    return True
 
 
 def is_ericsson_supported():
-    is_vendor_supported(1)
+    if is_vendor_supported(1) is True:
+        return 'ericsson_is_supported'
+    return 'end_cm_etlp'
 
 
 def is_huawei_supported():
-    is_vendor_supported(2)
+    if is_vendor_supported(2) is True:
+        return 'huawei_is_supported'
+    return 'end_cm_etlp'
 
 
 def is_zte_supported():
@@ -322,14 +331,14 @@ def is_zte_supported():
 def is_nokia_supported():
     is_vendor_supported(4)
 
-t23 = PythonOperator(
+t23 = BranchPythonOperator(
     task_id='is_ericsson_supported',
     python_callable=is_ericsson_supported,
     dag=dag)
 
 
 # Dummy start task
-t24 = DummyOperator(task_id='process_cm_data', dag=dag)
+t24 = DummyOperator(task_id='start_cm_etlp', dag=dag)
 
 t25 = PythonOperator(
     task_id='is_huawei_supported',
@@ -347,11 +356,52 @@ t27 = PythonOperator(
     python_callable=is_nokia_supported,
     dag=dag)
 
+
+t28 = BashOperator(
+    task_id='check_if_hua_2g_raw_files_exist',
+    bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/huawei/2g/raw/in | wc -l` ]; then exit 1; fi',
+    dag=dag)
+
+t29 = BashOperator(
+    task_id='run_huawei_2g_parser',
+    bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/2g/raw/in /mediation/data/cm/huawei/2g/parsed/in /mediation/conf/cm/hua_cm_2g_nbi_parameters.cfg',
+    dag=dag)
+
+t30 = BashOperator(
+    task_id='backup_huawei_2g_csv_files',
+    bash_command='mv -f /mediation/data/cm/huawei/2g/parsed/in/* /mediation/data/cm/huawei/2g/parsed/out/ 2>/dev/null',
+    dag=dag)
+
+# Clear 2G CM data tables
+def clear_huawei_2g_cm_tables():
+    pass
+
+
+t31 = PythonOperator(
+    task_id='clear_huawei_2g_cm_tables',
+    python_callable=clear_huawei_2g_cm_tables,
+    dag=dag)
+
+t32 = BashOperator(
+    task_id='import_huawei_2g_cm_data',
+    bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/hua_cm_2g_nbi_loader.cfg"',
+    dag=dag)
+
+# End Extaction Transformation Load Process
+t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)
+
+t34 = DummyOperator(task_id='ericsson_is_supported', dag=dag)
+
+t35 = DummyOperator(task_id='huawei_is_supported', dag=dag)
+
 # extract_ericsson_3g_sites
 # Build dependency graph
-dag.set_dependency('process_cm_data','is_ericsson_supported')
-dag.set_dependency('is_ericsson_supported','check_if_3g4g_raw_files_exist')
-dag.set_dependency('check_if_3g4g_raw_files_exist','backup_prev_eri_3g4g_csv_files')
+dag.set_dependency('start_cm_etlp','is_ericsson_supported')
+dag.set_dependency('is_ericsson_supported','ericsson_is_supported')
+dag.set_dependency('is_ericsson_supported','end_cm_etlp')
+
+dag.set_dependency('ericsson_is_supported','check_if_eri_3g4g_raw_files_exist')
+dag.set_dependency('check_if_eri_3g4g_raw_files_exist','backup_prev_eri_3g4g_csv_files')
 dag.set_dependency('backup_prev_eri_3g4g_csv_files','run_eri_3g4g_parser')
 dag.set_dependency('run_eri_3g4g_parser','clear_eri_3g4g_cm_tables')
 dag.set_dependency('clear_eri_3g4g_cm_tables','import_eri_3g4g_cm_data')
@@ -363,20 +413,27 @@ dag.set_dependency('process_eri_rncs','extract_ericsson_3g_sites')
 dag.set_dependency('extract_ericsson_3g_sites','extract_ericsson_3g_cells')
 dag.set_dependency('process_eri_enodebs','extract_ericsson_4g_cells')
 
+dag.set_dependency('generate_network_baseline','end_cm_etlp')
+dag.set_dependency('backup_3g4g_raw_files','end_cm_etlp')
+
 # Extact ericsson-ericsson 3g-3g nbrs after 3g cells have been extracted
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g3g_nbrs')
+dag.set_dependency('extract_ericsson_3g3g_nbrs','end_cm_etlp')
 
 # Extract LTE cell parameter after the cells have been extracted
 dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_4g_cell_params')
 dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_4g4g_nbrs')
+dag.set_dependency('extract_ericsson_4g_cell_params','end_cm_etlp')
+dag.set_dependency('extract_ericsson_4g4g_nbrs','end_cm_etlp')
+
 
 # Extract UMTS cell parameter after the cells have been extracted
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g_cell_params')
-
+dag.set_dependency('extract_ericsson_3g_cell_params','end_cm_etlp')
 
 # ###########################################################################
 
-dag.set_dependency('is_ericsson_supported','check_if_2g_raw_files_exist')
+dag.set_dependency('ericsson_is_supported','check_if_2g_raw_files_exist')
 dag.set_dependency('check_if_2g_raw_files_exist','backup_ericsson_2g_csv_files')
 dag.set_dependency('backup_ericsson_2g_csv_files','run_ericsson_2g_parser')
 dag.set_dependency('run_ericsson_2g_parser','clear_ericsson_2g_cm_tables')
@@ -389,15 +446,26 @@ dag.set_dependency('extract_ericsson_2g_sites','extract_ericsson_2g_cells')
 dag.set_dependency('extract_ericsson_2g_cells','build_network_tree')
 dag.set_dependency('extract_ericsson_3g_cells','build_network_tree')
 dag.set_dependency('extract_ericsson_4g_cells','build_network_tree')
+dag.set_dependency('build_network_tree','end_cm_etlp')
 
-# Huawei
+# Huawei 2G
 # ##############################################
-dag.set_dependency('process_cm_data','is_huawei_supported')
+dag.set_dependency('is_huawei_supported','huawei_is_supported')
+dag.set_dependency('is_huawei_supported','end_cm_etlp')
+
+dag.set_dependency('start_cm_etlp','is_huawei_supported')
+dag.set_dependency('huawei_is_supported','check_if_hua_2g_raw_files_exist')
+dag.set_dependency('check_if_hua_2g_raw_files_exist','backup_huawei_2g_csv_files')
+dag.set_dependency('backup_huawei_2g_csv_files','run_huawei_2g_parser')
+dag.set_dependency('run_huawei_2g_parser','clear_huawei_2g_cm_tables')
+dag.set_dependency('clear_huawei_2g_cm_tables','import_huawei_2g_cm_data')
+dag.set_dependency('import_huawei_2g_cm_data','end_cm_etlp')
 
 # ZTE
 # ##############################################
-dag.set_dependency('process_cm_data','is_zte_supported')
-
+dag.set_dependency('start_cm_etlp','is_zte_supported')
+dag.set_dependency('is_zte_supported','end_cm_etlp')
 # Nokia
 # ##############################################
-dag.set_dependency('process_cm_data','is_nokia_supported')
+dag.set_dependency('start_cm_etlp','is_nokia_supported')
+dag.set_dependency('is_nokia_supported','end_cm_etlp')

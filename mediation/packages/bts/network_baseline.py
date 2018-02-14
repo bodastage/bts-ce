@@ -18,7 +18,7 @@ class NetworkBaseLine(object):
  
     def run(self):
         """Run network baseline"""
-        conn = psycopg2.connect("dbname={0} user={1} password={2} host={3}".format(self._dbname, self._dbuser, self._dbpass, self._dbhost))
+        conn = psycopg2.connect("dbname=bts user=bodastage password=password host=database")
 
         conn.autocommit = True
 
@@ -52,6 +52,8 @@ class NetworkBaseLine(object):
                     ORDER BY cnt DESC
                     LIMIT 1
                 """.format(parameter_name, mo_name)
+
+                print(sql)
 
                 parameter_value = ""
 
