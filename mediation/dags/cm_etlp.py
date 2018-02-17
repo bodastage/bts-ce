@@ -51,7 +51,7 @@ dag = DAG(
     schedule_interval=schedule_interval,
     max_active_runs = 1,
     concurrency = 1,
-    catchup                        = False,
+    catchup = False,
     dagrun_timeout=timedelta(minutes=60))
 
 
@@ -86,14 +86,14 @@ t5 = BashOperator(
 
 
 # Run network baseline
-def generate_network_baseline():
+def generate_eri_3g4g_network_baseline():
     networkBaseLine = NetworkBaseLine(dbhost=os.environ.get('POSTGRES_HOST'));
-    networkBaseLine.run()
+    networkBaseLine.run(vendor_pk, tech_pk)
 
 
 t6 = PythonOperator(
-    task_id='generate_network_baseline',
-    python_callable=generate_network_baseline,
+    task_id='generate_eri_3g4g_network_baseline',
+    python_callable=generate_eri_3g4g_network_baseline,
     dag=dag)
 
 
@@ -262,15 +262,12 @@ t18 = PythonOperator(
     dag=dag)
 
 
-# Import E// 2G data
-def import_ericsson_2g_cm_data():
-    pass
-
-
-t18 = PythonOperator(
-    task_id='import_ericsson_2g_cm_data',
-    python_callable=import_ericsson_2g_cm_data,
+# Import csv files into csv files
+t18 = BashOperator(
+    task_id='import_eri_2g_cm_data',
+    bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/eri_cm_2g_loader.cfg"',
     dag=dag)
+
 
 # Clear 2G CM data tables
 def clear_ericsson_2g_cm_tables():
@@ -284,7 +281,7 @@ t19 = PythonOperator(
 
 t20 = BashOperator(
     task_id='run_ericsson_2g_parser',
-    bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/in /mediation/data/cm/ericsson/2g/parsed/in /mediation/conf/cm/eri_cm_2g_parser.cfg',
+    bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/in /mediation/data/cm/ericsson/2g/parsed/in /mediation/conf/cm/eri_cm_2g_cnaiv2_loader.cfg',
     dag=dag)
 
 # Backup E// 2G raw files that have been parsed
@@ -406,14 +403,14 @@ dag.set_dependency('backup_prev_eri_3g4g_csv_files','run_eri_3g4g_parser')
 dag.set_dependency('run_eri_3g4g_parser','clear_eri_3g4g_cm_tables')
 dag.set_dependency('clear_eri_3g4g_cm_tables','import_eri_3g4g_cm_data')
 dag.set_dependency('import_eri_3g4g_cm_data','backup_3g4g_raw_files')
-dag.set_dependency('import_eri_3g4g_cm_data','generate_network_baseline')
+dag.set_dependency('import_eri_3g4g_cm_data','generate_eri_3g4g_network_baseline')
 dag.set_dependency('import_eri_3g4g_cm_data','process_eri_rncs')
 dag.set_dependency('import_eri_3g4g_cm_data','process_eri_enodebs')
 dag.set_dependency('process_eri_rncs','extract_ericsson_3g_sites')
 dag.set_dependency('extract_ericsson_3g_sites','extract_ericsson_3g_cells')
 dag.set_dependency('process_eri_enodebs','extract_ericsson_4g_cells')
 
-dag.set_dependency('generate_network_baseline','end_cm_etlp')
+dag.set_dependency('generate_eri_3g4g_network_baseline','end_cm_etlp')
 dag.set_dependency('backup_3g4g_raw_files','end_cm_etlp')
 
 # Extact ericsson-ericsson 3g-3g nbrs after 3g cells have been extracted
@@ -437,8 +434,8 @@ dag.set_dependency('ericsson_is_supported','check_if_2g_raw_files_exist')
 dag.set_dependency('check_if_2g_raw_files_exist','backup_ericsson_2g_csv_files')
 dag.set_dependency('backup_ericsson_2g_csv_files','run_ericsson_2g_parser')
 dag.set_dependency('run_ericsson_2g_parser','clear_ericsson_2g_cm_tables')
-dag.set_dependency('clear_ericsson_2g_cm_tables','import_ericsson_2g_cm_data')
-dag.set_dependency('import_ericsson_2g_cm_data','process_ericsson_bscs')
+dag.set_dependency('clear_ericsson_2g_cm_tables','import_eri_2g_cm_data')
+dag.set_dependency('import_eri_2g_cm_data','process_ericsson_bscs')
 dag.set_dependency('process_ericsson_bscs','extract_ericsson_2g_sites')
 dag.set_dependency('extract_ericsson_2g_sites','extract_ericsson_2g_cells')
 

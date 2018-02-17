@@ -1,22 +1,14 @@
 import psycopg2
 
+# @todo: use logger
 class NetworkBaseLine(object):
 
     def __init__(self, dbname = None, dbuser = None, dbpass = None, dbhost = None):
         ''' Constructor for this class. '''
-
-        self._dbhost=dbhost
-        self._dbname=dbname
-        self._dbuser=dbuser
-        self._dbpass=dbpass
-
-        if dbname is None: self._dbname="bts"
-        if dbuser is None: self._dbuser="bodastage"
-        if dbpass is None: self._dbpass="password"
-        if dbhost is None: self._dbhost="locahost"
+        pass
  
  
-    def run(self):
+    def run(self,vendor_id, tech_id):
         """Run network baseline"""
         conn = psycopg2.connect("dbname=bts user=bodastage password=password host=database")
 
@@ -24,13 +16,20 @@ class NetworkBaseLine(object):
 
         cur = conn.cursor()
 
+        # Get the schema name for vendor's cm data
+        cur.execute("""SELECT pk, "name" FROM managedobjects_schemas WHERE tech_pk = %s and vendor_pk = %s""",
+                    (tech_id, vendor_id))
+        schema = cur.fetchone()
+        schema_name = schema[1]
+
+
         # Get MOs
         # UMTS, Ericsson
-        cur.execute("""SELECT pk, "name" FROM managedobjects WHERE tech_pk = %s and vendor_pk = %s""", (2,1))
+        cur.execute("""SELECT pk, "name" FROM managedobjects WHERE tech_pk = %s and vendor_pk = %s""", (tech_id, vendor_id))
 
         mos = cur.fetchall()
 
-        print(mos)
+        # print(mos)
 
         for idx in range(len(mos)):
             mo_name = mos[idx][1]
@@ -46,12 +45,12 @@ class NetworkBaseLine(object):
                 parameter_name = parameters[i][1]
 
                 sql = """
-                    SELECT "{0}" AS parameter, count(1) as cnt
-                    FROM  eri_cm_3g4g.{1}
-                    GROUP BY "{0}"
+                    SELECT "{2}" AS parameter, count(1) as cnt
+                    FROM  {0}.{1}
+                    GROUP BY "{2}"
                     ORDER BY cnt DESC
                     LIMIT 1
-                """.format(parameter_name, mo_name)
+                """.format(schema_name, mo_name, parameter_name)
 
                 print(sql)
 
@@ -72,7 +71,7 @@ class NetworkBaseLine(object):
                 base_line_value  = parameter_value[0]
                 print ("base_line_value:{0}".format(base_line_value) )
 
-                if base_line_value is None: continue
+                # if base_line_value is None: continue
 
                 #Skip values greater than 200 characters
                 #if len(base_line_value) > 200: continue
