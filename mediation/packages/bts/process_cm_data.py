@@ -154,6 +154,8 @@ class ProcessCMData(object):
         session.close()
 
     def extract_ericsson_3g_cells_per_site(self):
+        """Extract 3G cells in bunches
+        """
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
@@ -162,12 +164,23 @@ class ProcessCMData(object):
         sites = session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=2).all()
         # for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=2).yield_per(5):
         i = 0
-        while i < len(sites):
-            site_list = list( map( lambda x:x[1], sites[i:i+5]) )
+        sites_len = len(sites)
+        while i < sites_len:
+            # Handle iterations at the end of the site list
+            end = i+5;
+            if sites_len < i+5:
+                end = sites_len
+
+            placeholder_range = 5
+            if end == sites_len:
+                placeholder_range = end-i
+
+            site_list = list( map( lambda x:x[1], sites[i:end]) )
             # placeholders = map( lambda x: ':p'+x , range(5)) # [:p0,...,:p4]
+
             placeholders = []
             site_list_placeholders = {}
-            for r in range(5):
+            for r in range(placeholder_range):
                 placeholders.append(':p'+ str(r))
                 site_list_placeholders['p'+ str(r)] = site_list[r]
 
@@ -210,7 +223,9 @@ class ProcessCMData(object):
         session.close()
 
     def extract_ericsson_4g_cells(self):
-        """Extract Ericsson LTE Cells"""
+        """Extract Ericsson LTE Cells
+        This extract the parameters in one query. Needs alot of memory for large networks
+        """
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
@@ -225,7 +240,7 @@ class ProcessCMData(object):
             0 as modified_by,
             3, -- tech 3 -lte, 2 -umts, 1-gms
             1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
-            t1."userLabel",
+            CASE WHEN t1."userLabel" IS NULL THEN t1."vsDataEUtranCellFDD_id" ELSE t1."userLabel" END AS "name",
             t2.pk -- site primary key
             FROM eri_cm_3g4g.vsdataeutrancellfdd t1
             INNER JOIN live_network.sites t2 on t2."name" = t1."MeContext_id" 
@@ -237,6 +252,68 @@ class ProcessCMData(object):
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
+
+    def extract_ericsson_4g_cells_per_site(self):
+        """" Extrcts Ericsson 4G Cells  in bunces
+            This is ideal for large networks or whne BTS is run on as system with limited resources
+        """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        sites = session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=3).all()
+        # for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=2).yield_per(5):
+        i = 0
+        sites_len = len(sites)
+        while i < sites_len:
+            end = i+5;
+            if sites_len < i+5:
+                end = sites_len
+
+            placeholder_range = 5
+            if end == sites_len:
+                placeholder_range = end-i
+
+            site_list = list( map( lambda x:x[1], sites[i:end]) )
+            # placeholders = map( lambda x: ':p'+x , range(5)) # [:p0,...,:p4]
+            placeholders = []
+            site_list_placeholders = {}
+            for r in range(placeholder_range):
+                placeholders.append(':p'+ str(r))
+                site_list_placeholders['p'+ str(r)] = site_list[r]
+
+            print(site_list_placeholders)
+            print(site_list)
+
+            i = i+5
+            sql = """
+            INSERT INTO live_network.cells
+            (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
+            SELECT 
+            NEXTVAL('live_network.seq_cells_pk'),
+            t1."varDateTime" as date_added, 
+            t1."varDateTime" as date_modified, 
+            0 as added_by,
+            0 as modified_by,
+            3, -- tech 3 -lte, 2 -umts, 1-gms
+            1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
+            CASE WHEN t1."userLabel" IS NULL THEN t1."vsDataEUtranCellFDD_id" ELSE t1."userLabel" END AS "name",
+            t2.pk -- site primary key
+            FROM eri_cm_3g4g.vsdataeutrancellfdd t1
+            INNER JOIN live_network.sites t2 on t2."name" = t1."MeContext_id" 
+                AND t2.vendor_pk = 1 and t2.tech_pk = 3 
+            LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
+                AND t2.vendor_pk = 1 and t2.tech_pk = 3 
+            WHERE
+                t3."name" IS NULL
+                AND t2."name" IN ({})
+            """.format( ', '.join(placeholders) )
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True),**site_list_placeholders)
 
         session.close()
 

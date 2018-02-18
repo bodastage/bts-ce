@@ -148,7 +148,7 @@ t10 = PythonOperator(
 # Process Ericsson 3G Sites
 def extract_ericsson_3g_cells():
     start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_3g_cells()
+    start_cm_etlp.extract_ericsson_3g_cells_per_site()
 
 
 t10 = PythonOperator(
@@ -160,7 +160,7 @@ t10 = PythonOperator(
 # Process Ericsson 3G Sites
 def extract_ericsson_4g_cells():
     start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_4g_cells()
+    start_cm_etlp.extract_ericsson_4g_cells_per_site()
 
 
 t11 = PythonOperator(
