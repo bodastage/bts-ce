@@ -303,7 +303,7 @@ def is_vendor_supported(vendor_id):
     session = Session()
     metadata = MetaData()
     vendors = Table('vendors', metadata, autoload=True, autoload_with=engine)
-    vendor = session.query(vendors).filter_by(pk=1).first()
+    vendor = session.query(vendors).filter_by(pk=vendor_id).first()
     session.close()
     if vendor.supported is False:
         return False
