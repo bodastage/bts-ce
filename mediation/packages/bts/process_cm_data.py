@@ -318,7 +318,68 @@ class ProcessCMData(object):
 
     def extract_ericsson_4g_cell_params(self):
         """Extract Ericsson LTE cell parameters"""
-        pass
+        """Extract Ericsson LTE cell parameters"""
+
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        # Truncate paramete table
+        self.db_engine.execute(text("TRUNCATE TABLE live_network.lte_cells_data").execution_options(autocommit=True))
+        self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_lte_cells_data_pk RESTART WITH 1;").
+                               execution_options(autocommit=True))
+
+        # The data is alot. Let's handle per site
+        site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 1 and tech_pk = 3"""
+
+        result = self.db_engine.execute(site_sql)
+
+        for row in result:
+            (site_pk, site_name) = row
+
+            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+            sql = """
+                        INSERT INTO live_network.lte_cells_data
+                        (pk, name, cell_pk, uarfcn_dl, uarfcn_ul, tac, pci, ecgi, rach_root_sequence, max_tx_power, latitude, longitude,
+                        height, ta, ta_mode, tx_elements, rx_elements, azimuth, mechanical_tilt, electrical_tilt, cell_range,
+                        site_pk, tech_pk, vendor_pk, modified_by, added_by, date_added, date_modified)
+                        SELECT 
+                        NEXTVAL('live_network.seq_lte_cells_data_pk'),
+                        t1."vsDataEUtranCellFDD_id" as name,
+                        t2.pk as cell_pk,
+                        t1."earfcndl"::integer as uarfcn_dl,
+                        t1."earfcnul"::integer as uarfcn_ul,
+                        t1."tac"::integer as tac,
+                        t1."physicalLayerCellIdGroup"::integer as pci,
+                        null as ecgi,
+                        t1."rachRootSequence" as rach_root_sequence,
+                        null as max_tx_power,
+                        (t1."latitude"::float/93206.76)*(-1::float)  as latitude,
+                        t1."longitude"::float/46603.38 as longitude,
+                        t1."altitude"::integer as height,
+                        null as ta,
+                        null as ta_mode,
+                        null as tx_elements,
+                        null as rx_elements,
+                        null as azimuth,
+                        null as mechanical_tilt,
+                        null as electrical_tilt,
+                        t1."cellRange"::integer as cell_range,
+                        t2.site_pk as site_pk,
+                        t2.tech_pk as tech_pk,
+                        t2.vendor_pk as vendor_pk,
+                        0 as modified_by, 
+                        0 as added_by, 
+                        t1."varDateTime" as date_added, 
+                        t1."varDateTime" as date_modified
+                        FROM eri_cm_3g4g.vsdataeutrancellfdd t1
+                        INNER JOIN live_network.cells t2 on t2."name" = t1."vsDataEUtranCellFDD_id"
+                        WHERE t1."MeContext_id" = '{0}';
+                    """.format(site_name)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
 
     def extract_ericsson_3g_cell_params(self):
         """Extract Ericsson UMTS cell parameters"""

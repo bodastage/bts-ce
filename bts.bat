@@ -64,7 +64,13 @@ Rem start
 Rem -------------------------
 If "%~1"=="start" ( 
     Rem start machine 
-	docker-machine start > Nul
+	Rem docker-machine start > Nul
+    Rem docker-compose start
+	
+    if Not "%~2" == "" (
+	    docker-compose start %~2
+		Exit /b 0
+	)
 	
     docker-compose start
 )
