@@ -172,7 +172,7 @@ t11 = PythonOperator(
 # Process Erisson 3g-2g relations
 def extract_ericsson_3g3g_nbrs():
     start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_3g3g_nbrs()
+    start_cm_etlp.extract_ericsson_3g3g_nbrs_per_site()
 
 
 t12 = PythonOperator(

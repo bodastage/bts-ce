@@ -255,7 +255,6 @@ class ProcessCMData(object):
 
         session.close()
 
-
     def extract_ericsson_4g_cells_per_site(self):
         """" Extrcts Ericsson 4G Cells  in bunces
             This is ideal for large networks or whne BTS is run on as system with limited resources
@@ -329,7 +328,8 @@ class ProcessCMData(object):
 
         # Truncate paramete table
         self.db_engine.execute(text("TRUNCATE TABLE live_network.umts_cells_data").execution_options(autocommit=True))
-        self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_umts_cells_data_pk RESTART WITH 1;").execution_options(autocommit=True))
+        self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_umts_cells_data_pk RESTART WITH 1;").
+                               execution_options(autocommit=True))
 
         # The data is alot. Let's handle per site
         site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 1 and tech_pk = 2"""
@@ -343,7 +343,10 @@ class ProcessCMData(object):
 
             sql = """
                 INSERT INTO live_network.umts_cells_data
-                (pk, date_added, date_modified, added_by, modified_by,bch_power,cell_id,cell_pk,lac,latitude, longitude, maximum_transmission_power, "name", notes, cpich_power, primary_sch_power, scrambling_code, rac, sac, secondary_sch_power, site_pk, tech_pk, vendor_pk, uarfcn_dl,uarfcn_ul, ura_list, azimuth, cell_range, height, site_sector_carrier)
+                (pk, date_added, date_modified, added_by, modified_by,bch_power,cell_id,cell_pk,lac,latitude, longitude, 
+                maximum_transmission_power, "name", cpich_power, primary_sch_power, scrambling_code, rac, sac, 
+                secondary_sch_power, site_pk, tech_pk, vendor_pk, uarfcn_dl,uarfcn_ul, ura_list, azimuth, cell_range, 
+                height, site_sector_carrier)
                 SELECT 
                 NEXTVAL('live_network.seq_umts_cells_data_pk'),
                 t1."varDateTime" as date_added, 
@@ -354,11 +357,11 @@ class ProcessCMData(object):
                 t1."cId"::integer,
                 t3.pk as cell_pk, -- cellid
                 t1."lac"::integer,
-                (t4."antennaPosition_latitude"::float/93206.76)*(-1::float*t4."antennaPosition_latitudeSign"::float) as latitude,
+                (t4."antennaPosition_latitude"::float/93206.76)*(-1::float*t4."antennaPosition_latitudeSign"::float) 
+                as latitude,
                 t4."antennaPosition_longitude"::float/46603.38 as longitude,
                 t1."maximumTransmissionPower"::integer as maximum_transmission_power,
                 t1."UtranCell_id",
-                '',
                 t1."primaryCpichPower"::integer as cpich_power,
                 t1."primarySchPower"::integer as primary_sch_power,
                 t1."primaryScramblingCode"::integer as scrambling_code,
@@ -442,6 +445,58 @@ class ProcessCMData(object):
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
+    def extract_ericsson_3g3g_nbrs_per_site(self):
+        """Extract Ericsson UMTS-UMTS neighbour relations"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=2).yield_per(5):
+            sql = """
+                INSERT INTO live_network.relations 
+                (pk, svrnode_pk,svrsite_pk,svrtech_pk,svrvendor_pk,svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+                SELECT 
+                NEXTVAL('live_network.seq_relations_pk'),
+                -- serving side
+                t4.node_pk as svrnode_pk, 
+                t3.site_pk as svrsite_pk, 
+                t3.tech_pk as svrtech_pk,
+                t3.vendor_pk as svrvendor_pk ,
+                t3.pk as svrcell_pk,
+                -- nbr side 
+                t7.node_pk as nbrnode_pk, 
+                t6.site_pk as nbrsite_pk, 
+                t6.tech_pk as nbrtech_pk,
+                t6.vendor_pk as nbrvendor_pk ,
+                t6.pk as nbrcell_pk,
+                -- meta fields 
+                t1."varDateTime" ,
+                t1."varDateTime" ,
+                0, -- system
+                0
+                FROM eri_cm_3g4g.utranrelation t1 
+                INNER JOIN eri_cm_3g4g.utrancell t2 ON t1."adjacentCell" = concat('SubNetwork=',trim(t2."SubNetwork_id"),',SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
+                -- serving side
+                INNER JOIN live_network.cells t3 ON t3."name" = t1."UtranCell_id" AND t3.vendor_pk = 1 AND t3.tech_pk = 2
+                INNER JOIN live_network.sites t4 ON t4.pk = t3.site_pk
+                INNER JOIN live_network.nodes t5 ON t5.pk = t4.node_pk 
+                -- nbr side 
+                INNER JOIN live_network.cells t6 ON t6."name" = t1."UtranRelation_id" AND t3.vendor_pk = 1 AND t3.tech_pk = 2
+                INNER JOIN live_network.sites t7 ON t7.pk = t6.site_pk
+                -- This part is to extract only new relations
+                LEFT JOIN live_network.relations t9 ON t9.svrcell_pk = t3.pk 
+                    AND t9.nbrcell_pk = t6.pk
+                WHERE 
+                    t9.pk IS NULL
+                    AND t4."name" = :svr_site
+            """
+            print(sql)
+            print(site)
+            self.db_engine.execute(text(sql).execution_options(autocommit=True), svr_site=site[1])
 
         session.close()
 
