@@ -55,6 +55,67 @@ class ProcessCMData(object):
 
         session.close()
 
+
+    def extract_ericsson_bscs(self):
+        """Extract BSCs from Ericsson CM data(eri_cm_2g.bsc)"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+             INSERT INTO live_network.nodes
+             (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
+             SELECT 
+             NEXTVAL('live_network.seq_nodes_pk'),
+             "varDateTime" as date_added, 
+             "varDateTime" as date_modified, 
+             'BSC' as node_type,
+             t1."BSC_NAME" as "name" , 
+             1 as vendor_pk, -- 1=Ericsson, 2=Huawei
+             1 as tech_pk , -- 1=gsm, 2-umts,3=lte
+             0 as added_by,
+             0 as modified_by
+             FROM eri_cm_2g.bsc t1
+             LEFT OUTER  JOIN live_network.nodes t2 ON t1."BSC_NAME" = t2."name"
+             WHERE 
+             t2."name" IS NULL
+         """
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
+    def extract_ericsson_2g_sites(self):
+        """Extract Ericsson 2G Sites"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO live_network.sites
+            (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
+            SELECT 
+            NEXTVAL('live_network.seq_sites_pk'),
+            t1."varDateTime" as date_added, 
+            t1."varDateTime" as date_modified, 
+            0 as added_by,
+            0 as modified_by,
+            1, -- tech 3 -lte, 2 -umts, 1-gms
+            1, -- 1- Ericsson, 2 - Huawei, 3 - zte, 4-nokika, etc...
+            t1."SITE_NAME",
+            t2.pk -- node primary key
+            from eri_cm_2g.site t1
+            INNER join live_network.nodes t2 on t2."name" = t1."BSC_NAME" 
+                AND t2.vendor_pk = 1 and t2.tech_pk = 1
+            LEFT JOIN live_network.sites t3 on t3."name" = t1."SITE_NAME" 
+               AND t2.vendor_pk = 1 and t2.tech_pk = 1
+            WHERE 
+            t3."name" IS NULL
+
+        """
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
     def extract_ericsson_enodebs(self):
         """Extract Ericsson ENodebs"""
         Session = sessionmaker(bind=self.db_engine)

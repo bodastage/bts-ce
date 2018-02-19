@@ -111,8 +111,8 @@ t7 = PythonOperator(
 
 # Process ericsson RNCs
 def process_eri_rncs():
-    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_rncs()
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_rncs()
 
 
 t8 = PythonOperator(
@@ -123,8 +123,8 @@ t8 = PythonOperator(
 
 # Process ericsson ENodeBs
 def process_eri_enodebs():
-    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_enodebs()
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_enodebs()
 
 
 t9 = PythonOperator(
@@ -135,8 +135,8 @@ t9 = PythonOperator(
 
 # Process Ericsson 3G Sites
 def extract_ericsson_3g_sites():
-    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_3g_sites()
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_3g_sites()
 
 
 t10 = PythonOperator(
@@ -147,8 +147,8 @@ t10 = PythonOperator(
 
 # Process Ericsson 3G Sites
 def extract_ericsson_3g_cells():
-    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_3g_cells_per_site()
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_3g_cells_per_site()
 
 
 t10 = PythonOperator(
@@ -159,8 +159,8 @@ t10 = PythonOperator(
 
 # Process Ericsson 3G Sites
 def extract_ericsson_4g_cells():
-    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_4g_cells_per_site()
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_4g_cells_per_site()
 
 
 t11 = PythonOperator(
@@ -171,8 +171,8 @@ t11 = PythonOperator(
 
 # Process Erisson 3g-2g relations
 def extract_ericsson_3g3g_nbrs():
-    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_3g3g_nbrs_per_site()
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_3g3g_nbrs_per_site()
 
 
 t12 = PythonOperator(
@@ -183,8 +183,8 @@ t12 = PythonOperator(
 
 # Process Ericsson 4G cell parameters
 def extract_ericsson_4g_cell_params():
-    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_4g_cell_params()
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_4g_cell_params()
 
 
 t13 = PythonOperator(
@@ -195,8 +195,8 @@ t13 = PythonOperator(
 
 # Process Ericsson 3G cell parameters
 def extract_ericsson_3g_cell_params():
-    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_3g_cell_params()
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_3g_cell_params()
 
 
 t14 = PythonOperator(
@@ -207,8 +207,8 @@ t14 = PythonOperator(
 
 # Process Erisson 3g-2g relations
 def extract_ericsson_4g4g_nbrs():
-    start_cm_etlp = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    start_cm_etlp.extract_ericsson_4g4g_nbrs()
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_4g4g_nbrs()
 
 
 t15 = PythonOperator(
@@ -251,9 +251,10 @@ t17 = PythonOperator(
     dag=dag)
 
 
-# Process ericsson ENodeBs
+# Process ericsson BSCs
 def process_ericsson_bscs():
-    pass
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_bscs()
 
 
 t18 = PythonOperator(
