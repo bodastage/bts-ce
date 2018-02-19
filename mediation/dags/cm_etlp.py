@@ -231,7 +231,8 @@ t16 = PythonOperator(
 
 # Build network tree
 def extract_ericsson_2g_cells():
-    pass
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_2g_cells()
 
 
 t16 = PythonOperator(
@@ -242,8 +243,8 @@ t16 = PythonOperator(
 
 # Build network tree
 def extract_ericsson_2g_sites():
-    pass
-
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_2g_sites()
 
 t17 = PythonOperator(
     task_id='extract_ericsson_2g_sites',
