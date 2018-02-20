@@ -145,7 +145,7 @@ t10 = PythonOperator(
     dag=dag)
 
 
-# Process Ericsson 3G Sites
+# Process Ericsson 3G cells
 def extract_ericsson_3g_cells():
     process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_3g_cells_per_site()
@@ -157,7 +157,7 @@ t10 = PythonOperator(
     dag=dag)
 
 
-# Process Ericsson 3G Sites
+# Process Ericsson 4G Sites
 def extract_ericsson_4g_cells():
     process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_4g_cells_per_site()
@@ -391,6 +391,7 @@ t32 = BashOperator(
     bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/hua_cm_2g_nbi_loader.cfg"',
     dag=dag)
 
+
 # End Extaction Transformation Load Process
 t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)
 
@@ -555,6 +556,18 @@ t60 = PythonOperator(
     python_callable=extract_huawei_3g_sites,
     dag=dag)
 
+# Process Ericsson 3G Sites
+def extract_huawei_3g_cells():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_3g_cells()
+
+
+t61 = PythonOperator(
+    task_id='extract_huawei_3g_cells',
+    python_callable=extract_huawei_3g_cells,
+    dag=dag)
+
+
 # extract_ericsson_3g_sites
 # Build dependency graph
 dag.set_dependency('start_cm_etlp','is_ericsson_supported')
@@ -644,7 +657,8 @@ dag.set_dependency('run_huawei_3g_parser','clear_huawei_3g_cm_tables')
 dag.set_dependency('clear_huawei_3g_cm_tables','import_huawei_3g_cm_data')
 dag.set_dependency('import_huawei_3g_cm_data','extract_huawei_rncs')
 dag.set_dependency('extract_huawei_rncs','extract_huawei_3g_sites')
-dag.set_dependency('extract_huawei_3g_sites','end_cm_etlp')
+dag.set_dependency('extract_huawei_3g_sites','extract_huawei_3g_cells')
+dag.set_dependency('extract_huawei_3g_cells','end_cm_etlp')
 
 
 # Huawei 4G

@@ -1046,3 +1046,71 @@ class ProcessCMData(object):
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
+
+    def extract_huawei_3g_cells(self):
+        """Extract Huawei 3G cells in bunches
+        """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        sites = session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).all()
+
+        i = 0
+        sites_len = len(sites)
+        while i < sites_len:
+            # Handle iterations at the end of the site list
+            end = i + 5;
+            if sites_len < i + 5:
+                end = sites_len
+
+            placeholder_range = 5
+            if end == sites_len:
+                placeholder_range = end - i
+
+            site_list = list(map(lambda x: x[1], sites[i:end]))
+            # placeholders = map( lambda x: ':p'+x , range(5)) # [:p0,...,:p4]
+
+            placeholders = []
+            site_list_placeholders = {}
+            for r in range(placeholder_range):
+                placeholders.append(':p' + str(r))
+                site_list_placeholders['p' + str(r)] = site_list[r]
+
+            print(site_list_placeholders)
+            print(site_list)
+
+            i = i + 5
+            sql = """
+                INSERT INTO live_network.cells
+                (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
+                SELECT 
+                nextval('live_network.seq_cells_pk'),
+                t1."varDateTime" as date_added, 
+                t1."varDateTime" as date_modified, 
+                0 as added_by,
+                0 as modified_by,
+                2, -- tech 3 -lte, 2 -umts, 1-gms
+                2, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
+                t1."CELLNAME" AS name,
+                t4.pk -- site primary key
+                FROM hua_cm_3g.ucell t1
+                INNER JOIN live_network.nodes t3 on t3."name" = t1."neid" 
+                        AND t3.vendor_pk = 2
+                        AND t3.tech_pk = 2
+                INNER JOIN live_network.sites t4 on t4."name" = t1."NODEBNAME"
+                    AND t4.vendor_pk = 2
+                    AND t4.tech_pk = 2
+                    AND t4.node_pk = t3.pk
+                LEFT JOIN live_network.cells t5 on t5."name" = t1."CELLNAME"
+                    AND t5.tech_pk = 2
+                    AND t5.vendor_pk = 2
+                WHERE 
+                t5."name" IS NULL
+                AND t4."name" IN ({})
+            """.format(', '.join(placeholders))
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True), **site_list_placeholders)
+
+        session.close()
