@@ -827,7 +827,7 @@ class ProcessCMData(object):
             0 as added_by,
             0 as modified_by,
             1 as tech_pk, -- tech 3 -lte, 2 -umts, 1-gms
-            1 as vendor_pk, -- 1- Ericsson, 2 - Huawei, 3 - zte, 4-nokika, etc...
+            2 as vendor_pk, -- 1- Ericsson, 2 - Huawei, 3 - zte, 4-nokika, etc...
             t1."BTSNAME",
             t2.pk -- node primary key
             from hua_cm_2g.bts t1
@@ -841,3 +841,44 @@ class ProcessCMData(object):
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+
+    def extract_huawei_2g_cells(self):
+        """Extract Huawesi GSM Cells"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO live_network.cells
+            (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
+            SELECT 
+            nextval('live_network.seq_cells_pk'),
+            t1."varDateTime" as date_added, 
+            t1."varDateTime" as date_modified, 
+            0 as added_by,
+            0 as modified_by,
+            1, -- tech 3 -lte, 2 -umts, 1-gms
+            2, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
+            t1."CELLNAME" AS name,
+            t4.pk -- site primary key
+            FROM hua_cm_2g.gcell t1
+            INNER JOIN live_network.nodes t3 on t3."name" = t1."neid" 
+                    AND t3.vendor_pk = 2
+                    AND t3.tech_pk = 1
+            INNER JOIN hua_cm_2g.cellbind2bts t6 on t6."neid" = t3.name AND t6."CELLID" = t1."CELLID"
+            INNER JOIN hua_cm_2g.bts t7 on t7."neid" = t3.name AND t7."BTSID" = t6."BTSID"
+            INNER JOIN live_network.sites t4 on t4."name" = t7."BTSNAME"
+                AND t4.vendor_pk = 2 
+                AND t4.tech_pk = 1
+                AND t4.node_pk = t3.pk
+            LEFT JOIN live_network.cells t5 on t5."name" = t1."CELLNAME"
+                AND t5.tech_pk = 1
+                AND t5.vendor_pk = 2
+            WHERE
+            t5."name" IS NULL
+        """
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
