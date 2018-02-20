@@ -584,12 +584,13 @@ class ProcessCMData(object):
 
             sql = """
                         INSERT INTO live_network.gsm_cells_data
-                        (pk, name, cell_pk, bcc, ncc, bsic, bcch, lac, latitude, longitude, cgi, azimuth, height, 
+                        (pk, name, cell_pk, ci, bcc, ncc, bsic, bcch, lac, latitude, longitude, cgi, azimuth, height, 
                         mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, modified_by, added_by, date_added, date_modified)
                         SELECT 
                         NEXTVAL('live_network.seq_gsm_cells_data_pk'),
                         t1."CELL_NAME" as name,
                         t2.pk as cell_pk,
+                        t1."CI" as ci,
                         t1."BCC"::integer as bcc,
                         t1."NCC"::integer as ncc,
                         CONCAT(trim(t1."NCC"),trim(t1."BCC"))::integer as bsic,
@@ -604,7 +605,6 @@ class ProcessCMData(object):
                         -- t1."SECTOR_ANGLE"::integer as sector_angle,
                         -- t1."MAX_TA" as ta
                         -- t1."STATE" as STATE -- ACTIVE or INACTIVE
-                        -- t1."CI" as ci
                         null as electrical_tilt,
                         null as hsn,
                         null as hopping_type,
