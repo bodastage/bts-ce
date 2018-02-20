@@ -473,6 +473,26 @@ t51 = BashOperator(
     bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/hua_cm_4g_nbi_loader.cfg"',
     dag=dag)
 
+def extract_ericsson_2g_cell_params():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_2g_cell_params()
+
+
+t52 = PythonOperator(
+    task_id='extract_ericsson_2g_cell_params',
+    python_callable=extract_ericsson_2g_cell_params,
+    dag=dag)
+
+def extract_ericsson_2g2g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_2g2g_nbrs()
+
+
+t53 = PythonOperator(
+    task_id='extract_ericsson_2g2g_nbrs',
+    python_callable=extract_ericsson_2g2g_nbrs,
+    dag=dag)
+
 
 # extract_ericsson_3g_sites
 # Build dependency graph
@@ -513,7 +533,7 @@ dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g_cell_params'
 dag.set_dependency('extract_ericsson_3g_cell_params','end_cm_etlp')
 
 # ###########################################################################
-
+# Ericsson 2G
 dag.set_dependency('ericsson_is_supported','check_if_2g_raw_files_exist')
 dag.set_dependency('check_if_2g_raw_files_exist','backup_ericsson_2g_csv_files')
 dag.set_dependency('backup_ericsson_2g_csv_files','run_ericsson_2g_parser')
@@ -522,6 +542,10 @@ dag.set_dependency('clear_ericsson_2g_cm_tables','import_eri_2g_cm_data')
 dag.set_dependency('import_eri_2g_cm_data','process_ericsson_bscs')
 dag.set_dependency('process_ericsson_bscs','extract_ericsson_2g_sites')
 dag.set_dependency('extract_ericsson_2g_sites','extract_ericsson_2g_cells')
+dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g_cell_params')
+dag.set_dependency('extract_ericsson_2g_cell_params','end_cm_etlp')
+dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g2g_nbrs')
+dag.set_dependency('extract_ericsson_2g2g_nbrs','end_cm_etlp')
 
 # Build network tree
 dag.set_dependency('extract_ericsson_2g_cells','build_network_tree')

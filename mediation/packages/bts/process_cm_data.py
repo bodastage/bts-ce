@@ -557,6 +557,73 @@ class ProcessCMData(object):
 
         session.close()
 
+    def extract_ericsson_2g_cell_params(self):
+        """Extract Ericsson LTE cell parameters"""
+        """Extract Ericsson GSM cell parameters"""
+
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        # Truncate paramete table
+        self.db_engine.execute(text("TRUNCATE TABLE live_network.gsm_cells_data").execution_options(autocommit=True))
+        self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_gsm_cells_data_pk RESTART WITH 1;").
+                               execution_options(autocommit=True))
+
+        # The data is alot. Let's handle per site
+        site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 1 and tech_pk = 1"""
+
+        result = self.db_engine.execute(site_sql)
+
+        # for row in result:
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=1).yield_per(5):
+            (site_pk, site_name) = (site[0],site[1])
+
+            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+            sql = """
+                        INSERT INTO live_network.gsm_cells_data
+                        (pk, name, cell_pk, bcc, ncc, bsic, bcch, lac, latitude, longitude, cgi, azimuth, height, 
+                        mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, modified_by, added_by, date_added, date_modified)
+                        SELECT 
+                        NEXTVAL('live_network.seq_gsm_cells_data_pk'),
+                        t1."CELL_NAME" as name,
+                        t2.pk as cell_pk,
+                        t1."BCC"::integer as bcc,
+                        t1."NCC"::integer as ncc,
+                        CONCAT(trim(t1."NCC"),trim(t1."BCC"))::integer as bsic,
+                        t1."BCCHNO"::integer as bcch,
+                        t1."LAC"::integer as lac,
+                        (CASE WHEN t1."LATITUDE" = '?' THEN '0' ELSE t1."LATITUDE" END)::float as latitude,
+                        (CASE WHEN t1."LONGITUDE" = '?' THEN '0' ELSE t1."LATITUDE" END)::float as longitude,
+                        CONCAT( TRIM(t1."MCC"),'-', TRIM(t1."MNC"),'-',TRIM(t1."LAC"),'-',TRIM(t1."CI")) as cgi,
+                        t1."CELL_DIR"::integer as azimuth,
+                        t1."HEIGHT"::integer as height,
+                        t1."ANTENNA_TILT"::integer as mechanical_tilt,
+                        -- t1."SECTOR_ANGLE"::integer as sector_angle,
+                        -- t1."MAX_TA" as ta
+                        -- t1."STATE" as STATE -- ACTIVE or INACTIVE
+                        -- t1."CI" as ci
+                        null as electrical_tilt,
+                        null as hsn,
+                        null as hopping_type,
+                        null as tch_carriers,
+                        0 as modified_by,
+                        0 as added_by,
+                        t1."varDateTime" as date_added,
+                        t1."varDateTime" as date_modified
+                        FROM eri_cm_2g.internal_cell t1
+                        INNER JOIN live_network.cells t2 on t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
+                        INNER JOIN live_network.sites t3 on t3."name" = LEFT(t1."CELL_NAME", LENGTH(t1."CELL_NAME")-1)
+                        WHERE 
+                        t3."name" ='{0}';
+                    """.format(site_name)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
     def extract_ericsson_3g2g_nbrs(self):
         """Extract Ericsson UMTS-GSM neighbour relations"""
         pass
@@ -667,3 +734,52 @@ class ProcessCMData(object):
     def extract_ericsson_4g4g_nbrs(self):
         """Extract Ericsson LTE-LTE neighbour relations"""
         pass
+
+
+    def extract_ericsson_2g2g_nbrs(self):
+        """Extract Ericsson 2G-2G neighbour relations"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=1).yield_per(5):
+            (site_pk, site_name) = (site[0], site[1])
+
+            print("Extracting E// 2G-2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+            sql = """
+                INSERT INTO live_network.relations 
+                (pk, svrnode_pk,svrsite_pk,svrtech_pk,svrvendor_pk,svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+                SELECT 
+                NEXTVAL('live_network.seq_relations_pk'),
+                -- serving side
+                t4.node_pk as srvnode_pk,
+                t2.site_pk as svrsite_pk,
+                1 as svrtech_pk,
+                1 as svrvendor_pk,
+                t2.pk as svrcell_pk,
+                -- nbr side
+                t5.node_pk as nbrnode_pk,
+                t3.site_pk as nbrsite_pk,
+                1 as nbrtech_pk,
+                1 as nbrvendor_pk,
+                t3.pk as nbrcell_pk,
+                t1."varDateTime" as date_added,
+                t1."varDateTime" as date_modified,
+                0 as modified_by,
+                0 as added_by
+                FROM 
+                eri_cm_2g.nrel t1
+                INNER JOIN live_network.cells t2 ON t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
+                INNER JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.vendor_pk = 1 AND t3.tech_pk = 1
+                INNER JOIN live_network.sites t4 on t4.pk = t2.site_pk AND  t4.vendor_pk = 1 AND t4.tech_pk = 1
+                INNER JOIN live_network.sites t5 on t5.pk = t3.site_pk AND  t5.vendor_pk = 1 AND t5.tech_pk = 1
+                LEFT JOIN live_network.relations t6 ON t6.svrcell_pk = t2.pk AND t6.nbrcell_pk = t3.pk
+                WHERE  t6.pk IS NULL 
+                AND t2.site_pk = '{0}'
+            """.format(site_pk)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
