@@ -633,7 +633,9 @@ dag.set_dependency('check_if_hua_3g_raw_files_exist','backup_huawei_3g_csv_files
 dag.set_dependency('backup_huawei_3g_csv_files','run_huawei_3g_parser')
 dag.set_dependency('run_huawei_3g_parser','clear_huawei_3g_cm_tables')
 dag.set_dependency('clear_huawei_3g_cm_tables','import_huawei_3g_cm_data')
-dag.set_dependency('import_huawei_3g_cm_data','end_cm_etlp')
+dag.set_dependency('import_huawei_3g_cm_data','extract_huawei_rncs')
+dag.set_dependency('extract_huawei_rncs','end_cm_etlp')
+
 
 # Huawei 4G
 dag.set_dependency('huawei_is_supported','check_if_hua_4g_raw_files_exist')
