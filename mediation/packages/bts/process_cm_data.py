@@ -882,3 +882,71 @@ class ProcessCMData(object):
 
         session.close()
 
+
+    def extract_huawei_2g_cell_params(self):
+        """Extract Ericsson LTE cell parameters"""
+        """Extract Huawei GSM cell parameters"""
+
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        # @TODO: Update live_network.gsm_cells_data instead of truncating it
+        # Truncate paramete table
+        # self.db_engine.execute(text("TRUNCATE TABLE live_network.gsm_cells_data").execution_options(autocommit=True))
+        # self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_gsm_cells_data_pk RESTART WITH 1;").
+        #                       execution_options(autocommit=True))
+
+        # The data is alot. Let's handle per site
+        site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 2 and tech_pk = 1"""
+
+        result = self.db_engine.execute(site_sql)
+
+        # for row in result:
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=1).yield_per(5):
+            (site_pk, site_name) = (site[0],site[1])
+
+            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+            sql = """
+                        INSERT INTO live_network.gsm_cells_data
+                        (pk, name, cell_pk, ci, bcc, ncc, bsic, bcch, lac, latitude, longitude, cgi, azimuth, height, 
+                        mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, modified_by, added_by, date_added, date_modified)
+                        SELECT 
+                        NEXTVAL('live_network.seq_gsm_cells_data_pk'),
+                        t1."CELL_NAME" as name,
+                        t2.pk as cell_pk,
+                        t1."CI" as ci,
+                        t1."BCC"::integer as bcc,
+                        t1."NCC"::integer as ncc,
+                        CONCAT(trim(t1."NCC"),trim(t1."BCC"))::integer as bsic,
+                        t1."BCCHNO"::integer as bcch,
+                        t1."LAC"::integer as lac,
+                        (CASE WHEN t1."LATITUDE" = '?' THEN '0' ELSE t1."LATITUDE" END)::float as latitude,
+                        (CASE WHEN t1."LONGITUDE" = '?' THEN '0' ELSE t1."LATITUDE" END)::float as longitude,
+                        CONCAT( TRIM(t1."MCC"),'-', TRIM(t1."MNC"),'-',TRIM(t1."LAC"),'-',TRIM(t1."CI")) as cgi,
+                        t1."CELL_DIR"::integer as azimuth,
+                        t1."HEIGHT"::integer as height,
+                        t1."ANTENNA_TILT"::integer as mechanical_tilt,
+                        -- t1."SECTOR_ANGLE"::integer as sector_angle,
+                        -- t1."MAX_TA" as ta
+                        -- t1."STATE" as STATE -- ACTIVE or INACTIVE
+                        null as electrical_tilt,
+                        null as hsn,
+                        null as hopping_type,
+                        null as tch_carriers,
+                        0 as modified_by,
+                        0 as added_by,
+                        t1."varDateTime" as date_added,
+                        t1."varDateTime" as date_modified
+                        FROM eri_cm_2g.internal_cell t1
+                        INNER JOIN live_network.cells t2 on t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
+                        INNER JOIN live_network.sites t3 on t3."name" = LEFT(t1."CELL_NAME", LENGTH(t1."CELL_NAME")-1)
+                        WHERE 
+                        t3."name" ='{0}';
+                    """.format(site_name)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()

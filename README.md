@@ -4,6 +4,13 @@
 
 Boda Telecom Suite Community Edition - An open source telecommunication network management platform
 
+## Features
+
+* Network browsing
+* CM managed object browsing 
+* Automatic network baseline generation
+* Radio Access Network (RAN) audit (Relations, Conflicts, Parameter values vs baseline )
+
 ## Requirements 
 
 * 4GB memory
