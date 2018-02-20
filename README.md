@@ -6,10 +6,12 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 
 ## Features
 
-* Network browsing
+* Generation of network topology from configuration data
+* Radio network element browsing
 * CM managed object browsing 
 * Automatic network baseline generation
-* Radio Access Network (RAN) audit (Relations, Conflicts, Parameter values vs baseline )
+* Radio Access Network (RAN) audit (relations, conflicts, parameter values vs baseline )
+
 
 ## Requirements 
 
