@@ -545,6 +545,15 @@ t59 = PythonOperator(
     python_callable=extract_huawei_rncs,
     dag=dag)
 
+# Process Ericsson 3G Sites
+def extract_huawei_3g_sites():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_3g_sites()
+
+t60 = PythonOperator(
+    task_id='extract_huawei_3g_sites',
+    python_callable=extract_huawei_3g_sites,
+    dag=dag)
 
 # extract_ericsson_3g_sites
 # Build dependency graph
@@ -634,7 +643,8 @@ dag.set_dependency('backup_huawei_3g_csv_files','run_huawei_3g_parser')
 dag.set_dependency('run_huawei_3g_parser','clear_huawei_3g_cm_tables')
 dag.set_dependency('clear_huawei_3g_cm_tables','import_huawei_3g_cm_data')
 dag.set_dependency('import_huawei_3g_cm_data','extract_huawei_rncs')
-dag.set_dependency('extract_huawei_rncs','end_cm_etlp')
+dag.set_dependency('extract_huawei_rncs','extract_huawei_3g_sites')
+dag.set_dependency('extract_huawei_3g_sites','end_cm_etlp')
 
 
 # Huawei 4G

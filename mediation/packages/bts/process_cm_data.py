@@ -982,3 +982,67 @@ class ProcessCMData(object):
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
+
+    def extract_ericsson_3g_sites(self):
+        """Extract Ericsson NodeBs"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO live_network.sites
+            (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
+            SELECT 
+            NEXTVAL('live_network.seq_sites_pk'),
+            t1."varDateTime" as date_added, 
+            t1."varDateTime" as date_modified, 
+            0 as added_by,
+            0 as modified_by,
+            2, -- tech 3 -lte, 2 -umts, 1-gms
+            1, -- 1- Ericsson, 2 - Huawei,
+            t1."MeContext_id",
+            t2.pk -- node primary key
+            from eri_cm_3g4g.nodebfunction t1
+            INNER join live_network.nodes t2 on t2."name" = t1."SubNetwork_2_id" 
+                AND t2.vendor_pk = 1 and t2.tech_pk = 2
+            LEFT JOIN live_network.sites t3 on t3."name" = t1."MeContext_id" 
+               AND t2.vendor_pk = 1 and t2.tech_pk = 2
+            WHERE 
+            t3."name" IS NULL
+
+        """
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
+    def extract_huawei_3g_sites(self):
+        """Extract Ericsson NodeBs"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO live_network.sites
+            (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
+            SELECT 
+            NEXTVAL('live_network.seq_sites_pk'),
+            t1."varDateTime" as date_added, 
+            t1."varDateTime" as date_modified, 
+            0 as added_by,
+            0 as modified_by,
+            2, -- tech 3 -lte, 2 -umts, 1-gms
+            2, -- 1- Ericsson, 2 - Huawei,
+            t1."NODEBNAME",
+            t2.pk -- node primary key
+            from hua_cm_3g.unodeb t1
+            INNER join live_network.nodes t2 on t2."name" = t1."neid" 
+                AND t2.vendor_pk = 2 and t2.tech_pk = 2
+            LEFT JOIN live_network.sites t3 on t3."name" = t1."NODEBNAME"
+               AND t2.vendor_pk = 2 and t2.tech_pk = 2
+            WHERE 
+            t3."name" IS NULL
+            
+        """
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
