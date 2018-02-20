@@ -783,3 +783,61 @@ class ProcessCMData(object):
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
+
+    def extract_huawei_bscs(self):
+        """Extract BSCs from Huawei CM data(hua_cm_2g.bscbasic)"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+             INSERT INTO live_network.nodes
+             (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
+             SELECT 
+             NEXTVAL('live_network.seq_nodes_pk'),
+             "varDateTime" as date_added, 
+             "varDateTime" as date_modified, 
+             'BSC' as node_type,
+             t1."neid" as "name" , 
+             2 as vendor_pk, -- 1=Ericsson, 2=Huawei
+             1 as tech_pk , -- 1=gsm, 2-umts,3=lte
+             0 as added_by,
+             0 as modified_by
+             FROM hua_cm_2g.bscbasic t1
+             LEFT OUTER  JOIN live_network.nodes t2 ON t1."neid" = t2."name"
+             WHERE 
+             t2."name" IS NULL
+         """
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
+    def extract_huawei_2g_sites(self):
+        """Extract Huawei 2G Sites"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO live_network.sites
+            (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
+            SELECT 
+            NEXTVAL('live_network.seq_sites_pk'),
+            t1."varDateTime" as date_added, 
+            t1."varDateTime" as date_modified, 
+            0 as added_by,
+            0 as modified_by,
+            1 as tech_pk, -- tech 3 -lte, 2 -umts, 1-gms
+            1 as vendor_pk, -- 1- Ericsson, 2 - Huawei, 3 - zte, 4-nokika, etc...
+            t1."BTSNAME",
+            t2.pk -- node primary key
+            from hua_cm_2g.bts t1
+            INNER join live_network.nodes t2 on t2."name" = t1."neid" 
+                AND t2.vendor_pk = 2 and t2.tech_pk = 1
+            LEFT JOIN live_network.sites t3 on t3."name" = t1."BTSNAME" 
+               AND t2.vendor_pk = 2 and t2.tech_pk = 1
+            WHERE 
+            t3."name" IS NULL
+
+        """
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))

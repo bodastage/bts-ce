@@ -423,7 +423,7 @@ t43 = BashOperator(
 
 t44 = BashOperator(
     task_id='run_huawei_3g_parser',
-    bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/3g/raw/in /mediation/data/cm/huawei/3g/parsed/in /mediation/conf/cm/hua_cm_3g_nbi_parameters.cfg',
+    bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/3g/raw/in /mediation/data/cm/huawei/3g/parsed/in /mediation/conf/cm/hua_cm_3g_nbi_parser.cfg',
     dag=dag)
 
 # Clear 3G CM data tables
@@ -493,6 +493,26 @@ t53 = PythonOperator(
     python_callable=extract_ericsson_2g2g_nbrs,
     dag=dag)
 
+# Extract Huawei BSCs
+def extract_huawei_bscs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_bscs()
+
+
+t54 = PythonOperator(
+    task_id='extract_huawei_bscs',
+    python_callable=extract_huawei_bscs,
+    dag=dag)
+
+# Build network tree
+def extract_huawei_2g_sites():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_2g_sites()
+
+t56 = PythonOperator(
+    task_id='extract_huawei_2g_sites',
+    python_callable=extract_huawei_2g_sites,
+    dag=dag)
 
 # extract_ericsson_3g_sites
 # Build dependency graph
@@ -567,7 +587,11 @@ dag.set_dependency('check_if_hua_2g_raw_files_exist','backup_huawei_2g_csv_files
 dag.set_dependency('backup_huawei_2g_csv_files','run_huawei_2g_parser')
 dag.set_dependency('run_huawei_2g_parser','clear_huawei_2g_cm_tables')
 dag.set_dependency('clear_huawei_2g_cm_tables','import_huawei_2g_cm_data')
-dag.set_dependency('import_huawei_2g_cm_data','end_cm_etlp')
+dag.set_dependency('import_huawei_2g_cm_data','extract_huawei_bscs')
+dag.set_dependency('extract_huawei_bscs','extract_huawei_2g_sites')
+dag.set_dependency('extract_huawei_2g_sites','end_cm_etlp')
+
+
 
 # Huawei 3G
 dag.set_dependency('huawei_is_supported','check_if_hua_3g_raw_files_exist')
