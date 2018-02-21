@@ -1114,3 +1114,81 @@ class ProcessCMData(object):
             self.db_engine.execute(text(sql).execution_options(autocommit=True), **site_list_placeholders)
 
         session.close()
+
+
+    def extract_huawei_3g_cell_params(self):
+        """Extract Huawei UMTS cell parameters"""
+
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        # Truncate paramete table
+        # self.db_engine.execute(text("TRUNCATE TABLE live_network.umts_cells_data").execution_options(autocommit=True))
+        # self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_umts_cells_data_pk RESTART WITH 1;").
+        #                       execution_options(autocommit=True))
+
+        # The data is alot. Let's handle per site
+        site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 2 and tech_pk = 2"""
+
+        result = self.db_engine.execute(site_sql)
+
+        for row in result:
+            (site_pk,site_name)=row
+
+            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk,site_name))
+
+            sql = """
+                INSERT INTO live_network.umts_cells_data
+                (pk, date_added, date_modified, added_by, modified_by,bch_power,cell_id,cell_pk,lac,latitude, longitude, 
+                maximum_transmission_power, "name", cpich_power, primary_sch_power, scrambling_code, rac, sac, 
+                secondary_sch_power, site_pk, tech_pk, vendor_pk, uarfcn_dl,uarfcn_ul, ura_list, azimuth, cell_range, 
+                height, site_sector_carrier)
+                SELECT 
+                NEXTVAL('live_network.seq_umts_cells_data_pk'),
+                t1."varDateTime" as date_added, 
+                t1."varDateTime" as date_modified, 
+                0 as added_by,
+                0 as modified_by,
+                t1."bchPower"::integer,
+                t1."cId"::integer,
+                t3.pk as cell_pk, -- cellid
+                t1."lac"::integer,
+                (t4."antennaPosition_latitude"::float/93206.76)*(-1::float*t4."antennaPosition_latitudeSign"::float) 
+                as latitude,
+                t4."antennaPosition_longitude"::float/46603.38 as longitude,
+                t1."maximumTransmissionPower"::integer as maximum_transmission_power,
+                t1."UtranCell_id",
+                t1."primaryCpichPower"::integer as cpich_power,
+                t1."primarySchPower"::integer as primary_sch_power,
+                t1."primaryScramblingCode"::integer as scrambling_code,
+                t1."rac"::integer,
+                t1."sac"::integer,
+                t1."secondarySchPower"::integer as secondary_sch_power,
+                t3.site_pk, -- site pk
+                2, -- umts
+                1, -- Ericsson
+                t1."uarfcnDl"::integer,
+                t1."uarfcnUl"::integer,
+                t1."uraList",
+                t6."beamDirection"::integer, -- azimuth,
+                t5."cellRange"::integer, -- cellrange,
+                t6."height"::integer, -- height
+                concat(t2."MeContext_id", '_', t2."vsDataRbsLocalCell_id") as site_sector_carrier
+                FROM 
+                eri_cm_3g4g.utrancell t1
+                INNER JOIN eri_cm_3g4g.vsdatarbslocalcell t2 on t2."localCellId" = t1."cId" and t2."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                    -- and t2."MeContext_id" = t1."MeContext_id"
+                INNER JOIN live_network.cells t3 on t3."name" = t1."UtranCell_id"
+                INNER JOIN eri_cm_3g4g.vsDataUtranCell t4 on t4."UtranCell_id" = t1."UtranCell_id" and t4."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                INNER JOIN eri_cm_3g4g.vsdatacarrier t5 on  t5."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                    and t5."MeContext_id" = t2."MeContext_id"
+                    and concat('S',TRIM(t5."vsDataSector_id"),'C', TRIM(t5."vsDataCarrier_id")) = t2."vsDataRbsLocalCell_id" 
+                INNER JOIN eri_cm_3g4g.vsdatasector t6 on t6."SubNetwork_2_id" = t1."SubNetwork_2_id"
+                    and t6."MeContext_id" = t5."MeContext_id"
+                    and t6."vsDataSector_id" = t5."vsDataSector_id"
+                WHERE t6."MeContext_id" = '{0}';
+            """.format(site_name)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
