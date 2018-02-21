@@ -568,6 +568,17 @@ t61 = PythonOperator(
     dag=dag)
 
 
+# Process Huawei 3G cell parameters
+def extract_huawei_3g_cell_params():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_3g_cell_params()
+
+
+t62 = PythonOperator(
+    task_id='extract_huawei_3g_cell_params',
+    python_callable=extract_huawei_3g_cell_params,
+    dag=dag)
+
 # extract_ericsson_3g_sites
 # Build dependency graph
 dag.set_dependency('start_cm_etlp','is_ericsson_supported')
@@ -658,7 +669,8 @@ dag.set_dependency('clear_huawei_3g_cm_tables','import_huawei_3g_cm_data')
 dag.set_dependency('import_huawei_3g_cm_data','extract_huawei_rncs')
 dag.set_dependency('extract_huawei_rncs','extract_huawei_3g_sites')
 dag.set_dependency('extract_huawei_3g_sites','extract_huawei_3g_cells')
-dag.set_dependency('extract_huawei_3g_cells','end_cm_etlp')
+dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g_cell_params')
+dag.set_dependency('extract_huawei_3g_cell_params','end_cm_etlp')
 
 
 # Huawei 4G
