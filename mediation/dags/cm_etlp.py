@@ -456,7 +456,7 @@ t48 = BashOperator(
 
 t49 = BashOperator(
     task_id='run_huawei_4g_parser',
-    bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/4g/raw/in /mediation/data/cm/huawei/4g/parsed/in /mediation/conf/cm/hua_cm_4g_nbi_parameters.cfg',
+    bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/4g/raw/in /mediation/data/cm/huawei/4g/parsed/in /mediation/conf/cm/hua_cm_4g_nbi_parser.cfg',
     dag=dag)
 
 # Clear 4G CM data tables
@@ -579,6 +579,31 @@ t62 = PythonOperator(
     python_callable=extract_huawei_3g_cell_params,
     dag=dag)
 
+
+# Process ericsson ENodeBs
+def extract_huawei_enodebs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_enodebs()
+
+
+t63 = PythonOperator(
+    task_id='extract_huawei_enodebs',
+    python_callable=extract_huawei_enodebs,
+    dag=dag)
+
+
+# Process Huawei 4G Sites
+def extract_huawei_4g_cells():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_4g_cells()
+
+
+t64 = PythonOperator(
+    task_id='extract_huawei_4g_cells',
+    python_callable=extract_huawei_4g_cells,
+    dag=dag)
+
+
 # extract_ericsson_3g_sites
 # Build dependency graph
 dag.set_dependency('start_cm_etlp','is_ericsson_supported')
@@ -679,7 +704,9 @@ dag.set_dependency('check_if_hua_4g_raw_files_exist','backup_huawei_4g_csv_files
 dag.set_dependency('backup_huawei_4g_csv_files','run_huawei_4g_parser')
 dag.set_dependency('run_huawei_4g_parser','clear_huawei_4g_cm_tables')
 dag.set_dependency('clear_huawei_4g_cm_tables','import_huawei_4g_cm_data')
-dag.set_dependency('import_huawei_4g_cm_data','end_cm_etlp')
+dag.set_dependency('import_huawei_4g_cm_data','extract_huawei_enodebs')
+dag.set_dependency('extract_huawei_enodebs','extract_huawei_4g_cells')
+dag.set_dependency('extract_huawei_4g_cells','end_cm_etlp')
 
 # ZTE
 # ##############################################

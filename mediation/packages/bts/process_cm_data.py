@@ -344,7 +344,7 @@ class ProcessCMData(object):
             FROM eri_cm_3g4g.vsdataeutrancellfdd t1
             INNER JOIN live_network.sites t2 on t2."name" = t1."MeContext_id" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 3 
-            LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
+            LEFT JOIN live_network.cells t3 on t3."name" = CASE WHEN t1."userLabel" IS NULL THEN t1."vsDataEUtranCellFDD_id" ELSE t1."userLabel" END,
                 AND t2.vendor_pk = 1 and t2.tech_pk = 3 
             WHERE
                 t3."name" IS NULL
@@ -1186,5 +1186,67 @@ class ProcessCMData(object):
             """.format(site_name)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
+
+    def extract_huawei_enodebs(self):
+        """Extract Ericsson ENodebs"""
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO live_network.sites
+            (pk, date_added,date_modified, tech_pk, vendor_pk, "name", added_by, modified_by)
+            SELECT 
+            NEXTVAL('live_network.seq_sites_pk'),
+            "varDateTime" as date_added, 
+            "varDateTime" as date_modified, 
+            3 as tech_pk , -- 1=gsm, 2-umts,3=lte,
+            2 as vendor_pk, -- 1=Ericsson, 2=Huawei
+            t1."ENODEBFUNCTIONNAME",
+            0 as added_by,
+            0 as modified_by
+            FROM hua_cm_4g.enodebfunction t1
+            LEFT OUTER  JOIN live_network.sites t2 ON t1."ENODEBFUNCTIONNAME" = t2."name"
+            WHERE 
+            t2."name" IS NULL
+        """
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
+
+    def extract_huawei_4g_cells(self):
+        """Extract Huawei LTE Cells
+        This extract the parameters in one query. Needs alot of memory for large networks
+        """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO live_network.cells
+            (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
+            SELECT 
+            NEXTVAL('live_network.seq_cells_pk'),
+            t1."varDateTime" as date_added, 
+            t1."varDateTime" as date_modified, 
+            0 as added_by,
+            0 as modified_by,
+            3, -- tech 3 -lte, 2 -umts, 1-gms
+            2, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
+            t1."CELLNAME" as name,
+            t2.pk -- site primary key
+            FROM hua_cm_4g.cell t1
+            INNER JOIN live_network.sites t2 on t2."name" = t1."neid" 
+                AND t2.vendor_pk = 2 and t2.tech_pk = 3 
+            LEFT JOIN live_network.cells t3 on t3."name" = t1."CELLNAME"
+                AND t2.vendor_pk = 2 and t2.tech_pk = 3 
+            WHERE
+                t3."name" IS NULL
+        """
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
