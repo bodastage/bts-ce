@@ -423,9 +423,9 @@ class ProcessCMData(object):
         session = Session()
 
         # Truncate paramete table
-        self.db_engine.execute(text("TRUNCATE TABLE live_network.lte_cells_data").execution_options(autocommit=True))
-        self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_lte_cells_data_pk RESTART WITH 1;").
-                               execution_options(autocommit=True))
+        # self.db_engine.execute(text("TRUNCATE TABLE live_network.lte_cells_data").execution_options(autocommit=True))
+        # self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_lte_cells_data_pk RESTART WITH 1;").
+        #                       execution_options(autocommit=True))
 
         # The data is alot. Let's handle per site
         site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 1 and tech_pk = 3"""
@@ -439,8 +439,8 @@ class ProcessCMData(object):
 
             sql = """
                         INSERT INTO live_network.lte_cells_data
-                        (pk, name, cell_pk, uarfcn_dl, uarfcn_ul, tac, pci, ecgi, rach_root_sequence, max_tx_power, latitude, longitude,
-                        height, ta, ta_mode, tx_elements, rx_elements, azimuth, mechanical_tilt, electrical_tilt, cell_range,
+                        (pk, name, cell_pk, uarfcn_dl, uarfcn_ul, mcc, mnc, tac, pci, ecgi, rach_root_sequence, max_tx_power, latitude, longitude,
+                        height, dl_bandwidth, ul_bandwidth, ta, ta_mode, tx_elements, rx_elements, scheduler, azimuth, mechanical_tilt, electrical_tilt, cell_range,
                         site_pk, tech_pk, vendor_pk, modified_by, added_by, date_added, date_modified)
                         SELECT 
                         NEXTVAL('live_network.seq_lte_cells_data_pk'),
@@ -448,6 +448,8 @@ class ProcessCMData(object):
                         t2.pk as cell_pk,
                         t1."earfcndl"::integer as uarfcn_dl,
                         t1."earfcnul"::integer as uarfcn_ul,
+                        t1."mcc"::integer as mcc,
+                        t1."mnc"::integer as mc,
                         t1."tac"::integer as tac,
                         t1."physicalLayerCellIdGroup"::integer as pci,
                         null as ecgi,
@@ -456,10 +458,13 @@ class ProcessCMData(object):
                         (t1."latitude"::float/93206.76)*(-1::float)  as latitude,
                         t1."longitude"::float/46603.38 as longitude,
                         t1."altitude"::integer as height,
+                        t1."dlChannelBandwidth"::integer as dl_bandwidth,
+                        t1."ulChannelBandwidth"::integer as ul_bandwidth,
                         null as ta,
                         null as ta_mode,
-                        null as tx_elements,
-                        null as rx_elements,
+                        t1."numOfTxAntennas"::integer as tx_elements,
+                        t1."numOfRxAntennas"::integer as rx_elements,
+                        null as scheduler,
                         null as azimuth,
                         null as mechanical_tilt,
                         null as electrical_tilt,
@@ -1278,7 +1283,7 @@ class ProcessCMData(object):
             sql = """
                         INSERT INTO live_network.lte_cells_data
                         (pk, name, cell_pk, uarfcn_dl, uarfcn_ul, mcc, mnc, tac, pci, ecgi, rach_root_sequence, max_tx_power, latitude, longitude,
-                        height, dl_bandwidth, ta, ta_mode, tx_elements, rx_elements, scheduler, azimuth, mechanical_tilt, electrical_tilt, cell_range,
+                        height, dl_bandwidth, ul_bandwidth, ta, ta_mode, tx_elements, rx_elements, scheduler, azimuth, mechanical_tilt, electrical_tilt, cell_range,
                         site_pk, tech_pk, vendor_pk, modified_by, added_by, date_added, date_modified)
                         SELECT 
                         NEXTVAL('live_network.seq_lte_cells_data_pk'),
@@ -1297,6 +1302,7 @@ class ProcessCMData(object):
                         null as longitude,
                         null as height,
                         t1."DLBANDWIDTH"::integer as dl_bandwidth,
+                        null as ul_bandwidth,
                         null as ta,
                         null as ta_mode,
                         t1."TXRXMODE"::integer as tx_elements, -- @TODO: Conform
