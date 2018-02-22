@@ -492,9 +492,9 @@ class ProcessCMData(object):
         session = Session()
 
         # Truncate paramete table
-        self.db_engine.execute(text("TRUNCATE TABLE live_network.umts_cells_data").execution_options(autocommit=True))
-        self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_umts_cells_data_pk RESTART WITH 1;").
-                               execution_options(autocommit=True))
+        # self.db_engine.execute(text("TRUNCATE TABLE live_network.umts_cells_data").execution_options(autocommit=True))
+        # self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_umts_cells_data_pk RESTART WITH 1;").
+        #                        execution_options(autocommit=True))
 
         # The data is alot. Let's handle per site
         site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 1 and tech_pk = 2"""
@@ -511,7 +511,7 @@ class ProcessCMData(object):
                 (pk, date_added, date_modified, added_by, modified_by,bch_power,cell_id,cell_pk,lac,latitude, longitude, 
                 maximum_transmission_power, "name", cpich_power, primary_sch_power, scrambling_code, rac, sac, 
                 secondary_sch_power, site_pk, tech_pk, vendor_pk, uarfcn_dl,uarfcn_ul, ura_list, azimuth, cell_range, 
-                height, site_sector_carrier)
+                height, site_sector_carrier, mcc,mnc,ura,localcellid)
                 SELECT 
                 NEXTVAL('live_network.seq_umts_cells_data_pk'),
                 t1."varDateTime" as date_added, 
@@ -542,7 +542,11 @@ class ProcessCMData(object):
                 t6."beamDirection"::integer, -- azimuth,
                 t5."cellRange"::integer, -- cellrange,
                 t6."height"::integer, -- height
-                concat(t2."MeContext_id", '_', t2."vsDataRbsLocalCell_id") as site_sector_carrier
+                concat(t2."MeContext_id", '_', t2."vsDataRbsLocalCell_id") as site_sector_carrier,
+                t7."mcc" as mcc,
+                t7."mnc" as mnc,
+                t1."uraList" as ura ,
+                t1."localCellId" as localcellid
                 FROM 
                 eri_cm_3g4g.utrancell t1
                 INNER JOIN eri_cm_3g4g.vsdatarbslocalcell t2 on t2."localCellId" = t1."cId" and t2."SubNetwork_2_id" = t1."SubNetwork_2_id" 
