@@ -1250,3 +1250,78 @@ class ProcessCMData(object):
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
+
+
+    def extract_huawei_4g_cell_params(self):
+        """Extract Ericsson LTE cell parameters"""
+        """Extract Huawei LTE cell parameters"""
+
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        # @TODO: Review how to reload this. Delete perhaps!!
+        # Truncate paramete table
+        # self.db_engine.execute(text("TRUNCATE TABLE live_network.lte_cells_data").execution_options(autocommit=True))
+        # self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_lte_cells_data_pk RESTART WITH 1;").
+        #                        execution_options(autocommit=True))
+
+        # The data is alot. Let's handle per site
+        site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 2 and tech_pk = 3"""
+
+        result = self.db_engine.execute(site_sql)
+
+        for row in result:
+            (site_pk, site_name) = row
+
+            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+            sql = """
+                        INSERT INTO live_network.lte_cells_data
+                        (pk, name, cell_pk, uarfcn_dl, uarfcn_ul, mcc, mnc, tac, pci, ecgi, rach_root_sequence, max_tx_power, latitude, longitude,
+                        height, dl_bandwidth, ta, ta_mode, tx_elements, rx_elements, scheduler, azimuth, mechanical_tilt, electrical_tilt, cell_range,
+                        site_pk, tech_pk, vendor_pk, modified_by, added_by, date_added, date_modified)
+                        SELECT 
+                        NEXTVAL('live_network.seq_lte_cells_data_pk'),
+                        t1."CELLNAME" as name,
+                        t2.pk as cell_pk,
+                        t1."DLEARFCN"::integer as uarfcn_dl,
+                        t3.dl_freq_low as uarfcn_ul,
+                        t6."MCC"::integer as mcc,
+                        t6."MNC"::integer as mnc,
+                        t4."TAC"::integer as tac,
+                        t1."PHYCELLID"::integer as pci,
+                        null as ecgi,
+                        t1."ROOTSEQUENCEIDX" as rach_root_sequence,
+                        null as max_tx_power,
+                        null as latitude,
+                        null as longitude,
+                        null as height,
+                        t1."DLBANDWIDTH"::integer as dl_bandwidth,
+                        null as ta,
+                        null as ta_mode,
+                        t1."TXRXMODE"::integer as tx_elements, -- @TODO: Conform
+                        t1."TXRXMODE"::integer as rx_elements, -- @TODO: Conform
+                        t7."DLSCHSTRATEGY"::integer as scheduler,
+                        null as azimuth,
+                        null as mechanical_tilt,
+                        null as electrical_tilt,
+                        t1."CELLRADIUS"::integer as cell_range,
+                        t2.site_pk as site_pk,
+                        t2.tech_pk as tech_pk,
+                        t2.vendor_pk as vendor_pk,
+                        0 as modified_by, 
+                        0 as added_by, 
+                        t1."varDateTime" as date_added, 
+                        t1."varDateTime" as date_modified
+                        FROM hua_cm_4g.cell t1
+                        INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 3
+                        INNER JOIN public.lte_frequency_bands t3 on t3.band_id = t1."FREQBAND"::integer
+                        INNER JOIN hua_cm_4g.cnoperatorta t4 on t4.neid = t1.neid
+                        INNER JOIN hua_cm_4g.cnoperator t6 on t6.neid  = t1.neid
+                        INNER JOIN hua_cm_4g.celldlschalgo t7 on t7.neid = t1.neid AND t7."LOCALCELLID" = t1."LOCALCELLID"
+                        WHERE t1."neid" = '{0}';
+                    """.format(site_name)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()

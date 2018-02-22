@@ -603,6 +603,16 @@ t64 = PythonOperator(
     python_callable=extract_huawei_4g_cells,
     dag=dag)
 
+# Process Huawei 4G Sites
+def extract_huawei_4g_cell_params():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_4g_cell_params()
+
+
+t65 = PythonOperator(
+    task_id='extract_huawei_4g_cell_params',
+    python_callable=extract_huawei_4g_cell_params,
+    dag=dag)
 
 # extract_ericsson_3g_sites
 # Build dependency graph
@@ -706,7 +716,8 @@ dag.set_dependency('run_huawei_4g_parser','clear_huawei_4g_cm_tables')
 dag.set_dependency('clear_huawei_4g_cm_tables','import_huawei_4g_cm_data')
 dag.set_dependency('import_huawei_4g_cm_data','extract_huawei_enodebs')
 dag.set_dependency('extract_huawei_enodebs','extract_huawei_4g_cells')
-dag.set_dependency('extract_huawei_4g_cells','end_cm_etlp')
+dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g_cell_params')
+dag.set_dependency('extract_huawei_4g_cell_params','end_cm_etlp')
 
 # ZTE
 # ##############################################
