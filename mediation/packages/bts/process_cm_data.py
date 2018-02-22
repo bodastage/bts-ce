@@ -546,7 +546,8 @@ class ProcessCMData(object):
                 t7."mcc" as mcc,
                 t7."mnc" as mnc,
                 t1."uraList" as ura ,
-                t1."localCellId" as localcellid
+                t1."localCellId" as localcellid,
+                t1."cId" as ci
                 FROM 
                 eri_cm_3g4g.utrancell t1
                 INNER JOIN eri_cm_3g4g.vsdatarbslocalcell t2 on t2."localCellId" = t1."cId" and t2."SubNetwork_2_id" = t1."SubNetwork_2_id" 
@@ -594,7 +595,7 @@ class ProcessCMData(object):
             sql = """
                         INSERT INTO live_network.gsm_cells_data
                         (pk, name, cell_pk, ci, bcc, ncc, bsic, bcch, lac, latitude, longitude, cgi, azimuth, height, 
-                        mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, modified_by, added_by, date_added, date_modified)
+                        mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, mcc, mnc, modified_by, added_by, date_added, date_modified)
                         SELECT 
                         NEXTVAL('live_network.seq_gsm_cells_data_pk'),
                         t1."CELL_NAME" as name,
@@ -618,6 +619,8 @@ class ProcessCMData(object):
                         null as hsn,
                         null as hopping_type,
                         null as tch_carriers,
+                        t1."MCC",
+                        t2."MNC",
                         0 as modified_by,
                         0 as added_by,
                         t1."varDateTime" as date_added,
@@ -921,7 +924,7 @@ class ProcessCMData(object):
             sql = """
                         INSERT INTO live_network.gsm_cells_data
                         (pk, name, cell_pk, ci, bcc, ncc, bsic, bcch, lac, latitude, longitude, cgi, azimuth, height, 
-                        mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, modified_by, added_by, date_added, date_modified)
+                        mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, mcc, mnc, modified_by, added_by, date_added, date_modified)
                         SELECT 
                         NEXTVAL('live_network.seq_gsm_cells_data_pk'),
                         t1."CELLNAME" as name,
@@ -945,6 +948,8 @@ class ProcessCMData(object):
                         null as hsn,
                         null as hopping_type,
                         null as tch_carriers,
+                        t1."MCC",
+                        t1."MNC",
                         0 as modified_by,
                         0 as added_by,
                         t1."varDateTime" as date_added,
@@ -1151,7 +1156,7 @@ class ProcessCMData(object):
                 (pk, date_added, date_modified, added_by, modified_by,bch_power,cell_id,cell_pk,lac,latitude, longitude, 
                 maximum_transmission_power, "name", cpich_power, primary_sch_power, scrambling_code, rac, sac, 
                 secondary_sch_power, site_pk, tech_pk, vendor_pk, uarfcn_dl,uarfcn_ul, ura_list, azimuth, cell_range, 
-                height, site_sector_carrier)
+                height, site_sector_carrier, mcc,mnc,ura,localcellid)
                 SELECT 
                 NEXTVAL('live_network.seq_umts_cells_data_pk'),
                 t1."varDateTime" as date_added, 
@@ -1184,13 +1189,20 @@ class ProcessCMData(object):
                 null as azimuth, -- azimuth,
                 null as cell_range, -- cellrange,
                 null as height, -- height
-                null as site_sector_carrier
+                null as site_sector_carrier,
+                t7."MCC" as mcc,
+                t7."MNC" as mnc,
+                t8."URAID" as ura ,
+                t1."LOCELL" as localcellid,
+                t1."CELLID" as ci
                 FROM 
                 hua_cm_3g.ucell t1
                 INNER JOIN live_network.cells t3 on t3."name" = t1."CELLNAME" and t3.vendor_pk = 2 and t3.tech_pk = 2
                 INNER JOIN hua_cm_3g.upcpich t4 on t4."neid" = t1.neid AND  t4."CELLID" = t1."CELLID" 
                 INNER JOIN hua_cm_3g.ubch t5 on t5.neid = t1.neid AND t5."CELLID" = t1."CELLID"
                 INNER JOIN hua_cm_3g.upsch t6 on t6.neid = t1.neid ANd t6."CELLID" = t1."CELLID"
+                INNER JOIN hua_cm_3g.ucnoperator t7 on t7.neid = t1.neid
+                INNER JOIN hua_cm_3g.ucellura t8 on t8.neid = t1.neid AND t8."CELLID" = t1."CELLID"
                 WHERE t1."NODEBNAME" = '{0}';
             """.format(site_name)
 
