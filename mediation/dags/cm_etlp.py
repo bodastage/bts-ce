@@ -614,6 +614,16 @@ t65 = PythonOperator(
     python_callable=extract_huawei_4g_cell_params,
     dag=dag)
 
+def extract_huawei_2g2g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_2g2g_nbrs()
+
+
+t66 = PythonOperator(
+    task_id='extract_huawei_2g2g_nbrs',
+    python_callable=extract_huawei_2g2g_nbrs,
+    dag=dag)
+
 # extract_ericsson_3g_sites
 # Build dependency graph
 dag.set_dependency('start_cm_etlp','is_ericsson_supported')
@@ -693,7 +703,8 @@ dag.set_dependency('extract_huawei_bscs','extract_huawei_2g_sites')
 dag.set_dependency('extract_huawei_2g_sites','extract_huawei_2g_cells')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g_cell_params')
 dag.set_dependency('extract_huawei_2g_cell_params','end_cm_etlp')
-
+dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g2g_nbrs')
+dag.set_dependency('extract_huawei_2g2g_nbrs','end_cm_etlp')
 
 # Huawei 3G
 dag.set_dependency('huawei_is_supported','check_if_hua_3g_raw_files_exist')
