@@ -1792,11 +1792,132 @@ class ProcessCMData(object):
 
     def extract_huawei_3g3g_intrafreq_nbrs_with_ericsson(self):
         """ H// 3G - E// 3G nbrs with the same frequency"""
-        pass
+        """Extract Huawei 3g-3g interfreq relations on same RNC"""
+        """
+        Extract  Huawei 3G- Huawei 3G neighbour relations on same RNC with diffrent frequencies
+        """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
+            (site_pk, site_name) = (site[0], site[1])
+
+            print(
+            "Extracting Huawei 3G- Huawei 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+            sql = """
+                INSERT INTO live_network.relations 
+                (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+                SELECT 
+                NEXTVAL('live_network.seq_relations_pk'),
+                -- serving side
+                t5.node_pk as svrnode_pk,
+                t4.site_pk as svrsite_pk,
+                t4.tech_pk as svrtech_pk,
+                t4.vendor_pk as svrvendor_pk,
+                t4.pk as svrcell_pk,
+                -- nbr side
+                t7.node_pk as svrnode_pk,
+                t6.site_pk as svrsite_pk,
+                t6.tech_pk as svrtech_pk,
+                t6.vendor_pk as svrvendor_pk,
+                t6.pk as svrcell_pk
+                FROM 
+                hua_cm_3g.uintrafreqncell t1
+                INNER JOIN hua_cm_3g.UCELL t2 on 
+                    t2.neid  = t1.neid 
+                    AND t1."CELLID" = t2."CELLID"
+                INNER JOIN hua_cm_3g.UCELL t3 on 
+                    t3.neid = t1.neid
+                    AND t3."CELLID" = t1."NCELLID"
+                INNER JOIN live_network.cells t4 ON 
+                    t4.name = t2."CELLNAME" 
+                    AND t4.vendor_pk = 2 AND t4.tech_pk = 2
+                INNER JOIN live_network.sites t5 ON 
+                    t5.pk = t4.site_pk 
+                    AND t5.vendor_pk = 2 AND t5.tech_pk = 2
+                -- -----------
+                INNER JOIN hua_cm_3g.uext3gcell t8 on 
+                    t8.neid = t1.neid
+                    AND t8."CELLID" = t1."NCELLID"
+                -- Vendor=Ericsson and Technology = UMTS
+                INNER JOIN live_network.cells t6 ON 
+                    t6.name = t8."CELLNAME"
+                    AND t6.vendor_pk = 1 AND t6.tech_pk = 2
+                INNER JOIN live_network.sites t7 ON 
+                    t7.pk = t6.site_pk 
+                    AND t7.vendor_pk = 1 AND t7.tech_pk = 2
+                WHERE 
+                 t5.site_pk = '{0}'
+            """.format(site_pk)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
 
     def extract_huawei_3g3g_interfreq_nbrs_with_ericsson(self):
-        """ H// 3G - E// 3G nbrs with different frequency"""
-        pass
+        """
+        Extract  Huawei 3G- Huawei 3G neighbour relations on same RNC with diffrent frequencies
+        """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
+            (site_pk, site_name) = (site[0], site[1])
+
+            print(
+            "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+            sql = """
+                INSERT INTO live_network.relations 
+                (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+                SELECT 
+                NEXTVAL('live_network.seq_relations_pk'),
+                -- serving side
+                t5.node_pk as svrnode_pk,
+                t4.site_pk as svrsite_pk,
+                t4.tech_pk as svrtech_pk,
+                t4.vendor_pk as svrvendor_pk,
+                t4.pk as svrcell_pk,
+                -- nbr side
+                t7.node_pk as svrnode_pk,
+                t6.site_pk as svrsite_pk,
+                t6.tech_pk as svrtech_pk,
+                t6.vendor_pk as svrvendor_pk,
+                t6.pk as svrcell_pk
+                FROM 
+                hua_cm_3g.uinterfreqncell t1
+                INNER JOIN hua_cm_3g.UCELL t2 on 
+                    t2.neid  = t1.neid 
+                    AND t1."CELLID" = t2."CELLID"
+                INNER JOIN live_network.cells t4 ON 
+                    t4.name = t2."CELLNAME" 
+                    AND t4.vendor_pk = 2 AND t4.tech_pk = 2
+                INNER JOIN live_network.sites t5 ON 
+                    t5.pk = t4.site_pk 
+                    AND t5.vendor_pk = 2 AND t5.tech_pk = 2
+                -- ---------
+                INNER JOIN hua_cm_3g.uext3gcell t8 on 
+                    t8.neid = t1.neid
+                    AND t8."CELLID" = t1."NCELLID"
+                -- Vendor=Ericsson and Technology = UMTS
+                INNER JOIN live_network.cells t6 ON 
+                    t6.name = t8."CELLNAME"
+                    AND t6.vendor_pk = 1 AND t6.tech_pk = 2
+                INNER JOIN live_network.sites t7 ON 
+                    t7.pk = t6.site_pk 
+                    AND t7.vendor_pk = 1 AND t7.tech_pk = 2
+                WHERE 
+                 t5.site_pk = '{0}'
+            """.format(site_pk)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
 
     def extract_huawei_3g3g_intrafreq_nbrs_with_zte(self):
         """ H// 3G - Z// 3G nbrs with the same frequency"""
