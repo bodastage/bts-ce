@@ -624,6 +624,147 @@ t66 = PythonOperator(
     python_callable=extract_huawei_2g2g_nbrs,
     dag=dag)
 
+def extract_huawei_2g3g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_2g3g_nbrs()
+
+
+t66 = PythonOperator(
+    task_id='extract_huawei_2g3g_nbrs',
+    python_callable=extract_huawei_2g3g_nbrs,
+    dag=dag)
+
+def extract_huawei_3g3g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_3g3g_nbrs()
+
+
+t67 = PythonOperator(
+    task_id='extract_huawei_3g3g_nbrs',
+    python_callable=extract_huawei_3g3g_nbrs,
+    dag=dag)
+
+def extract_huawei_3g2g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_3g2g_nbrs()
+
+
+t68 = PythonOperator(
+    task_id='extract_huawei_3g2g_nbrs',
+    python_callable=extract_huawei_3g2g_nbrs,
+    dag=dag)
+
+
+def extract_huawei_3g4g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_3g4g_nbrs()
+
+
+t69 = PythonOperator(
+    task_id='extract_huawei_3g4g_nbrs',
+    python_callable=extract_huawei_3g4g_nbrs,
+    dag=dag)
+
+def extract_huawei_2g4g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_2g4g_nbrs()
+
+
+t69 = PythonOperator(
+    task_id='extract_huawei_2g4g_nbrs',
+    python_callable=extract_huawei_2g4g_nbrs,
+    dag=dag)
+
+def extract_huawei_4g2g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_4g2g_nbrs()
+
+
+t70 = PythonOperator(
+    task_id='extract_huawei_4g2g_nbrs',
+    python_callable=extract_huawei_4g2g_nbrs,
+    dag=dag)
+
+def extract_huawei_4g3g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_4g3g_nbrs()
+
+
+t71 = PythonOperator(
+    task_id='extract_huawei_4g3g_nbrs',
+    python_callable=extract_huawei_4g3g_nbrs,
+    dag=dag)
+
+
+def extract_huawei_4g4g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_huawei_4g4g_nbrs()
+
+
+t72 = PythonOperator(
+    task_id='extract_huawei_4g4g_nbrs',
+    python_callable=extract_huawei_4g4g_nbrs,
+    dag=dag)
+
+def extract_ericsson_2g3g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_2g3g_nbrs()
+
+
+t73 = PythonOperator(
+    task_id='extract_ericsson_2g3g_nbrs',
+    python_callable=extract_ericsson_2g3g_nbrs,
+    dag=dag)
+
+def extract_ericsson_2g4g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_2g4g_nbrs()
+
+
+t74 = PythonOperator(
+    task_id='extract_ericsson_2g4g_nbrs',
+    python_callable=extract_ericsson_2g4g_nbrs,
+    dag=dag)
+
+def extract_ericsson_3g2g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_3g2g_nbrs()
+
+
+t75 = PythonOperator(
+    task_id='extract_ericsson_3g2g_nbrs',
+    python_callable=extract_ericsson_3g2g_nbrs,
+    dag=dag)
+
+
+def extract_ericsson_3g4g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_3g4g_nbrs()
+
+
+t76 = PythonOperator(
+    task_id='extract_ericsson_3g4g_nbrs',
+    python_callable=extract_ericsson_3g4g_nbrs,
+    dag=dag)
+
+def extract_ericsson_4g2g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_4g2g_nbrs()
+
+t77 = PythonOperator(
+    task_id='extract_ericsson_4g2g_nbrs',
+    python_callable=extract_ericsson_4g2g_nbrs,
+    dag=dag)
+
+def extract_ericsson_4g3g_nbrs():
+    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    process_cm_data.extract_ericsson_4g3g_nbrs()
+
+t78 = PythonOperator(
+    task_id='extract_ericsson_4g3g_nbrs',
+    python_callable=extract_ericsson_4g3g_nbrs,
+    dag=dag)
+
 # extract_ericsson_3g_sites
 # Build dependency graph
 dag.set_dependency('start_cm_etlp','is_ericsson_supported')
@@ -647,14 +788,25 @@ dag.set_dependency('process_eri_enodebs','extract_ericsson_4g_cells')
 dag.set_dependency('generate_eri_3g4g_network_baseline','end_cm_etlp')
 dag.set_dependency('backup_3g4g_raw_files','end_cm_etlp')
 
-# Extact ericsson-ericsson 3g-3g nbrs after 3g cells have been extracted
+dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g2g_nbrs')
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g3g_nbrs')
+dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g4g_nbrs')
+dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_2g3g_nbrs')
+dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_4g3g_nbrs')
+dag.set_dependency('extract_ericsson_3g2g_nbrs','end_cm_etlp')
 dag.set_dependency('extract_ericsson_3g3g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_ericsson_3g4g_nbrs','end_cm_etlp')
 
 # Extract LTE cell parameter after the cells have been extracted
 dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_4g_cell_params')
+dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_4g2g_nbrs')
+dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_4g3g_nbrs')
 dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_4g4g_nbrs')
+dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_2g4g_nbrs')
+dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_3g4g_nbrs')
 dag.set_dependency('extract_ericsson_4g_cell_params','end_cm_etlp')
+dag.set_dependency('extract_ericsson_4g2g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_ericsson_4g3g_nbrs','end_cm_etlp')
 dag.set_dependency('extract_ericsson_4g4g_nbrs','end_cm_etlp')
 
 
@@ -675,8 +827,13 @@ dag.set_dependency('extract_ericsson_2g_sites','extract_ericsson_2g_cells')
 dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g_cell_params')
 dag.set_dependency('extract_ericsson_2g_cell_params','end_cm_etlp')
 dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g2g_nbrs')
+dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g3g_nbrs')
+dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g4g_nbrs')
+dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_3g2g_nbrs')
+dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_4g2g_nbrs')
 dag.set_dependency('extract_ericsson_2g2g_nbrs','end_cm_etlp')
-
+dag.set_dependency('extract_ericsson_2g3g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_ericsson_2g4g_nbrs','end_cm_etlp')
 
 # Build network tree
 dag.set_dependency('extract_ericsson_2g_cells','build_network_tree')
@@ -704,7 +861,14 @@ dag.set_dependency('extract_huawei_2g_sites','extract_huawei_2g_cells')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g_cell_params')
 dag.set_dependency('extract_huawei_2g_cell_params','end_cm_etlp')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g2g_nbrs')
+dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g3g_nbrs')
+dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g4g_nbrs')
+dag.set_dependency('extract_huawei_2g_cells','extract_huawei_3g2g_nbrs')
+dag.set_dependency('extract_huawei_2g_cells','extract_huawei_4g2g_nbrs')
 dag.set_dependency('extract_huawei_2g2g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_huawei_2g3g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_huawei_2g4g_nbrs','end_cm_etlp')
+
 
 # Huawei 3G
 dag.set_dependency('huawei_is_supported','check_if_hua_3g_raw_files_exist')
@@ -717,7 +881,14 @@ dag.set_dependency('extract_huawei_rncs','extract_huawei_3g_sites')
 dag.set_dependency('extract_huawei_3g_sites','extract_huawei_3g_cells')
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g_cell_params')
 dag.set_dependency('extract_huawei_3g_cell_params','end_cm_etlp')
-
+dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g2g_nbrs')
+dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g3g_nbrs')
+dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g4g_nbrs')
+dag.set_dependency('extract_huawei_3g_cells','extract_huawei_2g3g_nbrs')
+dag.set_dependency('extract_huawei_3g_cells','extract_huawei_4g3g_nbrs')
+dag.set_dependency('extract_huawei_3g2g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_huawei_3g3g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_huawei_3g4g_nbrs','end_cm_etlp')
 
 # Huawei 4G
 dag.set_dependency('huawei_is_supported','check_if_hua_4g_raw_files_exist')
@@ -729,6 +900,14 @@ dag.set_dependency('import_huawei_4g_cm_data','extract_huawei_enodebs')
 dag.set_dependency('extract_huawei_enodebs','extract_huawei_4g_cells')
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g_cell_params')
 dag.set_dependency('extract_huawei_4g_cell_params','end_cm_etlp')
+dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g2g_nbrs')
+dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g3g_nbrs')
+dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g4g_nbrs')
+dag.set_dependency('extract_huawei_4g_cells','extract_huawei_2g4g_nbrs')
+dag.set_dependency('extract_huawei_4g_cells','extract_huawei_3g4g_nbrs')
+dag.set_dependency('extract_huawei_4g2g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_huawei_4g3g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_huawei_4g4g_nbrs','end_cm_etlp')
 
 # ZTE
 # ##############################################
