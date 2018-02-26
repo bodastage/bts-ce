@@ -789,9 +789,9 @@ class ProcessCMData(object):
                 FROM 
                 eri_cm_2g.nrel t1
                 INNER JOIN live_network.cells t2 ON t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
-                INNER JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.vendor_pk = 1 AND t3.tech_pk = 1
-                INNER JOIN live_network.sites t4 on t4.pk = t2.site_pk AND  t4.vendor_pk = 1 AND t4.tech_pk = 1
-                INNER JOIN live_network.sites t5 on t5.pk = t3.site_pk AND  t5.vendor_pk = 1 AND t5.tech_pk = 1
+                INNER JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.tech_pk = 1
+                INNER JOIN live_network.sites t4 on t4.pk = t2.site_pk AND  t4.tech_pk = 1
+                INNER JOIN live_network.sites t5 on t5.pk = t3.site_pk AND t5.tech_pk = 1
                 LEFT JOIN live_network.relations t6 ON t6.svrcell_pk = t2.pk AND t6.nbrcell_pk = t3.pk
                 WHERE  t6.pk IS NULL 
                 AND t2.site_pk = '{0}'
@@ -2284,12 +2284,193 @@ class ProcessCMData(object):
             pass
 
         def extract_huawei_4g2g_nbrs(self):
-            pass
+            Session = sessionmaker(bind=self.db_engine)
+            session = Session()
+
+            metadata = MetaData()
+            Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+            for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=3).yield_per(5):
+                (site_pk, site_name) = (site[0], site[1])
+
+                print(
+                "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+                sql = """
+                    INSERT INTO live_network.relations 
+                    (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+                    SELECT 
+                    NEXTVAL('live_network.seq_relations_pk'),
+                    -- serving side
+                    t5.node_pk as svrnode_pk,
+                    t4.site_pk as svrsite_pk,
+                    t4.tech_pk as svrtech_pk,
+                    t4.vendor_pk as svrvendor_pk,
+                    t4.pk as svrcell_pk,
+                    -- nbr side
+                    t7.node_pk as nbrnode_pk,
+                    t6.site_pk as nbrsite_pk,
+                    t6.tech_pk as nbrtech_pk,
+                    t6.vendor_pk as nbrvendor_pk,
+                    t6.pk as nbrcell_pk,
+                    t1."varDateTime" ,
+                    t1."varDateTime" ,
+                    0, -- system
+                    0
+                    FROM 
+                    hua_cm_4g.geranncell t1
+                    INNER JOIN hua_cm_4g.cell t2 on 
+                        t2.neid  = t1.neid 
+                        AND t1."LOCALCELLID" = t2."CELLID"
+                    INNER JOIN live_network.cells t4 ON 
+                        t4.name = t2."CELLNAME" 
+                        AND t4.vendor_pk = 2 AND t4.tech_pk = 3
+                    INNER JOIN live_network.sites t5 ON 
+                        t5.pk = t4.site_pk 
+                        AND t5.vendor_pk = 2 AND t5.tech_pk = 3
+                    -- ---------
+                    LEFT JOIN hua_cm_4g.geranexternalcell t8 on 
+                        t8.neid = t1.neid
+                        AND t8."GERANCELLID" = t1."GERANCELLID"
+                    LEFT JOIN live_network.cells t6 ON 
+                        t6.name = t8."CELLNAME"
+                    LEFT JOIN live_network.sites t7 ON 
+                        t7.pk = t6.site_pk 
+                    WHERE 
+                     t4.site_pk = '{0}'
+                """.format(site_pk)
+
+                self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+            session.close()
 
         def extract_huawei_4g3g_nbrs(self):
-            pass
+            Session = sessionmaker(bind=self.db_engine)
+            session = Session()
+
+            metadata = MetaData()
+            Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+            for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=3).yield_per(5):
+                (site_pk, site_name) = (site[0], site[1])
+
+                print(
+                "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+                sql = """
+                    INSERT INTO live_network.relations 
+                    (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+                    SELECT 
+                    NEXTVAL('live_network.seq_relations_pk'),
+                    -- serving side
+                    t5.node_pk as svrnode_pk,
+                    t4.site_pk as svrsite_pk,
+                    t4.tech_pk as svrtech_pk,
+                    t4.vendor_pk as svrvendor_pk,
+                    t4.pk as svrcell_pk,
+                    -- nbr side
+                    t7.node_pk as nbrnode_pk,
+                    t6.site_pk as nbrsite_pk,
+                    t6.tech_pk as nbrtech_pk,
+                    t6.vendor_pk as nbrvendor_pk,
+                    t6.pk as nbrcell_pk,
+                    t1."varDateTime" ,
+                    t1."varDateTime" ,
+                    0, -- system
+                    0
+                    FROM 
+                    hua_cm_4g.utranncell t1
+                    INNER JOIN hua_cm_4g.cell t2 on 
+                        t2.neid  = t1.neid 
+                        AND t1."LOCALCELLID" = t2."CELLID"
+                    INNER JOIN live_network.cells t4 ON 
+                        t4.name = t2."CELLNAME" 
+                        AND t4.vendor_pk = 2 AND t4.tech_pk = 3
+                    INNER JOIN live_network.sites t5 ON 
+                        t5.pk = t4.site_pk 
+                        AND t5.vendor_pk = 2 AND t5.tech_pk = 3
+                    -- ---------
+                    LEFT JOIN hua_cm_4g.utranexternalcell t8 on 
+                        t8.neid = t1.neid
+                        AND t8."CELLID" = t1."CELLID"
+                    LEFT JOIN live_network.cells t6 ON 
+                        t6.name = t8."CELLNAME"
+                    LEFT JOIN live_network.sites t7 ON 
+                        t7.pk = t6.site_pk 
+                    WHERE 
+                     t4.site_pk = '{0}'
+                """.format(site_pk)
+
+                self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+            session.close()
+
+
 
         def extract_huawei_4g4g_nbrs(self):
+            self.extract_huawei_4g4g_intrafreq_nbrs()
+            self.extract_huawei_4g4g_interfreq_nbrs()
+
+        def extract_huawei_4g4g_intrafreq_nbrs(self):
+            Session = sessionmaker(bind=self.db_engine)
+            session = Session()
+
+            metadata = MetaData()
+            Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+            for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=3).yield_per(5):
+                (site_pk, site_name) = (site[0], site[1])
+
+                print(
+                "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+                sql = """
+                    INSERT INTO live_network.relations 
+                    (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+                    SELECT 
+                    NEXTVAL('live_network.seq_relations_pk'),
+                    -- serving side
+                    t5.node_pk as svrnode_pk,
+                    t4.site_pk as svrsite_pk,
+                    t4.tech_pk as svrtech_pk,
+                    t4.vendor_pk as svrvendor_pk,
+                    t4.pk as svrcell_pk,
+                    -- nbr side
+                    t7.node_pk as nbrnode_pk,
+                    t6.site_pk as nbrsite_pk,
+                    t6.tech_pk as nbrtech_pk,
+                    t6.vendor_pk as nbrvendor_pk,
+                    t6.pk as nbrcell_pk,
+                    t1."varDateTime" ,
+                    t1."varDateTime" ,
+                    0, -- system
+                    0
+                    FROM 
+                    hua_cm_4g.eutranintrafreqncell t1
+                    INNER JOIN hua_cm_4g.cell t2 on 
+                        t2.neid  = t1.neid 
+                        AND t1."LOCALCELLID" = t2."CELLID"
+                    INNER JOIN live_network.cells t4 ON 
+                        t4.name = t2."CELLNAME" 
+                        AND t4.vendor_pk = 2 AND t4.tech_pk = 3
+                    INNER JOIN live_network.sites t5 ON 
+                        t5.pk = t4.site_pk 
+                        AND t5.vendor_pk = 2 AND t5.tech_pk = 3
+                    -- ---------
+                    LEFT JOIN hua_cm_4g.eutranexternalcell t8 on 
+                        t8.neid = t1.neid
+                        AND t8."CELLID" = t1."CELLID"
+                    LEFT JOIN live_network.cells t6 ON 
+                        t6.name = t8."CELLNAME"
+                    LEFT JOIN live_network.sites t7 ON 
+                        t7.pk = t6.site_pk 
+                    WHERE 
+                     t4.site_pk = '{0}'
+                """.format(site_pk)
+
+                self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+            session.close()
+
+
+        def extract_huawei_4g4g_interfreq_nbrs(self):
             pass
 
         def extract_ericsson_2g3g_nbrs(self):
