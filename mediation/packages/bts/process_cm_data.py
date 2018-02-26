@@ -640,7 +640,12 @@ class ProcessCMData(object):
         """Extract Ericsson UMTS-GSM neighbour relations"""
         pass
 
-    def extract_ericsson_3g3g_nbrs(self):
+   def extract_ericsson_3g3g_nbrs(self):
+       """"Extract Ericsson 3G 3G nbrs"""
+       self.extract_ericsson_3g3g_nbrs_with_ericsson()
+       self.extract_ericsson_3g3g_nbrs_with_other_vendors()
+       
+    def extract_ericsson_3g3g_nbrs_with_ericsson(self):
         """Extract Ericsson UMTS-UMTS neighbour relations"""
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
@@ -1404,7 +1409,6 @@ class ProcessCMData(object):
 
         session.close()
 
-
     def extract_huawei_2g2g_nbrs_external(self):
         """
         Extract Huawei 2G-2G neighbour relations
@@ -2075,6 +2079,7 @@ class ProcessCMData(object):
                 INNER JOIN live_network.sites t6 on t6.pk = t5.site_pk AND t6.vendor_pk = 1 AND t6.tech_pk = 2
                 -- nbr side
                 LEFT JOIN live_network.cells t3 on t3.name = REPLACE(t2."adjacentCell", CONCAT('SubNetwork=',TRIM(t2."SubNetwork_id"),',ExternalGsmCell='),'')
+                    AND t3.tech_pk = 1
                 LEFT JOIN live_network.sites t4 ON t4.pk = t3.site_pk
                 -- INNER JOIN eri_cm_3g4g.externalgsmcell t3 on
                 --	CONCAT('SubNework=',t3."SubNetwork_id",',ExternalGsmCell=',t3."userLabel") = t2."adjacentCell"
@@ -2086,6 +2091,61 @@ class ProcessCMData(object):
 
         session.close()
 
+    def extract_ericsson_3g3g_nbrs_with_other_vendors(self):
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        metadata = MetaData()
+        Cell = Table('cells', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for cell in session.query(Cell).filter_by(vendor_pk=1).filter_by(tech_pk=2).yield_per(5):
+            (cell_pk, cell_name) = (cell[0], cell[1])
+
+            print(
+            "Extracting Ericsson 3G - 3G relations for cell_pk: {0}, cell_name: {1}".format(cell_pk, cell_name))
+
+            sql = """
+                INSERT INTO live_network.relations 
+                (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+                SELECT 
+                NEXTVAL('live_network.seq_relations_pk'),
+                -- Serving side
+                t6.node_pk as svrnode_pk,
+                t5.site_pk as svrsite_pk,
+                t5.pk as nbrcell_pk,
+                t5.tech_pk as nbrtech_pk,
+                t5.vendor_pk as nbrvendor_pk,
+                -- NBR side
+                t4.node_pk as nbrnode_pk,
+                t3.site_pk as nbrsite_pk,
+                t3.pk as svrcell_pk,
+                t3.tech_pk as svrtech_pk,
+                t3.vendor_pk as svrvendor_pk,
+                t1."varDateTime" ,
+                t1."varDateTime" ,
+                0, -- system
+                0
+                FROM
+                eri_cm_3g4g.utrancell t1
+                INNER JOIN eri_cm_3g4g.utranrelation t2 ON 
+                    t2."SubNetwork_2_id" = t1."SubNetwork_2_id"
+                    AND t2."MeContext_id" = t1."MeContext_id"
+                    AND t2."UtranCell_id" = t2."UtranCell_id"
+                    AND t2."UtranCell_id" = '{0}'
+                INNER JOIN live_network.cells t5 ON t5.name = t2."UtranCell_id" AND t5.vendor_pk = 1 AND t5.tech_pk = 2
+                INNER JOIN live_network.sites t6 on t6.pk = t5.site_pk AND t6.vendor_pk = 1 AND t6.tech_pk = 2
+                
+                -- nbr side
+                LEFT JOIN live_network.cells t3 on t3.name = REPLACE(t2."adjacentCell", CONCAT('SubNetwork=',TRIM(t1."SubNetwork_id"),',ExternalUtranCell='),'')
+                LEFT JOIN live_network.sites t4 ON t4.pk = t3.site_pk
+                -- INNER JOIN eri_cm_3g4g.externalutrancell t3 on
+                --	CONCAT('SubNework=',t3."SubNetwork_id",',ExternalGsmCell=',t3."userLabel") = t2."adjacentCell"
+                WHERE 
+                t1."UtranCell_id" = '{0}'
+            """.format(cell_pk)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
 
     def extract_ericsson_3g4g_nbrs(self):
         pass
