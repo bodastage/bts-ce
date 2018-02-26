@@ -789,9 +789,9 @@ class ProcessCMData(object):
                 FROM 
                 eri_cm_2g.nrel t1
                 INNER JOIN live_network.cells t2 ON t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
-                INNER JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.tech_pk = 1
+                LEFT JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.tech_pk = 1
                 INNER JOIN live_network.sites t4 on t4.pk = t2.site_pk AND  t4.tech_pk = 1
-                INNER JOIN live_network.sites t5 on t5.pk = t3.site_pk AND t5.tech_pk = 1
+                LEFT JOIN live_network.sites t5 on t5.pk = t3.site_pk AND t5.tech_pk = 1
                 LEFT JOIN live_network.relations t6 ON t6.svrcell_pk = t2.pk AND t6.nbrcell_pk = t3.pk
                 WHERE  t6.pk IS NULL 
                 AND t2.site_pk = '{0}'
@@ -2211,7 +2211,7 @@ class ProcessCMData(object):
 
         def extract_huawei_2g3g_nbrs(self):
             """Extact Huawei 2G-3G nbrs"""
-            self.extract_ericsson_2g3g_nbrs_with_all_vendors()
+            self.extract_huawei_2g3g_nbrs_with_all_vendors()
 
         def extract_huawei_3g2g_nbrs(self):
             self.extract_huawei_2g4g_nbrs_with_all_vendors(self)
@@ -2474,7 +2474,52 @@ class ProcessCMData(object):
             pass
 
         def extract_ericsson_2g3g_nbrs(self):
-            pass
+            """Extract Ericsson 2G-2G neighbour relations"""
+            Session = sessionmaker(bind=self.db_engine)
+            session = Session()
+
+            metadata = MetaData()
+            Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+            for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=1).yield_per(5):
+                (site_pk, site_name) = (site[0], site[1])
+
+                print("Extracting E// 2G-3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+                sql = """
+                    INSERT INTO live_network.relations 
+                    (pk, svrnode_pk,svrsite_pk,svrtech_pk,svrvendor_pk,svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
+                    SELECT 
+                    NEXTVAL('live_network.seq_relations_pk'),
+                    -- serving side
+                    t4.node_pk as srvnode_pk,
+                    t2.site_pk as svrsite_pk,
+                    1 as svrtech_pk,
+                    1 as svrvendor_pk,
+                    t2.pk as svrcell_pk,
+                    -- nbr side
+                    t5.node_pk as nbrnode_pk,
+                    t3.site_pk as nbrsite_pk,
+                    1 as nbrtech_pk,
+                    1 as nbrvendor_pk,
+                    t3.pk as nbrcell_pk,
+                    t1."varDateTime" as date_added,
+                    t1."varDateTime" as date_modified,
+                    0 as modified_by,
+                    0 as added_by
+                    FROM 
+                    eri_cm_2g.utran_nrel t1
+                    INNER JOIN live_network.cells t2 ON t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
+                    LEFT JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.tech_pk = 2
+                    INNER JOIN live_network.sites t4 on t4.pk = t2.site_pk AND  t4.tech_pk = 1
+                    LEFT JOIN live_network.sites t5 on t5.pk = t3.site_pk AND t5.tech_pk = 2
+                    LEFT JOIN live_network.relations t6 ON t6.svrcell_pk = t2.pk AND t6.nbrcell_pk = t3.pk
+                    WHERE  t6.pk IS NULL 
+                    AND t2.site_pk = '{0}'
+                """.format(site_pk)
+
+                self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+            session.close()
 
         def extract_ericsson_2g4g_nbrs(self):
             pass
