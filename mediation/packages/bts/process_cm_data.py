@@ -636,11 +636,7 @@ class ProcessCMData(object):
 
         session.close()
 
-    def extract_ericsson_3g2g_nbrs(self):
-        """Extract Ericsson UMTS-GSM neighbour relations"""
-        pass
-
-   def extract_ericsson_3g3g_nbrs(self):
+    def extract_ericsson_3g3g_nbrs(self):
        """"Extract Ericsson 3G 3G nbrs"""
        self.extract_ericsson_3g3g_nbrs_with_ericsson()
        self.extract_ericsson_3g3g_nbrs_with_other_vendors()
@@ -2570,6 +2566,7 @@ class ProcessCMData(object):
                 LEFT JOIN live_network.cells t3 on t3.name = REPLACE(t2."adjacentCell", CONCAT('SubNetwork=',TRIM(t2."SubNetwork_id"),',ExternalGsmCell='),'')
                     AND t3.tech_pk = 1
                 LEFT JOIN live_network.sites t4 ON t4.pk = t3.site_pk
+                AND AND t4.tech_pk = 1
                 -- INNER JOIN eri_cm_3g4g.externalgsmcell t3 on
                 --	CONCAT('SubNework=',t3."SubNetwork_id",',ExternalGsmCell=',t3."userLabel") = t2."adjacentCell"
                 WHERE 
@@ -2624,8 +2621,10 @@ class ProcessCMData(object):
                 INNER JOIN live_network.sites t6 on t6.pk = t5.site_pk AND t6.vendor_pk = 1 AND t6.tech_pk = 2
                 
                 -- nbr side
-                LEFT JOIN live_network.cells t3 on t3.name = REPLACE(t2."adjacentCell", CONCAT('SubNetwork=',TRIM(t1."SubNetwork_id"),',ExternalUtranCell='),'')
-                LEFT JOIN live_network.sites t4 ON t4.pk = t3.site_pk
+                LEFT JOIN live_network.cells t3 on 
+                    t3.name = REPLACE(t2."adjacentCell", CONCAT('SubNetwork=',TRIM(t1."SubNetwork_id"),',ExternalUtranCell='),'')
+                    AND t3.tech_pk = 3
+                LEFT JOIN live_network.sites t4 ON t4.pk = t3.site_pk  AND t4.tech_pk = 3
                 -- INNER JOIN eri_cm_3g4g.externalutrancell t3 on
                 --	CONCAT('SubNework=',t3."SubNetwork_id",',ExternalGsmCell=',t3."userLabel") = t2."adjacentCell"
                 WHERE 

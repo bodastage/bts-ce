@@ -51,6 +51,30 @@ class Utils(object):
            text("ALTER SEQUENCE live_network.seq_relations_pk RESTART WITH 1;").execution_options(
                autocommit=True))
 
+        # Truncate base_line_values
+        self.db_engine.execute(
+            text("TRUNCATE TABLE live_network.base_line_values;").execution_options(
+                autocommit=True))
+        self.db_engine.execute(
+            text("ALTER SEQUENCE live_network.seq_base_line_values_pk RESTART WITH 1;").execution_options(
+                autocommit=True))
+
+        # Truncate gsm cells data parameter values
+        self.db_engine.execute(
+            text("TRUNCATE TABLE live_network.lte_cells_data;").execution_options(
+                autocommit=True))
+        self.db_engine.execute(
+            text("ALTER SEQUENCE live_network.seq_lte_cells_data_pk RESTART WITH 1;").execution_options(
+                autocommit=True))
+
+        # Truncate gsm cells data parameter values
+        self.db_engine.execute(
+            text("TRUNCATE TABLE live_network.gsm_cells_data;").execution_options(
+                autocommit=True))
+        self.db_engine.execute(
+            text("ALTER SEQUENCE live_network.seq_gsm_cells_data_pk RESTART WITH 1;").execution_options(
+                autocommit=True))
+
         # Truncate cell parameter values
         self.db_engine.execute(
             text("TRUNCATE TABLE live_network.umts_cells_data;").execution_options(
@@ -83,12 +107,15 @@ class Utils(object):
             text("ALTER SEQUENCE live_network.seq_nodes_pk RESTART WITH 1;").execution_options(
                 autocommit=True))
 
+
+
     def build_mo_aci_tree(self):
         """Build and cache mo tree for managed objects"""
 
         # Get all mos: name, pk, and parent_pk
 
-        engine = create_engine('postgresql://{0}:{1}@{2}/{3}'.format(self._dbuser, self._dbpass, self._dbhost, self._dbname))
+        # engine = create_engine('postgresql://{0}:{1}@{2}/{3}'.format(self._dbuser, self._dbpass, self._dbhost, self._dbname))
+        engine = create_engine('postgresql://bodastage:password@database/bts')
 
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -129,7 +156,8 @@ class Utils(object):
     def build_live_network_aci_tree(self):
         """Build network tree"""
 
-        engine = create_engine('postgresql://{0}:{1}@{2}/{3}'.format(self._dbuser, self._dbpass, self._dbhost, self._dbname))
+        # engine = create_engine('postgresql://{0}:{1}@{2}/{3}'.format(self._dbuser, self._dbpass, self._dbhost, self._dbname))
+        engine = create_engine('postgresql://bodastage:password@database/bts')
 
         Session = sessionmaker(bind=engine)
         session = Session()
