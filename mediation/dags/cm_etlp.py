@@ -30,6 +30,7 @@ from sqlalchemy.sql import text
 from cm_sub_dag_parse_huawei_2g_files import run_huawei_2g_parser
 from cm_sub_dag_parse_huawei_3g_files import run_huawei_3g_parser
 from cm_sub_dag_parser_and_import_eri_3g4g import parser_and_import_eri_3g4g
+from cm_sub_dag_parser_and_import_eri_2g import parser_and_import_eri_2g
 
 from airflow.utils.trigger_rule import TriggerRule
 
@@ -80,7 +81,6 @@ sub_dag_parser_huawei_3g_cm_files = SubDagOperator(
 )
 
 
-#
 sub_dag_parser_and_import_eri_3g4g_cm_files = SubDagOperator(
   subdag=parser_and_import_eri_3g4g('cm_etlp', 'parser_and_import_ericsson_3g4g', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
@@ -89,8 +89,19 @@ sub_dag_parser_and_import_eri_3g4g_cm_files = SubDagOperator(
 )
 
 
+sub_dag_parser_and_import_eri_2g_cm_files = SubDagOperator(
+  subdag=parser_and_import_eri_2g('cm_etlp', 'parser_and_import_ericsson_2g', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parser_and_import_ericsson_2g',
+  dag=dag,
+)
 
 
+# Backup raw files that have been parsed
+t4 = BashOperator(
+    task_id='backup_3g4g_raw_files',
+    bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ 2>/dev/null',
+    dag=dag)
 
 # Run network baseline
 def generate_eri_3g4g_network_baseline():
@@ -261,37 +272,37 @@ t18 = PythonOperator(
 
 
 # Import csv files into csv files
-t18 = BashOperator(
-    task_id='import_eri_2g_cm_data',
-    bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/eri_cm_2g_loader.cfg"',
-    dag=dag)
+# t18 = BashOperator(
+#     task_id='import_eri_2g_cm_data',
+#     bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/eri_cm_2g_loader.cfg"',
+#     dag=dag)
 
 
 # Clear 2G CM data tables
-def clear_ericsson_2g_cm_tables():
-    pass
+# def clear_ericsson_2g_cm_tables():
+#     pass
+#
+#
+# t19 = PythonOperator(
+#     task_id='clear_ericsson_2g_cm_tables',
+#     python_callable=clear_ericsson_2g_cm_tables,
+#     dag=dag)
 
-
-t19 = PythonOperator(
-    task_id='clear_ericsson_2g_cm_tables',
-    python_callable=clear_ericsson_2g_cm_tables,
-    dag=dag)
-
-t20 = BashOperator(
-    task_id='run_ericsson_2g_parser',
-    bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/in /mediation/data/cm/ericsson/2g/parsed/in /mediation/conf/cm/eri_cm_2g_cnaiv2_parser.cfg',
-    dag=dag)
+# t20 = BashOperator(
+#     task_id='run_ericsson_2g_parser',
+#     bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/in /mediation/data/cm/ericsson/2g/parsed/in /mediation/conf/cm/eri_cm_2g_cnaiv2_parser.cfg',
+#     dag=dag)
 
 # Backup E// 2G raw files that have been parsed
-t21 = BashOperator(
-    task_id='backup_ericsson_2g_csv_files',
-    bash_command='mv -f /mediation/data/cm/ericsson/2g/parsed/in/* /mediation/data/cm/ericsson/2g/parsed/out/ 2>/dev/null',
-    dag=dag)
+# t21 = BashOperator(
+#     task_id='backup_ericsson_2g_csv_files',
+#     bash_command='mv -f /mediation/data/cm/ericsson/2g/parsed/in/* /mediation/data/cm/ericsson/2g/parsed/out/ 2>/dev/null',
+#     dag=dag)
 
-t22 = BashOperator(
-    task_id='check_if_2g_raw_files_exist',
-    bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/ericsson/2g/raw/in | wc -l` ]; then exit 1; fi',
-    dag=dag)
+# t22 = BashOperator(
+#     task_id='check_if_2g_raw_files_exist',
+#     bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/ericsson/2g/raw/in | wc -l` ]; then exit 1; fi',
+#     dag=dag)
 
 
 # Task to check whether ericsson is supported in the network
@@ -842,12 +853,9 @@ dag.set_dependency('extract_ericsson_3g_cell_params','ericsson_cm_done')
 
 # ###########################################################################
 # Ericsson 2G
-dag.set_dependency('ericsson_is_supported','check_if_2g_raw_files_exist')
-dag.set_dependency('check_if_2g_raw_files_exist','backup_ericsson_2g_csv_files')
-dag.set_dependency('backup_ericsson_2g_csv_files','run_ericsson_2g_parser')
-dag.set_dependency('run_ericsson_2g_parser','clear_ericsson_2g_cm_tables')
-dag.set_dependency('clear_ericsson_2g_cm_tables','import_eri_2g_cm_data')
-dag.set_dependency('import_eri_2g_cm_data','process_ericsson_bscs')
+dag.set_dependency('ericsson_is_supported','parser_and_import_ericsson_2g')
+dag.set_dependency('parser_and_import_ericsson_2g','process_ericsson_bscs')
+
 dag.set_dependency('process_ericsson_bscs','extract_ericsson_2g_sites')
 dag.set_dependency('extract_ericsson_2g_sites','extract_ericsson_2g_cells')
 dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g_cell_params')
