@@ -13,7 +13,7 @@ from bts import NetworkBaseLine, Utils, ProcessCMData;
 bts_utils = Utils();
 
 
-def parser_and_import_eri_2g(parent_dag_name, child_dag_name, start_date, schedule_interval):
+def parse_and_import_eri_2g(parent_dag_name, child_dag_name, start_date, schedule_interval):
     dag = DAG(
         '%s.%s' % (parent_dag_name, child_dag_name),
         schedule_interval=schedule_interval,

@@ -29,8 +29,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from cm_sub_dag_parse_huawei_2g_files import run_huawei_2g_parser
 from cm_sub_dag_parse_huawei_3g_files import run_huawei_3g_parser
-from cm_sub_dag_parser_and_import_eri_3g4g import parser_and_import_eri_3g4g
-from cm_sub_dag_parser_and_import_eri_2g import parser_and_import_eri_2g
+from cm_sub_dag_parse_and_import_eri_3g4g import parse_and_import_eri_3g4g
+from cm_sub_dag_parse_and_import_eri_2g import parse_and_import_eri_2g
 
 from airflow.utils.trigger_rule import TriggerRule
 
@@ -81,16 +81,16 @@ sub_dag_parser_huawei_3g_cm_files = SubDagOperator(
 )
 
 
-sub_dag_parser_and_import_eri_3g4g_cm_files = SubDagOperator(
-  subdag=parser_and_import_eri_3g4g('cm_etlp', 'parser_and_import_ericsson_3g4g', start_date=dag.start_date,
+sub_dag_parse_and_import_eri_3g4g_cm_files = SubDagOperator(
+  subdag=parse_and_import_eri_3g4g('cm_etlp', 'parser_and_import_ericsson_3g4g', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parser_and_import_ericsson_3g4g',
   dag=dag,
 )
 
 
-sub_dag_parser_and_import_eri_2g_cm_files = SubDagOperator(
-  subdag=parser_and_import_eri_2g('cm_etlp', 'parser_and_import_ericsson_2g', start_date=dag.start_date,
+sub_dag_parse_and_import_eri_2g_cm_files = SubDagOperator(
+  subdag=parse_and_import_eri_2g('cm_etlp', 'parser_and_import_ericsson_2g', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parser_and_import_ericsson_2g',
   dag=dag,
@@ -801,7 +801,6 @@ t82 = DummyOperator(
 dag.set_dependency('start_cm_etlp','is_ericsson_supported')
 dag.set_dependency('is_ericsson_supported','ericsson_is_supported')
 dag.set_dependency('is_ericsson_supported','eri_not_supported')
-dag.set_dependency('eri_not_supported','end_cm_etlp')
 dag.set_dependency('eri_not_supported','join_ericsson_supported')
 dag.set_dependency('ericsson_cm_done','join_ericsson_supported')
 dag.set_dependency('join_ericsson_supported','end_cm_etlp')
