@@ -29,6 +29,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from cm_sub_dag_parse_huawei_2g_files import run_huawei_2g_parser
 from cm_sub_dag_parse_huawei_3g_files import run_huawei_3g_parser
+from cm_sub_dag_parser_and_import_eri_3g4g import parser_and_import_eri_3g4g
+
 from airflow.utils.trigger_rule import TriggerRule
 
 sys.path.append('/mediation/packages');
@@ -62,11 +64,10 @@ dag = DAG(
     dagrun_timeout=timedelta(minutes=60))
 
 # Run Huawei 2G parser
-sub_dag_parser_huawei_2g_cm_files = SubDagOperator(
+sub_dag_parse_huawei_2g_cm_files = SubDagOperator(
   subdag=run_huawei_2g_parser('cm_etlp', 'parse_huawei_2g_cm_files', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_huawei_2g_cm_files',
-  trigger_rule=TriggerRule.ONE_SUCCESS,
   dag=dag,
 )
 
@@ -75,38 +76,20 @@ sub_dag_parser_huawei_3g_cm_files = SubDagOperator(
   subdag=run_huawei_3g_parser('cm_etlp', 'parse_huawei_3g_cm_files', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_huawei_3g_cm_files',
-  trigger_rule=TriggerRule.ONE_SUCCESS,
   dag=dag,
 )
 
-t1 = BashOperator(
-    task_id='check_if_eri_3g4g_raw_files_exist',
-    bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/ericsson/3g4g/raw/in | wc -l` ]; then exit 1; fi',
-    dag=dag)
+
+#
+sub_dag_parser_and_import_eri_3g4g_cm_files = SubDagOperator(
+  subdag=parser_and_import_eri_3g4g('cm_etlp', 'parser_and_import_ericsson_3g4g', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parser_and_import_ericsson_3g4g',
+  dag=dag,
+)
 
 
-t2 = BashOperator(
-    task_id='run_eri_3g4g_parser',
-    bash_command='java -jar /mediation/bin/boda_bulkcmparser.jar /mediation/data/cm/ericsson/3g4g/raw/in /mediation/data/cm/ericsson/3g4g/parsed/in /mediation/conf/cm/eri_cm_3g4g_parser.cfg',
-    dag=dag)
 
-# Import csv files into csv files
-t3 = BashOperator(
-    task_id='import_eri_3g4g_cm_data',
-    bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/eri_cm_3g4g_loader.cfg"',
-    dag=dag)
-
-# Backup raw files that have been parsed
-t4 = BashOperator(
-    task_id='backup_3g4g_raw_files',
-    bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ 2>/dev/null',
-    dag=dag)
-
-# Backup previously generate csv files from parsing
-t5 = BashOperator(
-    task_id='backup_prev_eri_3g4g_csv_files',
-    bash_command='mv -f /mediation/data/cm/ericsson/3g4g/parsed/in/* /mediation/data/cm/ericsson/3g4g/parsed/out/ 2>/dev/null',
-    dag=dag)
 
 
 # Run network baseline
@@ -120,17 +103,6 @@ t6 = PythonOperator(
     python_callable=generate_eri_3g4g_network_baseline,
     dag=dag)
 
-
-# Truncate ericsson 3g4g cm tables
-def clear_eri_3g4g_cm_tables():
-    utils = Utils(dbhost=os.environ.get('POSTGRES_HOST'));
-    utils.truncate_schema_tables(schema="eri_cm_3g4g");
-
-
-t7 = PythonOperator(
-    task_id='clear_eri_3g4g_cm_tables',
-    python_callable=clear_eri_3g4g_cm_tables,
-    dag=dag)
 
 
 # Process ericsson RNCs
@@ -823,15 +795,17 @@ dag.set_dependency('eri_not_supported','join_ericsson_supported')
 dag.set_dependency('ericsson_cm_done','join_ericsson_supported')
 dag.set_dependency('join_ericsson_supported','end_cm_etlp')
 
-dag.set_dependency('ericsson_is_supported','check_if_eri_3g4g_raw_files_exist')
-dag.set_dependency('check_if_eri_3g4g_raw_files_exist','backup_prev_eri_3g4g_csv_files')
-dag.set_dependency('backup_prev_eri_3g4g_csv_files','run_eri_3g4g_parser')
-dag.set_dependency('run_eri_3g4g_parser','clear_eri_3g4g_cm_tables')
-dag.set_dependency('clear_eri_3g4g_cm_tables','import_eri_3g4g_cm_data')
-dag.set_dependency('import_eri_3g4g_cm_data','backup_3g4g_raw_files')
-dag.set_dependency('import_eri_3g4g_cm_data','generate_eri_3g4g_network_baseline')
-dag.set_dependency('import_eri_3g4g_cm_data','process_eri_rncs')
-dag.set_dependency('import_eri_3g4g_cm_data','process_eri_enodebs')
+dag.set_dependency('ericsson_is_supported','parser_and_import_ericsson_3g4g')
+
+# dag.set_dependency('check_if_eri_3g4g_raw_files_exist','backup_prev_eri_3g4g_csv_files')
+# dag.set_dependency('backup_prev_eri_3g4g_csv_files','run_eri_3g4g_parser')
+# dag.set_dependency('run_eri_3g4g_parser','clear_eri_3g4g_cm_tables')
+# dag.set_dependency('clear_eri_3g4g_cm_tables','import_eri_3g4g_cm_data')
+
+dag.set_dependency('parser_and_import_ericsson_3g4g','backup_3g4g_raw_files')
+dag.set_dependency('parser_and_import_ericsson_3g4g','generate_eri_3g4g_network_baseline')
+dag.set_dependency('parser_and_import_ericsson_3g4g','process_eri_rncs')
+dag.set_dependency('parser_and_import_ericsson_3g4g','process_eri_enodebs')
 dag.set_dependency('process_eri_rncs','extract_ericsson_3g_sites')
 dag.set_dependency('extract_ericsson_3g_sites','extract_ericsson_3g_cells')
 dag.set_dependency('process_eri_enodebs','extract_ericsson_4g_cells')
