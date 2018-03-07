@@ -68,7 +68,7 @@ class NetworkBaseLine(object):
 
                 print (parameter_value)
 
-                base_line_value  = parameter_value[0]
+                base_line_value  = trim(parameter_value[0])
                 print ("base_line_value:{0}".format(base_line_value) )
 
                 # if base_line_value is None: continue

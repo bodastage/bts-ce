@@ -44,8 +44,8 @@ print("""
 """, end="")
 for mo in managedobjects:
     print("""
-		{{'name': '{0}', 'parent_pk': {1}, 'vendor_pk': {2}, 'tech_pk': {3}, 'modified_by': 0, 'added_by': 0}},
-	""".format(mo.name, mo.parent_pk, mo.vendor_pk, mo.tech_pk), end="")
+		{{'name': '{0}', 'parent_pk': {1}, 'vendor_pk': {2}, 'tech_pk': {3}, 'modified_by': 0, 'added_by': 0, 'pk': {4}}},
+	""".format(mo.name, mo.parent_pk, mo.vendor_pk, mo.tech_pk, mo.pk), end="")
 	
 print("""
     ])

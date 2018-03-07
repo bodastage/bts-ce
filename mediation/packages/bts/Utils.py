@@ -327,3 +327,18 @@ class Utils(object):
             return value
         else:
             return default
+
+    def is_vendor_and_tech_supported(vendor_pk, tech_pk):
+        """
+        Check whether a vendor and technology are supported
+        """
+
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        metadata = MetaData()
+
+        supported_vendor_tech = Table('vw_supported_vendor_tech', metadata, autoload=True, autoload_with=self.db_engine,
+                                      schema='public')
+        session.query(supported_vendor_tech).filter_by(vendor_pk=vendor_pk, tech_pk=tech_pk)
+

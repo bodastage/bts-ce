@@ -20,12 +20,16 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.python_operator import BranchPythonOperator
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.subdag_operator import SubDagOperator
 from airflow.models import DAG
 from datetime import timedelta
 from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
+from cm_sub_dag_parse_huawei_2g_files import run_huawei_2g_parser
+from cm_sub_dag_parse_huawei_3g_files import run_huawei_3g_parser
+from airflow.utils.trigger_rule import TriggerRule
 
 sys.path.append('/mediation/packages');
 
@@ -46,14 +50,34 @@ args = {
     'retry_delay': timedelta(minutes=5),
 }
 
+
 dag = DAG(
-    dag_id='cm_etlp', default_args=args,
+    dag_id='cm_etlp',
+    default_args=args,
     schedule_interval=schedule_interval,
+    start_date=datetime(2017, 1, 1),
     max_active_runs = 1,
     concurrency = 1,
     catchup = False,
     dagrun_timeout=timedelta(minutes=60))
 
+# Run Huawei 2G parser
+sub_dag_parser_huawei_2g_cm_files = SubDagOperator(
+  subdag=run_huawei_2g_parser('cm_etlp', 'parse_huawei_2g_cm_files', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_huawei_2g_cm_files',
+  trigger_rule=TriggerRule.ONE_SUCCESS,
+  dag=dag,
+)
+
+# Run Huawei 2G parser
+sub_dag_parser_huawei_3g_cm_files = SubDagOperator(
+  subdag=run_huawei_3g_parser('cm_etlp', 'parse_huawei_3g_cm_files', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_huawei_3g_cm_files',
+  trigger_rule=TriggerRule.ONE_SUCCESS,
+  dag=dag,
+)
 
 t1 = BashOperator(
     task_id='check_if_eri_3g4g_raw_files_exist',
@@ -283,7 +307,7 @@ t19 = PythonOperator(
 
 t20 = BashOperator(
     task_id='run_ericsson_2g_parser',
-    bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/in /mediation/data/cm/ericsson/2g/parsed/in /mediation/conf/cm/eri_cm_2g_cnaiv2_loader.cfg',
+    bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/in /mediation/data/cm/ericsson/2g/parsed/in /mediation/conf/cm/eri_cm_2g_cnaiv2_parser.cfg',
     dag=dag)
 
 # Backup E// 2G raw files that have been parsed
@@ -304,10 +328,10 @@ def is_vendor_supported(vendor_id):
     Session = sessionmaker(bind=engine)
     session = Session()
     metadata = MetaData()
-    vendors = Table('vendors', metadata, autoload=True, autoload_with=engine)
-    vendor = session.query(vendors).filter_by(pk=vendor_id).first()
+    vendors_supported = Table('supported_vendor_tech', metadata, autoload=True, autoload_with=engine)
+    vendor = session.query(vendors_supported).filter_by(vendor_pk=vendor_id).first()
     session.close()
-    if vendor.supported is False:
+    if vendor is None:
         return False
     return True
 
@@ -366,10 +390,10 @@ t28 = BashOperator(
     bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/huawei/2g/raw/in | wc -l` ]; then exit 1; fi',
     dag=dag)
 
-t29 = BashOperator(
-    task_id='run_huawei_2g_parser',
-    bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/2g/raw/in /mediation/data/cm/huawei/2g/parsed/in /mediation/conf/cm/hua_cm_2g_nbi_parameters.cfg',
-    dag=dag)
+# t29 = BashOperator(
+#     task_id='run_huawei_2g_parser',
+#     bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/2g/raw/in /mediation/data/cm/huawei/2g/parsed/in /mediation/conf/cm/hua_cm_2g_nbi_parameters.cfg',
+#     dag=dag)
 
 t30 = BashOperator(
     task_id='backup_huawei_2g_csv_files',
@@ -422,10 +446,10 @@ t43 = BashOperator(
     bash_command='mv -f /mediation/data/cm/huawei/3g/parsed/in/* /mediation/data/cm/huawei/3g/parsed/out/ 2>/dev/null',
     dag=dag)
 
-t44 = BashOperator(
-    task_id='run_huawei_3g_parser',
-    bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/3g/raw/in /mediation/data/cm/huawei/3g/parsed/in /mediation/conf/cm/hua_cm_3g_nbi_parser.cfg',
-    dag=dag)
+# t44 = BashOperator(
+#     task_id='run_huawei_3g_parser',
+#     bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/3g/raw/in /mediation/data/cm/huawei/3g/parsed/in /mediation/conf/cm/hua_cm_3g_nbi_parser.cfg',
+#     dag=dag)
 
 # Clear 3G CM data tables
 def clear_huawei_3g_cm_tables():
@@ -765,12 +789,39 @@ t78 = PythonOperator(
     python_callable=extract_ericsson_4g3g_nbrs,
     dag=dag)
 
+t79 = DummyOperator(
+    task_id='ericsson_cm_done',
+    trigger_rule=TriggerRule.ALL_SUCCESS,
+    dag=dag
+)
+
+t80 = DummyOperator(
+    task_id='huawei_cm_done',
+    trigger_rule=TriggerRule.ALL_SUCCESS,
+    dag=dag
+)
+
+t81 = DummyOperator(
+    task_id='join_ericsson_supported',
+    trigger_rule=TriggerRule.ONE_SUCCESS,
+    dag=dag
+)
+
+t82 = DummyOperator(
+    task_id='join_huawei_supported',
+    trigger_rule=TriggerRule.ONE_SUCCESS,
+    dag=dag
+)
+
 # extract_ericsson_3g_sites
 # Build dependency graph
 dag.set_dependency('start_cm_etlp','is_ericsson_supported')
 dag.set_dependency('is_ericsson_supported','ericsson_is_supported')
 dag.set_dependency('is_ericsson_supported','eri_not_supported')
 dag.set_dependency('eri_not_supported','end_cm_etlp')
+dag.set_dependency('eri_not_supported','join_ericsson_supported')
+dag.set_dependency('ericsson_cm_done','join_ericsson_supported')
+dag.set_dependency('join_ericsson_supported','end_cm_etlp')
 
 dag.set_dependency('ericsson_is_supported','check_if_eri_3g4g_raw_files_exist')
 dag.set_dependency('check_if_eri_3g4g_raw_files_exist','backup_prev_eri_3g4g_csv_files')
@@ -785,17 +836,18 @@ dag.set_dependency('process_eri_rncs','extract_ericsson_3g_sites')
 dag.set_dependency('extract_ericsson_3g_sites','extract_ericsson_3g_cells')
 dag.set_dependency('process_eri_enodebs','extract_ericsson_4g_cells')
 
-dag.set_dependency('generate_eri_3g4g_network_baseline','end_cm_etlp')
-dag.set_dependency('backup_3g4g_raw_files','end_cm_etlp')
+dag.set_dependency('generate_eri_3g4g_network_baseline','ericsson_cm_done')
+dag.set_dependency('backup_3g4g_raw_files','ericsson_cm_done')
+
 
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g2g_nbrs')
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g3g_nbrs')
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g4g_nbrs')
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_2g3g_nbrs')
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_4g3g_nbrs')
-dag.set_dependency('extract_ericsson_3g2g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_ericsson_3g3g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_ericsson_3g4g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_ericsson_3g2g_nbrs','ericsson_cm_done')
+dag.set_dependency('extract_ericsson_3g3g_nbrs','ericsson_cm_done')
+dag.set_dependency('extract_ericsson_3g4g_nbrs','ericsson_cm_done')
 
 # Extract LTE cell parameter after the cells have been extracted
 dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_4g_cell_params')
@@ -804,15 +856,15 @@ dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_4g3g_nbrs')
 dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_4g4g_nbrs')
 dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_2g4g_nbrs')
 dag.set_dependency('extract_ericsson_4g_cells','extract_ericsson_3g4g_nbrs')
-dag.set_dependency('extract_ericsson_4g_cell_params','end_cm_etlp')
-dag.set_dependency('extract_ericsson_4g2g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_ericsson_4g3g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_ericsson_4g4g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_ericsson_4g_cell_params','ericsson_cm_done')
+dag.set_dependency('extract_ericsson_4g2g_nbrs','ericsson_cm_done')
+dag.set_dependency('extract_ericsson_4g3g_nbrs','ericsson_cm_done')
+dag.set_dependency('extract_ericsson_4g4g_nbrs','ericsson_cm_done')
 
 
 # Extract UMTS cell parameter after the cells have been extracted
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g_cell_params')
-dag.set_dependency('extract_ericsson_3g_cell_params','end_cm_etlp')
+dag.set_dependency('extract_ericsson_3g_cell_params','ericsson_cm_done')
 
 # ###########################################################################
 # Ericsson 2G
@@ -825,21 +877,21 @@ dag.set_dependency('import_eri_2g_cm_data','process_ericsson_bscs')
 dag.set_dependency('process_ericsson_bscs','extract_ericsson_2g_sites')
 dag.set_dependency('extract_ericsson_2g_sites','extract_ericsson_2g_cells')
 dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g_cell_params')
-dag.set_dependency('extract_ericsson_2g_cell_params','end_cm_etlp')
+dag.set_dependency('extract_ericsson_2g_cell_params','ericsson_cm_done')
 dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g2g_nbrs')
 dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g3g_nbrs')
 dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_2g4g_nbrs')
 dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_3g2g_nbrs')
 dag.set_dependency('extract_ericsson_2g_cells','extract_ericsson_4g2g_nbrs')
-dag.set_dependency('extract_ericsson_2g2g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_ericsson_2g3g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_ericsson_2g4g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_ericsson_2g2g_nbrs','ericsson_cm_done')
+dag.set_dependency('extract_ericsson_2g3g_nbrs','ericsson_cm_done')
+dag.set_dependency('extract_ericsson_2g4g_nbrs','ericsson_cm_done')
 
 # Build network tree
 dag.set_dependency('extract_ericsson_2g_cells','build_network_tree')
 dag.set_dependency('extract_ericsson_3g_cells','build_network_tree')
 dag.set_dependency('extract_ericsson_4g_cells','build_network_tree')
-dag.set_dependency('build_network_tree','end_cm_etlp')
+dag.set_dependency('build_network_tree','ericsson_cm_done')
 
 # ###########################################################################
 # Huawei
@@ -847,48 +899,54 @@ dag.set_dependency('build_network_tree','end_cm_etlp')
 dag.set_dependency('start_cm_etlp','is_huawei_supported')
 dag.set_dependency('is_huawei_supported','huawei_is_supported')
 dag.set_dependency('is_huawei_supported','huawei_not_supported')
-dag.set_dependency('huawei_not_supported','end_cm_etlp')
+dag.set_dependency('huawei_not_supported','join_huawei_supported')
+dag.set_dependency('huawei_cm_done','join_huawei_supported')
+dag.set_dependency('join_huawei_supported','end_cm_etlp')
 
 # Huawei 2G
 dag.set_dependency('huawei_is_supported','check_if_hua_2g_raw_files_exist')
 dag.set_dependency('check_if_hua_2g_raw_files_exist','backup_huawei_2g_csv_files')
-dag.set_dependency('backup_huawei_2g_csv_files','run_huawei_2g_parser')
-dag.set_dependency('run_huawei_2g_parser','clear_huawei_2g_cm_tables')
+#dag.set_dependency('backup_huawei_2g_csv_files','run_huawei_2g_parser')
+# dag.set_dependency('run_huawei_2g_parser','clear_huawei_2g_cm_tables')
+dag.set_dependency('backup_huawei_2g_csv_files','parse_huawei_2g_cm_files')
+dag.set_dependency('parse_huawei_2g_cm_files','clear_huawei_2g_cm_tables')
 dag.set_dependency('clear_huawei_2g_cm_tables','import_huawei_2g_cm_data')
 dag.set_dependency('import_huawei_2g_cm_data','extract_huawei_bscs')
 dag.set_dependency('extract_huawei_bscs','extract_huawei_2g_sites')
 dag.set_dependency('extract_huawei_2g_sites','extract_huawei_2g_cells')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g_cell_params')
-dag.set_dependency('extract_huawei_2g_cell_params','end_cm_etlp')
+dag.set_dependency('extract_huawei_2g_cell_params','huawei_cm_done')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g2g_nbrs')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g3g_nbrs')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g4g_nbrs')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_3g2g_nbrs')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_4g2g_nbrs')
-dag.set_dependency('extract_huawei_2g2g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_huawei_2g3g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_huawei_2g4g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_huawei_2g2g_nbrs','huawei_cm_done')
+dag.set_dependency('extract_huawei_2g3g_nbrs','huawei_cm_done')
+dag.set_dependency('extract_huawei_2g4g_nbrs','huawei_cm_done')
 
 
 # Huawei 3G
 dag.set_dependency('huawei_is_supported','check_if_hua_3g_raw_files_exist')
 dag.set_dependency('check_if_hua_3g_raw_files_exist','backup_huawei_3g_csv_files')
-dag.set_dependency('backup_huawei_3g_csv_files','run_huawei_3g_parser')
-dag.set_dependency('run_huawei_3g_parser','clear_huawei_3g_cm_tables')
+# dag.set_dependency('backup_huawei_3g_csv_files','run_huawei_3g_parser')
+# dag.set_dependency('run_huawei_3g_parser','clear_huawei_3g_cm_tables')
+dag.set_dependency('backup_huawei_3g_csv_files','parse_huawei_3g_cm_files')
+dag.set_dependency('parse_huawei_3g_cm_files','clear_huawei_3g_cm_tables')
 dag.set_dependency('clear_huawei_3g_cm_tables','import_huawei_3g_cm_data')
 dag.set_dependency('import_huawei_3g_cm_data','extract_huawei_rncs')
 dag.set_dependency('extract_huawei_rncs','extract_huawei_3g_sites')
 dag.set_dependency('extract_huawei_3g_sites','extract_huawei_3g_cells')
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g_cell_params')
-dag.set_dependency('extract_huawei_3g_cell_params','end_cm_etlp')
+dag.set_dependency('extract_huawei_3g_cell_params','huawei_cm_done')
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g2g_nbrs')
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g3g_nbrs')
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g4g_nbrs')
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_2g3g_nbrs')
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_4g3g_nbrs')
-dag.set_dependency('extract_huawei_3g2g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_huawei_3g3g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_huawei_3g4g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_huawei_3g2g_nbrs','huawei_cm_done')
+dag.set_dependency('extract_huawei_3g3g_nbrs','huawei_cm_done')
+dag.set_dependency('extract_huawei_3g4g_nbrs','huawei_cm_done')
 
 # Huawei 4G
 dag.set_dependency('huawei_is_supported','check_if_hua_4g_raw_files_exist')
@@ -899,15 +957,15 @@ dag.set_dependency('clear_huawei_4g_cm_tables','import_huawei_4g_cm_data')
 dag.set_dependency('import_huawei_4g_cm_data','extract_huawei_enodebs')
 dag.set_dependency('extract_huawei_enodebs','extract_huawei_4g_cells')
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g_cell_params')
-dag.set_dependency('extract_huawei_4g_cell_params','end_cm_etlp')
+dag.set_dependency('extract_huawei_4g_cell_params','huawei_cm_done')
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g2g_nbrs')
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g3g_nbrs')
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g4g_nbrs')
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_2g4g_nbrs')
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_3g4g_nbrs')
-dag.set_dependency('extract_huawei_4g2g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_huawei_4g3g_nbrs','end_cm_etlp')
-dag.set_dependency('extract_huawei_4g4g_nbrs','end_cm_etlp')
+dag.set_dependency('extract_huawei_4g2g_nbrs','huawei_cm_done')
+dag.set_dependency('extract_huawei_4g3g_nbrs','huawei_cm_done')
+dag.set_dependency('extract_huawei_4g4g_nbrs','huawei_cm_done')
 
 # ZTE
 # ##############################################
