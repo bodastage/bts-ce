@@ -54,6 +54,8 @@ def parse_and_import_huawei_2g(parent_dag_name, child_dag_name, start_date, sche
         task_id='import_huawei_2g_cm_data',
         bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/hua_cm_2g_nbi_loader.cfg"',
         dag=dag)
+
+
     dag.set_dependency('check_if_huawei_2g_raw_files_exist', 'backup_huawei_2g_csv_files')
     dag.set_dependency('backup_huawei_2g_csv_files', 'parse_huawei_2g_cm_files')
     dag.set_dependency('parse_huawei_2g_cm_files', 'clear_huawei_2g_cm_tables')

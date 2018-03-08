@@ -27,10 +27,11 @@ from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
-from cm_sub_dag_parse_huawei_3g_files import run_huawei_3g_parser
 from cm_sub_dag_parse_and_import_eri_3g4g import parse_and_import_eri_3g4g
 from cm_sub_dag_parse_and_import_eri_2g import parse_and_import_eri_2g
 from cm_sub_dag_parse_and_import_huawei_2g import parse_and_import_huawei_2g
+from cm_sub_dag_parse_and_import_huawei_3g import parse_and_import_huawei_3g
+from cm_sub_dag_parse_and_import_huawei_4g import parse_and_import_huawei_4g
 
 from airflow.utils.trigger_rule import TriggerRule
 
@@ -65,14 +66,6 @@ dag = DAG(
     dagrun_timeout=timedelta(minutes=60))
 
 
-# Run Huawei 2G parser
-sub_dag_parser_huawei_3g_cm_files = SubDagOperator(
-  subdag=run_huawei_3g_parser('cm_etlp', 'parse_huawei_3g_cm_files', start_date=dag.start_date,
-                 schedule_interval=dag.schedule_interval),
-  task_id='parse_huawei_3g_cm_files',
-  dag=dag,
-)
-
 
 sub_dag_parse_and_import_eri_3g4g_cm_files = SubDagOperator(
   subdag=parse_and_import_eri_3g4g('cm_etlp', 'parser_and_import_ericsson_3g4g', start_date=dag.start_date,
@@ -95,6 +88,19 @@ sub_dag_parse_and_import_huawei_2g_cm_files = SubDagOperator(
   dag=dag,
 )
 
+sub_dag_parse_and_import_huawei_3g_cm_files = SubDagOperator(
+  subdag=parse_and_import_huawei_3g('cm_etlp', 'parse_and_import_huawei_3g', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_and_import_huawei_3g',
+  dag=dag,
+)
+
+sub_dag_parse_and_import_huawei_4g_cm_files = SubDagOperator(
+  subdag=parse_and_import_huawei_4g('cm_etlp', 'parse_and_import_huawei_4g', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_and_import_huawei_4g',
+  dag=dag,
+)
 
 # Backup raw files that have been parsed
 t4 = BashOperator(
@@ -352,63 +358,6 @@ t40 = DummyOperator(task_id='nokia_is_supported', dag=dag)
 
 t41 = DummyOperator(task_id='nokia_not_supported', dag=dag)
 
-t42 = BashOperator(
-    task_id='check_if_hua_3g_raw_files_exist',
-    bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/huawei/3g/raw/in | wc -l` ]; then exit 1; fi',
-    dag=dag)
-
-
-t43 = BashOperator(
-    task_id='backup_huawei_3g_csv_files',
-    bash_command='mv -f /mediation/data/cm/huawei/3g/parsed/in/* /mediation/data/cm/huawei/3g/parsed/out/ 2>/dev/null',
-    dag=dag)
-
-# Clear 3G CM data tables
-def clear_huawei_3g_cm_tables():
-    pass
-
-
-t45 = PythonOperator(
-    task_id='clear_huawei_3g_cm_tables',
-    python_callable=clear_huawei_3g_cm_tables,
-    dag=dag)
-
-
-t46 = BashOperator(
-    task_id='import_huawei_3g_cm_data',
-    bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/hua_cm_3g_nbi_loader.cfg"',
-    dag=dag)
-
-t47 = BashOperator(
-    task_id='check_if_hua_4g_raw_files_exist',
-    bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/huawei/4g/raw/in | wc -l` ]; then exit 1; fi',
-    dag=dag)
-
-t48 = BashOperator(
-    task_id='backup_huawei_4g_csv_files',
-    bash_command='mv -f /mediation/data/cm/huawei/4g/parsed/in/* /mediation/data/cm/huawei/4g/parsed/out/ 2>/dev/null',
-    dag=dag)
-
-
-t49 = BashOperator(
-    task_id='run_huawei_4g_parser',
-    bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/4g/raw/in /mediation/data/cm/huawei/4g/parsed/in /mediation/conf/cm/hua_cm_4g_nbi_parser.cfg',
-    dag=dag)
-
-# Clear 4G CM data tables
-def clear_huawei_4g_cm_tables():
-    pass
-
-
-t50 = PythonOperator(
-    task_id='clear_huawei_4g_cm_tables',
-    python_callable=clear_huawei_4g_cm_tables,
-    dag=dag)
-
-t51 = BashOperator(
-    task_id='import_huawei_4g_cm_data',
-    bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/hua_cm_4g_nbi_loader.cfg"',
-    dag=dag)
 
 def extract_ericsson_2g_cell_params():
     process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
@@ -831,12 +780,8 @@ dag.set_dependency('extract_huawei_2g4g_nbrs','huawei_cm_done')
 
 
 # Huawei 3G
-dag.set_dependency('huawei_is_supported','check_if_hua_3g_raw_files_exist')
-dag.set_dependency('check_if_hua_3g_raw_files_exist','backup_huawei_3g_csv_files')
-dag.set_dependency('backup_huawei_3g_csv_files','parse_huawei_3g_cm_files')
-dag.set_dependency('parse_huawei_3g_cm_files','clear_huawei_3g_cm_tables')
-dag.set_dependency('clear_huawei_3g_cm_tables','import_huawei_3g_cm_data')
-dag.set_dependency('import_huawei_3g_cm_data','extract_huawei_rncs')
+dag.set_dependency('huawei_is_supported','parse_and_import_huawei_3g')
+dag.set_dependency('parse_and_import_huawei_3g','extract_huawei_rncs')
 dag.set_dependency('extract_huawei_rncs','extract_huawei_3g_sites')
 dag.set_dependency('extract_huawei_3g_sites','extract_huawei_3g_cells')
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g_cell_params')
@@ -851,12 +796,8 @@ dag.set_dependency('extract_huawei_3g3g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_3g4g_nbrs','huawei_cm_done')
 
 # Huawei 4G
-dag.set_dependency('huawei_is_supported','check_if_hua_4g_raw_files_exist')
-dag.set_dependency('check_if_hua_4g_raw_files_exist','backup_huawei_4g_csv_files')
-dag.set_dependency('backup_huawei_4g_csv_files','run_huawei_4g_parser')
-dag.set_dependency('run_huawei_4g_parser','clear_huawei_4g_cm_tables')
-dag.set_dependency('clear_huawei_4g_cm_tables','import_huawei_4g_cm_data')
-dag.set_dependency('import_huawei_4g_cm_data','extract_huawei_enodebs')
+dag.set_dependency('huawei_is_supported','parse_and_import_huawei_4g')
+dag.set_dependency('parse_and_import_huawei_4g','extract_huawei_enodebs')
 dag.set_dependency('extract_huawei_enodebs','extract_huawei_4g_cells')
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g_cell_params')
 dag.set_dependency('extract_huawei_4g_cell_params','huawei_cm_done')
