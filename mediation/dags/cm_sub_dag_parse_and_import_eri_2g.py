@@ -25,9 +25,10 @@ def parse_and_import_eri_2g(parent_dag_name, child_dag_name, start_date, schedul
         bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/ericsson/2g/raw/in | wc -l` ]; then exit 1; fi',
         dag=dag)
 
+    # .. || true added to make sure the command alwasy succeeds
     t21 = BashOperator(
         task_id='backup_ericsson_2g_csv_files',
-        bash_command='mv -f /mediation/data/cm/ericsson/2g/parsed/in/* /mediation/data/cm/ericsson/2g/parsed/out/ 2>/dev/null',
+        bash_command='mv -f /mediation/data/cm/ericsson/2g/parsed/in/* /mediation/data/cm/ericsson/2g/parsed/out/ 2>/dev/null || true',
         dag=dag)
 
     t20 = BashOperator(

@@ -344,7 +344,7 @@ class Utils(object):
 
         supported_vendor_tech = Table('supported_vendor_tech', metadata, autoload=True, autoload_with=self.db_engine,
                                       schema='public')
-        vendor_tech = session.query(supported_vendor_tech).filter_by(vendor_pk=vendor_pk, tech_pk=tech_pk)
+        vendor_tech = session.query(supported_vendor_tech).filter_by(vendor_pk=vendor_pk, tech_pk=tech_pk).first()
 
         if vendor_tech is not None:
             return True

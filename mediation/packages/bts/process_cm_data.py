@@ -621,7 +621,7 @@ class ProcessCMData(object):
                         null as hopping_type,
                         null as tch_carriers,
                         t1."MCC",
-                        t2."MNC",
+                        t1."MNC",
                         0 as modified_by,
                         0 as added_by,
                         t1."varDateTime" as date_added,

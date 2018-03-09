@@ -276,6 +276,54 @@ t18 = PythonOperator(
     dag=dag)
 
 
+def is_ericsson_2g_supported():
+    """
+    Check if Ericsson 2G is supported
+    :return: string parse_and_import_ericsson_2g | ericsson_2g_not_supported
+    """
+    if bts_utils.is_vendor_and_tech_supported(1,1) is True :
+        return 'ericsson_2g_supported'
+    else:
+        return 'ericsson_2g_not_supported'
+
+
+def is_ericsson_3g_supported():
+    return bts_utils.is_vendor_and_tech_supported(1,2)
+
+def is_ericsson_3g4g_supported():
+    if bts_utils.is_vendor_and_tech_supported(1,2) is False and bts_utils.is_vendor_and_tech_supported(1,3) is False:
+        return 'ericsson_3g4g_not_supported'
+    else:
+        return 'ericsson_3g4g_supported'
+
+
+def is_ericsson_4g_supported():
+    return bts_utils.is_vendor_and_tech_supported(1,3)
+
+
+def is_huawei_2g_supported():
+    return bts_utils.is_vendor_and_tech_supported(2,1)
+
+
+def is_huawei_3g_supported():
+    return bts_utils.is_vendor_and_tech_supported(2,2)
+
+
+def is_huawei_4g_supported():
+    return bts_utils.is_vendor_and_tech_supported(2,3)
+
+
+branch_is_ericsson_3g4g_supported = BranchPythonOperator(
+    task_id='is_ericsson_3g4g_supported',
+    python_callable=is_ericsson_3g4g_supported,
+    dag=dag)
+
+task_ericsson_3g4g_not_supported = DummyOperator(task_id='ericsson_3g4g_not_supported', dag=dag)
+task_ericsson_3g4g_supported = DummyOperator(task_id='ericsson_3g4g_supported', dag=dag)
+
+
+
+
 # Task to check whether ericsson is supported in the network
 def is_vendor_supported(vendor_id):
     engine = create_engine('postgresql://bodastage:password@database/bts')
@@ -313,10 +361,11 @@ def is_nokia_supported():
         return 'nokia_is_supported'
     return 'nokia_not_supported'
 
-t23 = BranchPythonOperator(
-    task_id='is_ericsson_supported',
-    python_callable=is_ericsson_supported,
-    dag=dag)
+
+# t23 = BranchPythonOperator(
+#     task_id='is_ericsson_supported',
+#     python_callable=is_ericsson_supported,
+#     dag=dag)
 
 
 # Dummy start task
@@ -338,15 +387,22 @@ t27 = BranchPythonOperator(
     python_callable=is_nokia_supported,
     dag=dag)
 
+branch_is_ericsson_2g_supported = BranchPythonOperator(
+    task_id='is_ericsson_2g_supported',
+    python_callable=is_ericsson_2g_supported,
+    dag=dag)
+
+task_ericsson_2g_not_supported = DummyOperator(task_id='ericsson_2g_not_supported', dag=dag)
+task_ericsson_2g_not_supported = DummyOperator(task_id='ericsson_2g_supported', dag=dag)
 
 # End Extaction Transformation Load Process
 t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)
 
-t34 = DummyOperator(task_id='ericsson_is_supported', dag=dag)
+# t34 = DummyOperator(task_id='ericsson_is_supported', dag=dag)
 
 t35 = DummyOperator(task_id='huawei_is_supported', dag=dag)
 
-t36 = DummyOperator(task_id='ericsson_not_supported', dag=dag)
+# t36 = DummyOperator(task_id='ericsson_not_supported', dag=dag)
 
 t37 = DummyOperator(task_id='huawei_not_supported', dag=dag)
 
@@ -674,16 +730,26 @@ t82 = DummyOperator(
     dag=dag
 )
 
-# extract_ericsson_3g_sites
+# Ericsson
+
+
 # Build dependency graph
-dag.set_dependency('start_cm_etlp','is_ericsson_supported')
-dag.set_dependency('is_ericsson_supported','ericsson_is_supported')
-dag.set_dependency('is_ericsson_supported','ericsson_not_supported')
-dag.set_dependency('ericsson_not_supported','join_ericsson_supported')
+# dag.set_dependency('start_cm_etlp','is_ericsson_supported')
+dag.set_dependency('start_cm_etlp','is_ericsson_2g_supported')
+dag.set_dependency('start_cm_etlp','is_ericsson_3g4g_supported')
+
+dag.set_dependency('is_ericsson_3g4g_supported','ericsson_3g4g_supported')
+dag.set_dependency('is_ericsson_3g4g_supported','ericsson_3g4g_not_supported')
+
+# dag.set_dependency('is_ericsson_supported','ericsson_is_supported')
+# dag.set_dependency('is_ericsson_supported','ericsson_not_supported')
+
+# dag.set_dependency('ericsson_not_supported','join_ericsson_supported')
 dag.set_dependency('ericsson_cm_done','join_ericsson_supported')
 dag.set_dependency('join_ericsson_supported','end_cm_etlp')
 
-dag.set_dependency('ericsson_is_supported','parser_and_import_ericsson_3g4g')
+dag.set_dependency('ericsson_3g4g_not_supported','ericsson_cm_done')
+dag.set_dependency('ericsson_3g4g_supported','parser_and_import_ericsson_3g4g')
 
 # dag.set_dependency('check_if_eri_3g4g_raw_files_exist','backup_prev_eri_3g4g_csv_files')
 # dag.set_dependency('backup_prev_eri_3g4g_csv_files','run_eri_3g4g_parser')
@@ -730,7 +796,12 @@ dag.set_dependency('extract_ericsson_3g_cell_params','ericsson_cm_done')
 
 # ###########################################################################
 # Ericsson 2G
-dag.set_dependency('ericsson_is_supported','parser_and_import_ericsson_2g')
+dag.set_dependency('is_ericsson_2g_supported','ericsson_2g_supported')
+dag.set_dependency('ericsson_2g_supported','parser_and_import_ericsson_2g')
+
+dag.set_dependency('is_ericsson_2g_supported','ericsson_2g_not_supported')
+dag.set_dependency('ericsson_2g_not_supported','ericsson_cm_done')
+# dag.set_dependency('ericsson_is_supported','parser_and_import_ericsson_2g')
 dag.set_dependency('parser_and_import_ericsson_2g','process_ericsson_bscs')
 
 dag.set_dependency('process_ericsson_bscs','extract_ericsson_2g_sites')
