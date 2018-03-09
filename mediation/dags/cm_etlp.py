@@ -293,7 +293,7 @@ def is_vendor_supported(vendor_id):
 def is_ericsson_supported():
     if is_vendor_supported(1) is True:
         return 'ericsson_is_supported'
-    return 'eri_not_supported'
+    return 'ericsson_not_supported'
 
 
 def is_huawei_supported():
@@ -346,7 +346,7 @@ t34 = DummyOperator(task_id='ericsson_is_supported', dag=dag)
 
 t35 = DummyOperator(task_id='huawei_is_supported', dag=dag)
 
-t36 = DummyOperator(task_id='eri_not_supported', dag=dag)
+t36 = DummyOperator(task_id='ericsson_not_supported', dag=dag)
 
 t37 = DummyOperator(task_id='huawei_not_supported', dag=dag)
 
@@ -678,8 +678,8 @@ t82 = DummyOperator(
 # Build dependency graph
 dag.set_dependency('start_cm_etlp','is_ericsson_supported')
 dag.set_dependency('is_ericsson_supported','ericsson_is_supported')
-dag.set_dependency('is_ericsson_supported','eri_not_supported')
-dag.set_dependency('eri_not_supported','join_ericsson_supported')
+dag.set_dependency('is_ericsson_supported','ericsson_not_supported')
+dag.set_dependency('ericsson_not_supported','join_ericsson_supported')
 dag.set_dependency('ericsson_cm_done','join_ericsson_supported')
 dag.set_dependency('join_ericsson_supported','end_cm_etlp')
 

@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 
+
 class ProcessCMData(object):
     """ Process network configuration data"""
 
