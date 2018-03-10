@@ -31,7 +31,7 @@ def parse_and_import_huawei_2g(parent_dag_name, child_dag_name, start_date, sche
 
     t30 = BashOperator(
         task_id='backup_huawei_2g_csv_files',
-        bash_command='mv -f /mediation/data/cm/huawei/2g/parsed/in/* /mediation/data/cm/huawei/2g/parsed/out/ 2>/dev/null',
+        bash_command='mv -f /mediation/data/cm/huawei/2g/parsed/in/* /mediation/data/cm/huawei/2g/parsed/out/ 2>/dev/null || true',
         dag=dag)
 
     def clear_huawei_2g_cm_tables():

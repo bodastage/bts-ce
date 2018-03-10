@@ -32,7 +32,7 @@ def parse_and_import_huawei_3g(parent_dag_name, child_dag_name, start_date, sche
 
     t43 = BashOperator(
         task_id='backup_huawei_3g_csv_files',
-        bash_command='mv -f /mediation/data/cm/huawei/3g/parsed/in/* /mediation/data/cm/huawei/3g/parsed/out/ 2>/dev/null',
+        bash_command='mv -f /mediation/data/cm/huawei/3g/parsed/in/* /mediation/data/cm/huawei/3g/parsed/out/ 2>/dev/null || true',
         dag=dag)
 
     # Clear 3G CM data tables

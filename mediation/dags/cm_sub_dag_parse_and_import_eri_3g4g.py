@@ -28,7 +28,7 @@ def parse_and_import_eri_3g4g(parent_dag_name, child_dag_name, start_date, sched
     # Backup previously generate csv files from parsing
     t5 = BashOperator(
         task_id='backup_prev_eri_3g4g_csv_files',
-        bash_command='mv -f /mediation/data/cm/ericsson/3g4g/parsed/in/* /mediation/data/cm/ericsson/3g4g/parsed/out/ 2>/dev/null',
+        bash_command='mv -f /mediation/data/cm/ericsson/3g4g/parsed/in/* /mediation/data/cm/ericsson/3g4g/parsed/out/ 2>/dev/null || true',
         dag=dag)
 
     t2 = BashOperator(
