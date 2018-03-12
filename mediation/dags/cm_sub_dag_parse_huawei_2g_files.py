@@ -45,7 +45,7 @@ def run_huawei_2g_parser(parent_dag_name, child_dag_name, start_date, schedule_i
 
     t29_2 = BashOperator(
       task_id='run_huawei_2g_mml_parser',
-      bash_command='java -jar /mediation/bin/boda-huaweimmlparser.jar /mediation/data/cm/huawei/2g/raw/in /mediation/data/cm/huawei/2g/parsed/in /mediation/conf/cm/hua_cm_2g_nbi_parameters.cfg',
+      bash_command='java -jar /mediation/bin/boda-huaweimmlparser.jar /mediation/data/cm/huawei/2g/raw/in /mediation/data/cm/huawei/2g/parsed/in /mediation/conf/cm/hua_cm_2g_mml_parser.cfg',
       dag=dag)
 
     t_join = DummyOperator(

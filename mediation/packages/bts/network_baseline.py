@@ -114,3 +114,11 @@ class NetworkBaseLine(object):
 
                     continue
 
+    def generate_huawei_2g_baseline(self):
+        """
+        Generate network baseline value for Huawei 2G
+
+        :return:
+        """
+
+        pass
