@@ -14,4 +14,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
     CREATE USER airflow WITH PASSWORD 'airflow';
     CREATE DATABASE airflow owner airflow;
 	ALTER ROLE airflow SET search_path = 'public';
+	
+	
+	 CREATE EXTENSION tablefunc;
 EOSQL
