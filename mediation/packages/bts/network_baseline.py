@@ -25,7 +25,11 @@ class NetworkBaseLine(object):
 
         # Get MOs
         # UMTS, Ericsson
-        cur.execute("""SELECT pk, "name" FROM managedobjects WHERE tech_pk = %s and vendor_pk = %s""", (tech_id, vendor_id))
+        cur.execute("""
+            SELECT DISTINCT t1.pk, t1."name" 
+            FROM managedobjects t1
+            INNER JOIN live_network.baseline_parameter_config t2 on t2.mo_pk = t1.pk
+            WHERE tech_pk = %s and vendor_pk = %s""", (tech_id, vendor_id))
 
         mos = cur.fetchall()
 
@@ -37,7 +41,12 @@ class NetworkBaseLine(object):
 
             print("mo_name: {0} mo_pk: {1}".format(mo_name, mo_pk))
             # Iterate through the parameters
-            cur.execute("""SELECT pk, "name" FROM vendor_parameters where parent_pk = %s """, (mo_pk,))
+            cur.execute("""
+                SELECT t1.pk, t1."name" 
+                FROM vendor_parameters t1
+                INNER JOIN live_network.baseline_parameter_config t2 on t2.parameter_pk = t1.pk
+                WHERE 
+                parent_pk = %s """, (mo_pk,))
 
             parameters = cur.fetchall()
             for i in range(len(parameters)):
@@ -62,13 +71,13 @@ class NetworkBaseLine(object):
                 except:
                     continue
 
-                print(sql)
-                print (parameter_value)
+                # print(sql)
+                # print (parameter_value)
                 if parameter_value == None: continue
 
                 print (parameter_value)
 
-                base_line_value  = trim(parameter_value[0])
+                base_line_value  = str(parameter_value[0]).strip()
                 print ("base_line_value:{0}".format(base_line_value) )
 
                 # if base_line_value is None: continue
@@ -114,11 +123,3 @@ class NetworkBaseLine(object):
 
                     continue
 
-    def generate_huawei_2g_baseline(self):
-        """
-        Generate network baseline value for Huawei 2G
-
-        :return:
-        """
-
-        pass
