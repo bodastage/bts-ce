@@ -820,6 +820,7 @@ class ProcessCMData(object):
              LEFT OUTER  JOIN live_network.nodes t2 ON t1."neid" = t2."name"
              WHERE 
              t2."name" IS NULL
+             AND trim(t1.module_type) = 'Radio'
          """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -851,6 +852,7 @@ class ProcessCMData(object):
                AND t2.vendor_pk = 2 and t2.tech_pk = 1
             WHERE 
             t3."name" IS NULL
+            AND trim(t1.module_type) = 'Radio'
 
         """
 
@@ -885,11 +887,12 @@ class ProcessCMData(object):
                 AND t4.vendor_pk = 2 
                 AND t4.tech_pk = 1
                 AND t4.node_pk = t3.pk
-            LEFT JOIN live_network.cells t5 on t5."name" = t1."CELLNAME"
+            LEFT JOIN live_network.cells t5 on t5."name" = trim(t1."CELLNAME")
                 AND t5.tech_pk = 1
                 AND t5.vendor_pk = 2
             WHERE
             t5."name" IS NULL
+            AND trim(t1.module_type) = 'Radio'
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -964,7 +967,9 @@ class ProcessCMData(object):
                         INNER JOIN hua_cm_2g.gcelllcs t6 on t6.neid = t1.neid AND t6."CELLID" = t1."CELLID"
                         INNER JOIN hua_cm_2g.cellbind2bts t7 on t7."CELLID" = t1."CELLID" AND t6.neid = t1.neid
                         WHERE 
-                        t5."name" ='{0}';
+                        t5."name" ='{0}'
+                        AND trim(t1.module_type) = 'Radio'
+                        ;
                     """.format(site_name)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
