@@ -133,7 +133,7 @@ class NetworkBaseLine(object):
         engine = create_engine('postgresql://bodastage:password@database/bts')
         vendor_pk = 2
         tech_pk  = 1
-        schema_name = 'huawei_cm_2g'
+        schema_name = 'hua_cm_2g'
 
         conn = psycopg2.connect("dbname=bts user=bodastage password=password host=database")
         conn.autocommit = True
@@ -142,7 +142,9 @@ class NetworkBaseLine(object):
         # Get MO
         sql = """
             SELECT  DISTINCT
-            t3.name as mo
+            t3.name as mo,
+            t3.pk as pk,
+            t3.affect_level
             FROM 
             live_network.base_line_values t1
             INNER JOIN vendor_parameters t2 on t2.pk = t1.parameter_pk
@@ -153,12 +155,13 @@ class NetworkBaseLine(object):
         mo_list = cur.fetchall()
 
         for mo in mo_list:
-            mo_name = mo[0]
+            mo_name, mo_pk, mo_affect_level = mo
 
             # Get parameters
             sql = """
                 SELECT 
-                t2.name as pname
+                t2.name as pname,
+                t2.pk as pk
                 FROM 
                 live_network.base_line_values t1
                 INNER JOIN vendor_parameters t2 on t2.pk = t1.parameter_pk
@@ -174,8 +177,14 @@ class NetworkBaseLine(object):
 
             attr_list = [ p[0] for p in parameters ]
 
-            str_param_values = ",".join([ "{0}{1}{0}".format('"',p) for p in attr_list] )
-            str_param_names  = ",".join(["{0}{1}{0}".format('\'', p) for p in attr_list])
+            str_param_values = ",".join([ "t_mo.{0}{1}{0}".format('"',p) for p in attr_list] )
+            str_param_names  = ",".join([ "{0}{1}{0}".format('\'', p) for p in attr_list])
+
+            cell_level_join  = ""
+
+            if mo_affect_level == 1 :
+                cell_level_join = """ INNER JOIN {0}.GCELL gcell ON gcell."CELLID" = t_mo."CELLID" AND gcell.neid = t_mo.neid 
+                                  AND gcell.module_type = t_mo.module_type """.format(schema_name)
 
             # Add new entries
             sql = """
@@ -204,15 +213,16 @@ class NetworkBaseLine(object):
                 INNER JOIN (
                     SELECT * FROM (
                         SELECT
-                        'GCELL' as "MO",
-                        "CELLNAME" as cellname,
-                        "varDateTime" as date_time,
+                        '{2}' as "MO",
+                        gcell."CELLNAME" as cellname,
+                        gcell."varDateTime" as date_time,
                         unnest(array[{0}]) AS pname,
                         unnest(array[{1}]) AS pvalue
                         FROM
-                        hua_cm_2g.GCELL
+                        hua_cm_2g.{2} t_mo
+                        {3}
                         WHERE
-                        module_type = 'Radio'
+                        t_mo.module_type = 'Radio'
                         ) TT
                     ) t4 on t4.pname = t2.name AND trim(t4.pvalue) != t1.value
                 INNER JOIN live_network.cells t6 on t6.name = t4.cellname
@@ -230,9 +240,11 @@ class NetworkBaseLine(object):
                 AND TT2.nvalue = TT1.nvalue
             WHERE
             TT2.cellname is NULL
-            """.format(str_param_names, str_param_values)
-
+            """.format(str_param_names, str_param_values, mo_name, cell_level_join)
+            print(sql)
             cur.execute(sql)
+
+
 
             # Delete old entries
             sql = """
@@ -262,15 +274,16 @@ class NetworkBaseLine(object):
                     INNER JOIN (
                       SELECT * FROM (
                                 SELECT
-                                'GCELL' as "MO",
-                                "CELLNAME" as cellname,
-                                "varDateTime" as date_time,
+                                '{2}' as "MO",
+                                gcell."CELLNAME" as cellname,
+                                gcell."varDateTime" as date_time,
                                 unnest(array[{0}]) AS pname,
                                 unnest(array[{1}]) AS pvalue
                                 FROM
-                                hua_cm_2g.GCELL
+                                hua_cm_2g.{2} t_mo
+                                {3}
                                 WHERE
-                                module_type = 'Radio'
+                                t_mo.module_type = 'Radio'
                                 ) TT
                         ) t4 on t4.pname = t2.name AND trim(t4.pvalue) != t1.value
                     INNER JOIN live_network.cells t6 on t6.name = t4.cellname
@@ -290,7 +303,8 @@ class NetworkBaseLine(object):
                 )
                 DELETE FROM network_audit.network_baseline t1
                 WHERE t1.pk  IN (SELECT pk from rd)
-            """.format(str_param_names, str_param_values)
+            """.format(str_param_names, str_param_values, mo_name, cell_level_join)
+            print(sql)
             cur.execute(sql)
 
             # Update old entries
@@ -321,15 +335,16 @@ class NetworkBaseLine(object):
                         INNER JOIN (
                           SELECT * FROM (
                                     SELECT
-                                    'GCELL' as "MO",
-                                    "CELLNAME" as cellname,
-                                    "varDateTime" as date_time,
+                                    '{2}' as "MO",
+                                    gcell."CELLNAME" as cellname,
+                                    gcell."varDateTime" as date_time,
                                     unnest(array[{0}]) AS pname,
                                     unnest(array[{1}]) AS pvalue
                                     FROM
-                                    hua_cm_2g.GCELL
+                                    hua_cm_2g.{2} t_mo
+                                    {3}
                                     WHERE
-                                    module_type = 'Radio'
+                                    t_mo.module_type = 'Radio'
                                     ) TT
                             ) t4 on t4.pname = t2.name AND trim(t4.pvalue) != t1.value
                         INNER JOIN live_network.cells t6 on t6.name = t4.cellname
@@ -353,7 +368,8 @@ class NetworkBaseLine(object):
                 rd 
                 where 
                 rd.pk = nb.pk
-            """.format(str_param_names, str_param_values)
+            """.format(str_param_names, str_param_values, mo_name, cell_level_join)
+            print(sql)
             cur.execute(sql)
 
         #
