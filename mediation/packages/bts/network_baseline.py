@@ -60,6 +60,7 @@ class NetworkBaseLine(object):
                 sql = """
                     SELECT "{2}" AS parameter, count(1) as cnt
                     FROM  {0}.{1}
+                    WHERE "{2}" IS NOT NULL
                     GROUP BY "{2}"
                     ORDER BY cnt DESC
                     LIMIT 1
