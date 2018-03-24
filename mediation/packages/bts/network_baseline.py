@@ -60,7 +60,8 @@ class NetworkBaseLine(object):
                 sql = """
                     SELECT "{2}" AS parameter, count(1) as cnt
                     FROM  {0}.{1}
-                    WHERE "{2}" IS NOT NULL
+                    WHERE 
+                    "{2}" IS NOT NULL AND TRIM("{2}") != '####'
                     GROUP BY "{2}"
                     ORDER BY cnt DESC
                     LIMIT 1
@@ -605,5 +606,224 @@ class NetworkBaseLine(object):
             print(sql)
             cur.execute(sql)
 
+
+    def generate_huawei_2g_node_level_discrepancies(self):
+        """Generate Huawei 2G baseline discrepancies for node level parameters"""
+        engine = create_engine('postgresql://bodastage:password@database/bts')
+        vendor_pk = 2
+        tech_pk = 1
+        schema_name = 'hua_cm_2g'
+
+        conn = psycopg2.connect("dbname=bts user=bodastage password=password host=database")
+        conn.autocommit = True
+        cur = conn.cursor()
+
+        # Get MO
+        sql = """
+            SELECT  DISTINCT
+            t3.name as mo,
+            t3.pk as pk,
+            t3.affect_level
+            FROM 
+            live_network.base_line_values t1
+            INNER JOIN vendor_parameters t2 on t2.pk = t1.parameter_pk
+            INNER JOIN managedobjects t3 on t3.pk  = t2.parent_pk 
+                 AND t3.vendor_pk = {} AND t3.tech_pk = {}
+                 AND t3.affect_level  = 7 -- BSC
+        """.format(vendor_pk, tech_pk)
+        cur.execute(sql)
+        mo_list = cur.fetchall()
+
+        for mo in mo_list:
+            mo_name, mo_pk, mo_affect_level = mo
+
+            # Get parameters
+            sql = """
+                SELECT 
+                t2.name as pname,
+                t2.pk as pk
+                FROM 
+                live_network.base_line_values t1
+                INNER JOIN vendor_parameters t2 on t2.pk = t1.parameter_pk
+                INNER JOIN managedobjects t3 on t3.pk  = t2.parent_pk 
+                INNER JOIN network_entities t4 on t4.pk = t3.affect_level
+                    AND t3.vendor_pk = {} AND t3.tech_pk = {}
+                    AND t3.affect_level  = 7 -- BSC
+                WHERE
+                t3.name = '{}'
+            """.format(vendor_pk, tech_pk, mo_name)
+            cur.execute(sql)
+
+            parameters = cur.fetchall()
+
+            attr_list = [p[0] for p in parameters]
+
+            str_param_values = ",".join(["t_mo.{0}{1}{0}".format('"', p) for p in attr_list])
+            str_param_names = ",".join(["{0}{1}{0}".format('\'', p) for p in attr_list])
+
+            # Join all cell level mos with the primary cell mo i.e. GCELL.
+            # p_mo for primary MO
+            cell_level_join = """ INNER JOIN {0}.BSCBASIC p_mo ON p_mo.neid = t_mo.neid 
+                              AND p_mo.module_type = t_mo.module_type """.format(schema_name)
+
+            # Add new entries
+            sql = """
+             INSERT INTO network_audit.baseline_node_parameters 
+             (node,  mo, parameter, bvalue, nvalue, vendor, technology, age, modified_by, added_by, date_added, date_modified)
+             SELECT TT1.* FROM (
+                SELECT
+                t8.name as node,
+                t3.name as mo,
+                t2.name as parameter,
+                t1.value as bvalue,
+                TRIM(t4.pvalue) as nvalue,
+                t9.name as vendor,
+                t10.name as technology,
+                1 as age,
+                0 as modified_by,
+                0 as added_by,
+                date_time as date_added,
+                date_time as date_modified
+                from live_network.base_line_values t1
+                INNER JOIN vendor_parameters t2 on t2.pk = t1.parameter_pk
+                INNER JOIN managedobjects t3 on t3.pk = t2.parent_pk
+                INNER JOIN live_network.baseline_parameter_config t5 on t5.mo_pk = t3.pk AND t5.parameter_pk = t2.pk
+                INNER JOIN (
+                    SELECT * FROM (
+                        SELECT
+                        '{2}' as "MO",
+                        p_mo.neid as node,
+                        p_mo."varDateTime" as date_time,
+                        unnest(array[{0}]) AS pname,
+                        unnest(array[{1}]) AS pvalue
+                        FROM
+                        hua_cm_2g.{2} t_mo
+                        {3}
+                        ) TT
+                    ) t4 on t4.pname = t2.name AND trim(t4.pvalue) != t1.value 
+                INNER JOIN live_network.nodes t8 on t8.name = t4.node
+                INNER JOIN vendors t9 on t9.pk = t8.vendor_pk
+                INNER JOIN technologies t10 ON t10.pk = t8.tech_pk
+                ) TT1
+            LEFT JOIN network_audit.baseline_node_parameters TT2 on TT2.node = TT1.node
+                AND TT2.mo = TT1.mo
+                AND TT2.parameter = TT1.parameter
+                AND TT2.bvalue = TT1.bvalue
+                AND TT2.nvalue = TT1.nvalue
+            WHERE
+            TT2.node is NULL
+            """.format(str_param_names, str_param_values, mo_name, cell_level_join)
+            print(sql)
+            cur.execute(sql)
+
+            # Delete old entries
+            sql = """
+                WITH rd AS (
+                SELECT TT2.* FROM 
+                network_audit.baseline_node_parameters TT2
+                LEFT JOIN 
+                (
+                    select
+                    t8.name as node,
+                    t3.name as mo,
+                    t2.name as parameter,
+                    t1.value as bvalue,
+                    TRIM(t4.pvalue) as nvalue,
+                    t9.name as vendor,
+                    t10.name as technology,
+                    0 as modified_by,
+                    0 as added_by,
+                    date_time as date_added,
+                    date_time as date_modified
+                    from live_network.base_line_values t1
+                    INNER JOIN vendor_parameters t2 on t2.pk = t1.parameter_pk
+                    INNER JOIN managedobjects t3 on t3.pk = t2.parent_pk
+                    INNER JOIN live_network.baseline_parameter_config t5 on t5.mo_pk = t3.pk AND t5.parameter_pk = t2.pk
+                    INNER JOIN (
+                      SELECT * FROM (
+                                SELECT
+                                '{2}' as "MO",
+                                p_mo.neid as node,
+                                p_mo."varDateTime" as date_time,
+                                unnest(array[{0}]) AS pname,
+                                unnest(array[{1}]) AS pvalue
+                                FROM
+                                hua_cm_2g.{2} t_mo
+                                {3}
+                                ) TT
+                        ) t4 on t4.pname = t2.name AND trim(t4.pvalue) != t1.value
+                    INNER JOIN live_network.nodes t8 on t8.name = t4.node
+                    INNER JOIN vendors t9 on t9.pk = t8.vendor_pk
+                    INNER JOIN technologies t10 ON t10.pk = t8.tech_pk
+                    ) TT1 ON TT2.node = TT1.node
+                AND TT2.mo = TT1.mo
+                AND TT2.parameter = TT1.parameter
+                AND TT2.bvalue = TT1.bvalue
+                AND TT2.nvalue = TT1.nvalue
+                WHERE
+                TT1.node IS NULL
+                )
+                DELETE FROM network_audit.baseline_node_parameters t1
+                WHERE t1.pk  IN (SELECT pk from rd)
+            """.format(str_param_names, str_param_values, mo_name, cell_level_join)
+            print(sql)
+            cur.execute(sql)
+
+            # Update old entries
+            sql = """
+                WITH rd AS (
+                    SELECT TT2.pk, TT1.* FROM 
+                    network_audit.baseline_node_parameters TT2
+                    INNER JOIN 
+                    (
+                        select
+                         t8.name as node,
+                        t3.name as mo,
+                        t2.name as parameter,
+                        t1.value as bvalue,
+                        trim(t4.pvalue) as nvalue,
+                        t9.name as vendor,
+                        t10.name as technology,
+                        0 as modified_by,
+                        0 as added_by,
+                        date_time as date_added,
+                        date_time as date_modified
+                        from live_network.base_line_values t1
+                        INNER JOIN vendor_parameters t2 on t2.pk = t1.parameter_pk
+                        INNER JOIN managedobjects t3 on t3.pk = t2.parent_pk
+                        INNER JOIN live_network.baseline_parameter_config t5 on t5.mo_pk = t3.pk AND t5.parameter_pk = t2.pk
+                        INNER JOIN (
+                          SELECT * FROM (
+                                    SELECT
+                                    '{2}' as "MO",
+                                    p_mo.neid as node,
+                                    p_mo."varDateTime" as date_time,
+                                    unnest(array[{0}]) AS pname,
+                                    unnest(array[{1}]) AS pvalue
+                                    FROM
+                                    hua_cm_2g.{2} t_mo
+                                    {3}
+                                    ) TT
+                            ) t4 on t4.pname = t2.name AND trim(t4.pvalue) != t1.value
+                        INNER JOIN live_network.nodes t8 on t8.name = t4.node
+                        INNER JOIN vendors t9 on t9.pk = t8.vendor_pk
+                        INNER JOIN technologies t10 ON t10.pk = t8.tech_pk
+                        ) TT1 ON TT2.node = TT1.node
+                    AND TT2.mo = TT1.mo
+                    AND TT2.parameter = TT1.parameter
+                    AND TT2.bvalue = TT1.bvalue
+                    AND TT2.nvalue = TT1.nvalue
+                )
+                UPDATE network_audit.baseline_node_parameters AS nb
+                SET 
+                date_modified = rd.date_added, 
+                age=DATE_PART('day',AGE(nb.date_added, rd.date_added))
+                FROM 
+                rd 
+                where 
+                rd.pk = nb.pk
+            """.format(str_param_names, str_param_values, mo_name, cell_level_join)
+            print(sql)
+            cur.execute(sql)
 
 
