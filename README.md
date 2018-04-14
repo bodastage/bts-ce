@@ -2,6 +2,8 @@
 
 ## Boda Telecom Suite Community Edition (BTS-CE)
 
+[![Join the chat at https://gitter.im/bodastage/bts-ce](https://badges.gitter.im/bodastage/bts-ce.svg)](https://gitter.im/bodastage/bts-ce?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Boda Telecom Suite Community Edition - An open source telecommunication network management platform
 
 ## Features
