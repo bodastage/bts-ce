@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
-
+import os
+import subprocess
 
 class ProcessCMData(object):
     """ Process network configuration data"""
@@ -2649,3 +2650,64 @@ class ProcessCMData(object):
 
     def extract_ericsson_4g3g_nbrs(self):
         pass
+		
+		
+
+    def detect_format_and_move_huawei_cm_raw_files(self):
+        """Detect Huawei raw files format and move them to the respective <format>_tech folder"""
+
+        # GExport
+        # --------------------------------------------------------------------------
+        # Gexport GSM
+        os.system("""
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -10 $f | grep 'object technique="GSM"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_gsm 
+            done 
+        """)
+
+        # Gexport UMTS
+        os.system("""
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -10 $f | grep 'object technique="WCDMA"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_wcdma 
+            done 
+        """)
+
+        # Gexport LTE
+        os.system("""
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -10 $f | grep 'object technique="LTE"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_lte 
+            done 
+        """)
+
+        # Gexport CDMA
+        os.system("""
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -10 $f | grep 'object technique="CDMA"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_cdma 
+            done 
+        """)
+
+        # Gexport SRAN
+        os.system("""
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -10 $f | grep 'object technique="SRAN"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_sran
+            done 
+        """)
+
+        # Gexport Other
+        os.system("""
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -10 $f | grep 'object technique="" ' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_other
+            done 
+        """)

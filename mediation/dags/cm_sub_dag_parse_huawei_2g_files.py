@@ -29,23 +29,21 @@ def run_huawei_2g_parser(parent_dag_name, child_dag_name, start_date, schedule_i
     start_date=start_date,
     )
 
-    def get_cm_file_format():
-      # if  'huawei_mml'
-      return 'run_huawei_2g_mml_parser'
-
-    t23 = BranchPythonOperator(
-      task_id='branch_huawei_2g_parser',
-      python_callable=get_cm_file_format,
-      dag=dag)
+    t23 = DummyOperator( task_id='branch_huawei_2g_parser', dag=dag)
 
     t29 = BashOperator(
       task_id='run_huawei_2g_xml_nbi_parser',
-      bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/2g/raw/in /mediation/data/cm/huawei/2g/parsed/in /mediation/conf/cm/hua_cm_2g_nbi_parameters.cfg',
+      bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/raw/nbi_gsm /mediation/data/cm/huawei/parsed/nbi_gsm /mediation/conf/cm/hua_cm_2g_nbi_parameters.cfg',
       dag=dag)
 
     t29_2 = BashOperator(
       task_id='run_huawei_2g_mml_parser',
-      bash_command='java -jar /mediation/bin/boda-huaweimmlparser.jar /mediation/data/cm/huawei/2g/raw/in /mediation/data/cm/huawei/2g/parsed/in /mediation/conf/cm/hua_cm_2g_mml_parser.cfg',
+      bash_command='java -jar /mediation/bin/boda-huaweimmlparser.jar /mediation/data/cm/huawei/raw/mml_gsm /mediation/data/cm/huawei/parsed/mml_gsm /mediation/conf/cm/hua_cm_2g_mml_parser.cfg',
+      dag=dag)
+
+    t29_3 = BashOperator(
+      task_id='run_huawei_2g_xml_gexport_parser',
+      bash_command='java -jar /mediation/bin/boda-huaweicmobjectparser.jar /mediation/data/cm/huawei/raw/gexport_gsm /mediation/data/cm/huawei/parsed/gexport_gsm /mediation/conf/cm/gexport_gsm_parser.cfg',
       dag=dag)
 
     t_join = DummyOperator(
@@ -55,9 +53,11 @@ def run_huawei_2g_parser(parent_dag_name, child_dag_name, start_date, schedule_i
 
     dag.set_dependency('branch_huawei_2g_parser', 'run_huawei_2g_mml_parser')
     dag.set_dependency('branch_huawei_2g_parser', 'run_huawei_2g_xml_nbi_parser')
+    dag.set_dependency('branch_huawei_2g_parser', 'run_huawei_2g_xml_gexport_parser')
 
     dag.set_dependency('run_huawei_2g_mml_parser', 'join_huawei_2g_parser')
     dag.set_dependency('run_huawei_2g_xml_nbi_parser', 'join_huawei_2g_parser')
+    dag.set_dependency('run_huawei_2g_xml_gexport_parser', 'join_huawei_2g_parser')
 
 
     return dag
