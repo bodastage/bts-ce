@@ -2660,54 +2660,132 @@ class ProcessCMData(object):
         # --------------------------------------------------------------------------
         # Gexport GSM
         os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/*`
             do 
-                head -10 $f | grep 'object technique="GSM"' 2>&1 > /dev/null
-                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_gsm 
+                head -10 "$f" | grep 'object technique="GSM"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_gsm 
             done 
         """)
 
         # Gexport UMTS
         os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/*`
             do 
-                head -10 $f | grep 'object technique="WCDMA"' 2>&1 > /dev/null
-                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_wcdma 
+                head -10 "$f" | grep 'object technique="WCDMA"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_wcdma 
             done 
         """)
 
         # Gexport LTE
         os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/*`
             do 
-                head -10 $f | grep 'object technique="LTE"' 2>&1 > /dev/null
-                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_lte 
+                head -10 "$f" | grep 'object technique="LTE"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_lte 
             done 
         """)
 
         # Gexport CDMA
         os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/*`
             do 
-                head -10 $f | grep 'object technique="CDMA"' 2>&1 > /dev/null
-                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_cdma 
+                head -10 "$f" | grep 'object technique="CDMA"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_cdma 
             done 
         """)
 
         # Gexport SRAN
         os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/*`
             do 
-                head -10 $f | grep 'object technique="SRAN"' 2>&1 > /dev/null
-                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_sran
+                head -10 "$f" | grep 'object technique="SRAN"' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_sran
             done 
         """)
 
         # Gexport Other
         os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/*`
             do 
-                head -10 $f | grep 'object technique="" ' 2>&1 > /dev/null
-                [ $? -eq 0 ] && mv $f /mediation/data/cm/huawei/raw/gexport_other
+                head -10 "$f" | grep 'object technique="" ' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_other
+            done 
+        """)
+
+        # NBI GSM
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SOM CMEGBSS_NRM_Spec' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_gsm
+            done 
+        """)
+
+        # NBI UMTS
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SOM CMEWRAN_NRM_Spec' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_umts
+            done 
+        """)
+
+        # NBI LTE
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMELTE_NRM_Spec' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_lte
+            done 
+        """)
+
+        # NBI SRAN Multi-RAT
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMEMRAT_NRM_Spec' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_sran
+            done 
+        """)
+
+        # NBI SRAN
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMEUMTS_NRM_Spec' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_sran
+            done 
+        """)
+
+        # NBI SRAN
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            do 
+                head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN "' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_sran
             done 
         """)
