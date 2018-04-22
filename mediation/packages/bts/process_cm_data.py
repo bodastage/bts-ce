@@ -2650,21 +2650,27 @@ class ProcessCMData(object):
 
     def extract_ericsson_4g3g_nbrs(self):
         pass
-		
-		
+
+
 
     def detect_format_and_move_huawei_cm_raw_files(self):
         """Detect Huawei raw files format and move them to the respective <format>_tech folder"""
 
-        # GExport
-        # --------------------------------------------------------------------------
+        # Uncompress files
+        os.system("""
+            for f in `ls -1  /mediation/data/cm/huawei/in/`
+            do 
+                /mediation/bin/uncompress_archive_file.sh "$f"
+            done 
+        """)
+
         # Gexport GSM
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -10 "$f" | grep 'object technique="GSM"' 2>&1 > /dev/null
+                [ -f "$f" ] && head -10 "$f" | grep 'object technique="GSM"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_gsm 
             done 
         """)
@@ -2673,9 +2679,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -10 "$f" | grep 'object technique="WCDMA"' 2>&1 > /dev/null
+                [ -f "$f" ] && head -10 "$f" | grep 'object technique="WCDMA"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_wcdma 
             done 
         """)
@@ -2684,9 +2690,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -10 "$f" | grep 'object technique="LTE"' 2>&1 > /dev/null
+                [ -f "$f" ] && head -10 "$f" | grep 'object technique="LTE"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_lte 
             done 
         """)
@@ -2695,9 +2701,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -10 "$f" | grep 'object technique="CDMA"' 2>&1 > /dev/null
+                [ -f "$f" ] && head -10 "$f" | grep 'object technique="CDMA"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_cdma 
             done 
         """)
@@ -2706,9 +2712,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -10 "$f" | grep 'object technique="SRAN"' 2>&1 > /dev/null
+                [ -f "$f" ] && head -10 "$f" | grep 'object technique="SRAN"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_sran
             done 
         """)
@@ -2717,9 +2723,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -10 "$f" | grep 'object technique="" ' 2>&1 > /dev/null
+                [ -f "$f" ] && head -10 "$f" | grep 'object technique="" ' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_other
             done 
         """)
@@ -2728,9 +2734,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SOM CMEGBSS_NRM_Spec' 2>&1 > /dev/null
+                [ -f "$f" ] && head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SOM CMEGBSS_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_gsm
             done 
         """)
@@ -2739,9 +2745,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SOM CMEWRAN_NRM_Spec' 2>&1 > /dev/null
+                [ -f "$f" ] && head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SOM CMEWRAN_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_umts
             done 
         """)
@@ -2750,9 +2756,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMELTE_NRM_Spec' 2>&1 > /dev/null
+                [ -f "$f" ] && head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMELTE_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_lte
             done 
         """)
@@ -2761,9 +2767,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMEMRAT_NRM_Spec' 2>&1 > /dev/null
+                [ -f "$f" ] && head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMEMRAT_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_sran
             done 
         """)
@@ -2772,9 +2778,9 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMEUMTS_NRM_Spec' 2>&1 > /dev/null
+                [ -f "$f" ] && head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMEUMTS_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_sran
             done 
         """)
@@ -2783,9 +2789,31 @@ class ProcessCMData(object):
         os.system("""
             OIFS="$IFS"
             IFS=$'\n'
-            for f in `ls -1 /mediation/data/cm/huawei/in/*`
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
-                head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN "' 2>&1 > /dev/null
+                [ -f "$f" ] && head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN "' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_sran
+            done 
+        """)
+
+        # Huawei 2G MML
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
+            do 
+                [ -f "$f" ] && head -20 "$f" | grep ' BSCBASIC:' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/mml_gsm
+            done 
+        """)
+
+        # Huawei 3G MML
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
+            do 
+                [ -f "$f" ] && head -20 "$f" | grep ' URNCBASIC:' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/mml_umts
             done 
         """)

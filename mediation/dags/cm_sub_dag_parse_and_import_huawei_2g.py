@@ -25,13 +25,17 @@ def parse_and_import_huawei_2g(parent_dag_name, child_dag_name, start_date, sche
         start_date=start_date,
     )
 
+    # @TODO: Investigate other ways to check if there are not files yet
     t28 = BashOperator(
         task_id='check_if_huawei_2g_raw_files_exist',
-        bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/huawei/2g/raw/in | wc -l` ]; then exit 1; fi',
+        # bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/huawei/2g/raw/in | wc -l` ]; then exit 1; fi',
+        bash_command='ls -1 /mediation/data/cm/huawei/2g/raw/in | wc -l',
         dag=dag)
 
+    # @TODO: Backup parsed files
     t30 = BashOperator(
         task_id='backup_huawei_2g_csv_files',
+        # bash_command='mv -f /mediation/data/cm/huawei/2g/parsed/in/* /mediation/data/cm/huawei/2g/parsed/out/ 2>/dev/null || true',
         bash_command='mv -f /mediation/data/cm/huawei/2g/parsed/in/* /mediation/data/cm/huawei/2g/parsed/out/ 2>/dev/null || true',
         dag=dag)
 

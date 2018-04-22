@@ -33,17 +33,17 @@ def import_huawei_2g_parsed_csv(parent_dag_name, child_dag_name, start_date, sch
 
     import_mml_csv = BashOperator(
         task_id='import_huawei_2g_mml_data',
-        bash_command='python /mediaiton/bin/load_cm_data_into_db.py huawei_mml_gsm /mediation/data/cm/huawei/parsed/mml_gsm ',
+        bash_command='python /mediation/bin/load_cm_data_into_db.py huawei_mml_gsm /mediation/data/cm/huawei/parsed/mml_gsm ',
         dag=dag)
 
     import_nbi_csv = BashOperator(
         task_id='import_huawei_2g_nbi_data',
-        bash_command='python /mediaiton/bin/load_cm_data_into_db.py huawei_nbi_gsm /mediation/data/cm/huawei/parsed/nbi_gsm ',
+        bash_command='python /mediation/bin/load_cm_data_into_db.py huawei_nbi_gsm /mediation/data/cm/huawei/parsed/nbi_gsm ',
         dag=dag)
 
     import_nbi_csv = BashOperator(
         task_id='import_huawei_2g_gexport_data',
-        bash_command='python /mediaiton/bin/load_cm_data_into_db.py huawei_gexport_gsm /mediation/data/cm/huawei/parsed/gexport_gsm ',
+        bash_command='python /mediation/bin/load_cm_data_into_db.py huawei_gexport_gsm /mediation/data/cm/huawei/parsed/gexport_gsm ',
         dag=dag)
 
     t_join = DummyOperator(

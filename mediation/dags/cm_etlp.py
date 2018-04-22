@@ -397,7 +397,6 @@ t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)
 # t34 = DummyOperator(task_id='ericsson_is_supported', dag=dag)
 
 def detect_file_formats():
-    pass
     process_cm_data.detect_format_and_move_huawei_cm_raw_files()
 
 t35 = PythonOperator(
