@@ -33,13 +33,14 @@ services:
         network_mode: "bridge"
         container_name: "bts-web"
     bts-mediation:
-        image: bodastage/bts-mediation
+        image: bodastage/bts-ce-mediation
         restart: always
         ports:
           - "8080:8080"
         environment:
             - POSTGRES_HOST=database
             - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgres+psycopg2://airflow:airflow@database:5432/airflow
+            - AIRFLOW__CORE__EXECUTOR=LocalExecutor
             - LOAD_EX=n
             - EXECUTOR=Local
         volumes:

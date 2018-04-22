@@ -35,11 +35,12 @@ from cm_sub_dag_parse_and_import_huawei_4g import parse_and_import_huawei_4g
 
 from airflow.utils.trigger_rule import TriggerRule
 
-sys.path.append('/mediation/packages');
+sys.path.append('/mediation/packages')
 
-from bts import NetworkBaseLine, Utils, ProcessCMData;
+from bts import NetworkBaseLine, Utils, ProcessCMData
 
-bts_utils = Utils();
+bts_utils = Utils()
+process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'))
 
 schedule_interval = bts_utils.get_setting('cm_dag_schedule_interval')
 
@@ -123,7 +124,6 @@ t6 = PythonOperator(
 
 # Process ericsson RNCs
 def process_eri_rncs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_rncs()
 
 
@@ -135,7 +135,6 @@ t8 = PythonOperator(
 
 # Process ericsson ENodeBs
 def process_eri_enodebs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_enodebs()
 
 
@@ -147,7 +146,6 @@ t9 = PythonOperator(
 
 # Process Ericsson 3G Sites
 def extract_ericsson_3g_sites():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_3g_sites()
 
 
@@ -159,7 +157,6 @@ t10 = PythonOperator(
 
 # Process Ericsson 3G cells
 def extract_ericsson_3g_cells():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_3g_cells_per_site()
 
 
@@ -171,7 +168,6 @@ t10 = PythonOperator(
 
 # Process Ericsson 4G Sites
 def extract_ericsson_4g_cells():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_4g_cells_per_site()
 
 
@@ -183,7 +179,7 @@ t11 = PythonOperator(
 
 # Process Erisson 3g-2g relations
 def extract_ericsson_3g3g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_3g3g_nbrs_per_site()
 
 
@@ -195,7 +191,7 @@ t12 = PythonOperator(
 
 # Process Ericsson 4G cell parameters
 def extract_ericsson_4g_cell_params():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_4g_cell_params()
 
 
@@ -207,7 +203,7 @@ t13 = PythonOperator(
 
 # Process Ericsson 3G cell parameters
 def extract_ericsson_3g_cell_params():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_3g_cell_params()
 
 
@@ -219,7 +215,7 @@ t14 = PythonOperator(
 
 # Process Erisson 3g-2g relations
 def extract_ericsson_4g4g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_4g4g_nbrs()
 
 
@@ -243,7 +239,7 @@ t16 = PythonOperator(
 
 # Build network tree
 def extract_ericsson_2g_cells():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_2g_cells()
 
 
@@ -255,7 +251,7 @@ t16 = PythonOperator(
 
 # Build network tree
 def extract_ericsson_2g_sites():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_2g_sites()
 
 t17 = PythonOperator(
@@ -266,7 +262,7 @@ t17 = PythonOperator(
 
 # Process ericsson BSCs
 def process_ericsson_bscs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_bscs()
 
 
@@ -400,7 +396,14 @@ t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)
 
 # t34 = DummyOperator(task_id='ericsson_is_supported', dag=dag)
 
-t35 = DummyOperator(task_id='huawei_is_supported', dag=dag)
+def detect_file_formats():
+    process_cm_data.detect_format_and_move_huawei_cm_raw_files()
+
+t35 = PythonOperator(
+    task_id='huawei_is_supported',
+    python_callable = detect_file_formats,
+    dag=dag
+)
 
 # t36 = DummyOperator(task_id='ericsson_not_supported', dag=dag)
 
@@ -416,7 +419,6 @@ t41 = DummyOperator(task_id='nokia_not_supported', dag=dag)
 
 
 def extract_ericsson_2g_cell_params():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_2g_cell_params()
 
 
@@ -426,7 +428,7 @@ t52 = PythonOperator(
     dag=dag)
 
 def extract_ericsson_2g2g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_2g2g_nbrs()
 
 
@@ -437,7 +439,7 @@ t53 = PythonOperator(
 
 # Extract Huawei BSCs
 def extract_huawei_bscs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_bscs()
 
 
@@ -448,7 +450,7 @@ t54 = PythonOperator(
 
 # Build network tree
 def extract_huawei_2g_sites():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_2g_sites()
 
 t56 = PythonOperator(
@@ -457,7 +459,7 @@ t56 = PythonOperator(
     dag=dag)
 
 def extract_huawei_2g_cells():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_2g_cells()
 
 
@@ -467,7 +469,7 @@ t57 = PythonOperator(
     dag=dag)
 
 def extract_huawei_2g_cell_params():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_2g_cell_params()
 
 
@@ -478,7 +480,7 @@ t58 = PythonOperator(
 
 # Process ericsson RNCs
 def extract_huawei_rncs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_rncs()
 
 
@@ -489,7 +491,7 @@ t59 = PythonOperator(
 
 # Process Ericsson 3G Sites
 def extract_huawei_3g_sites():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_3g_sites()
 
 t60 = PythonOperator(
@@ -499,7 +501,7 @@ t60 = PythonOperator(
 
 # Process Ericsson 3G Sites
 def extract_huawei_3g_cells():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
+    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_3g_cells()
 
 
@@ -511,7 +513,6 @@ t61 = PythonOperator(
 
 # Process Huawei 3G cell parameters
 def extract_huawei_3g_cell_params():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_3g_cell_params()
 
 
@@ -523,7 +524,6 @@ t62 = PythonOperator(
 
 # Process ericsson ENodeBs
 def extract_huawei_enodebs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_enodebs()
 
 
@@ -535,7 +535,6 @@ t63 = PythonOperator(
 
 # Process Huawei 4G Sites
 def extract_huawei_4g_cells():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_4g_cells()
 
 
@@ -546,7 +545,6 @@ t64 = PythonOperator(
 
 # Process Huawei 4G Sites
 def extract_huawei_4g_cell_params():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_4g_cell_params()
 
 
@@ -556,7 +554,6 @@ t65 = PythonOperator(
     dag=dag)
 
 def extract_huawei_2g2g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_2g2g_nbrs()
 
 
@@ -566,7 +563,6 @@ t66 = PythonOperator(
     dag=dag)
 
 def extract_huawei_2g3g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_2g3g_nbrs()
 
 
@@ -576,7 +572,6 @@ t66 = PythonOperator(
     dag=dag)
 
 def extract_huawei_3g3g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_3g3g_nbrs()
 
 
@@ -586,7 +581,6 @@ t67 = PythonOperator(
     dag=dag)
 
 def extract_huawei_3g2g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_3g2g_nbrs()
 
 
@@ -597,7 +591,6 @@ t68 = PythonOperator(
 
 
 def extract_huawei_3g4g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_3g4g_nbrs()
 
 
@@ -607,7 +600,6 @@ t69 = PythonOperator(
     dag=dag)
 
 def extract_huawei_2g4g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_2g4g_nbrs()
 
 
@@ -617,7 +609,6 @@ t69 = PythonOperator(
     dag=dag)
 
 def extract_huawei_4g2g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_4g2g_nbrs()
 
 
@@ -627,7 +618,6 @@ t70 = PythonOperator(
     dag=dag)
 
 def extract_huawei_4g3g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_4g3g_nbrs()
 
 
@@ -638,7 +628,6 @@ t71 = PythonOperator(
 
 
 def extract_huawei_4g4g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_huawei_4g4g_nbrs()
 
 
@@ -648,7 +637,6 @@ t72 = PythonOperator(
     dag=dag)
 
 def extract_ericsson_2g3g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_2g3g_nbrs()
 
 
@@ -658,7 +646,6 @@ t73 = PythonOperator(
     dag=dag)
 
 def extract_ericsson_2g4g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_2g4g_nbrs()
 
 
@@ -668,7 +655,6 @@ t74 = PythonOperator(
     dag=dag)
 
 def extract_ericsson_3g2g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_3g2g_nbrs()
 
 
@@ -679,7 +665,6 @@ t75 = PythonOperator(
 
 
 def extract_ericsson_3g4g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_3g4g_nbrs()
 
 
@@ -689,7 +674,6 @@ t76 = PythonOperator(
     dag=dag)
 
 def extract_ericsson_4g2g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_4g2g_nbrs()
 
 t77 = PythonOperator(
@@ -698,7 +682,6 @@ t77 = PythonOperator(
     dag=dag)
 
 def extract_ericsson_4g3g_nbrs():
-    process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_4g3g_nbrs()
 
 t78 = PythonOperator(
