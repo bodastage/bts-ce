@@ -38,7 +38,7 @@ def import_huawei_3g_parsed_csv(parent_dag_name, child_dag_name, start_date, sch
 
     import_nbi_csv = BashOperator(
         task_id='import_huawei_3g_nbi_data',
-        bash_command='python /mediation/bin/load_cm_data_into_db.py huawei_nbi_gsm /mediation/data/cm/huawei/parsed/nbi_umts ',
+        bash_command='python /mediation/bin/load_cm_data_into_db.py huawei_nbi_umts /mediation/data/cm/huawei/parsed/nbi_umts ',
         dag=dag)
 
     import_nbi_csv = BashOperator(
