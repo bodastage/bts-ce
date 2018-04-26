@@ -42,7 +42,7 @@ from bts import NetworkBaseLine, Utils, ProcessCMData
 bts_utils = Utils()
 process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'))
 
-schedule_interval = bts_utils.get_setting('cm_dag_schedule_interval')
+schedule_interval = "@daily" # # bts_utils.get_setting('cm_dag_schedule_interval')
 
 args = {
     'owner': 'bodastage',
@@ -317,7 +317,7 @@ branch_is_ericsson_3g4g_supported = BranchPythonOperator(
 task_ericsson_3g4g_not_supported = DummyOperator(task_id='ericsson_3g4g_not_supported', dag=dag)
 task_ericsson_3g4g_supported = DummyOperator(task_id='ericsson_3g4g_supported', dag=dag)
 
-
+huawei_parsing_done = DummyOperator(task_id='huawei_parsing_done', dag=dag)
 
 
 # Task to check whether ericsson is supported in the network
@@ -396,12 +396,18 @@ t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)
 
 # t34 = DummyOperator(task_id='ericsson_is_supported', dag=dag)
 
-def detect_file_formats():
+def huawei_is_supported():
+    """If Huawei is supported, detect file formats and backup previous csv files"""
     process_cm_data.detect_format_and_move_huawei_cm_raw_files()
+
+    # Backup any left over csv files
+    os.system("""
+        mv -f /mediation/data/cm/huawei/parsed/{nbi_umts,nbi_sran,nbi_lte,nbi_gsm,mml_umts,mml_lte,mml_gsm,gexport_wcdma,gexport_sran,gexport_other,gexport_lte,gexport_gsm,gexport_cdma}/* /mediation/data/cm/huawei/parsed/backup 2>/dev/null || true
+    """)
 
 t35 = PythonOperator(
     task_id='huawei_is_supported',
-    python_callable = detect_file_formats,
+    python_callable = huawei_is_supported,
     dag=dag
 )
 
@@ -818,7 +824,9 @@ dag.set_dependency('join_huawei_supported','end_cm_etlp')
 
 # Huawei 2G
 dag.set_dependency('huawei_is_supported','parse_and_import_huawei_2g')
-dag.set_dependency('parse_and_import_huawei_2g','extract_huawei_bscs')
+dag.set_dependency('parse_and_import_huawei_2g','huawei_parsing_done')
+dag.set_dependency('huawei_parsing_done','extract_huawei_bscs')
+# dag.set_dependency('parse_and_import_huawei_2g','extract_huawei_bscs')
 dag.set_dependency('extract_huawei_bscs','extract_huawei_2g_sites')
 dag.set_dependency('extract_huawei_2g_sites','extract_huawei_2g_cells')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g_cell_params')
@@ -835,7 +843,9 @@ dag.set_dependency('extract_huawei_2g4g_nbrs','huawei_cm_done')
 
 # Huawei 3G
 dag.set_dependency('huawei_is_supported','parse_and_import_huawei_3g')
-dag.set_dependency('parse_and_import_huawei_3g','extract_huawei_rncs')
+dag.set_dependency('parse_and_import_huawei_3g','huawei_parsing_done')
+dag.set_dependency('huawei_parsing_done','extract_huawei_rncs')
+# dag.set_dependency('parse_and_import_huawei_3g','extract_huawei_rncs')
 dag.set_dependency('extract_huawei_rncs','extract_huawei_3g_sites')
 dag.set_dependency('extract_huawei_3g_sites','extract_huawei_3g_cells')
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g_cell_params')
@@ -851,7 +861,8 @@ dag.set_dependency('extract_huawei_3g4g_nbrs','huawei_cm_done')
 
 # Huawei 4G
 dag.set_dependency('huawei_is_supported','parse_and_import_huawei_4g')
-dag.set_dependency('parse_and_import_huawei_4g','extract_huawei_enodebs')
+dag.set_dependency('parse_and_import_huawei_4g','huawei_parsing_done')
+dag.set_dependency('huawei_parsing_done','extract_huawei_enodebs')
 dag.set_dependency('extract_huawei_enodebs','extract_huawei_4g_cells')
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g_cell_params')
 dag.set_dependency('extract_huawei_4g_cell_params','huawei_cm_done')
