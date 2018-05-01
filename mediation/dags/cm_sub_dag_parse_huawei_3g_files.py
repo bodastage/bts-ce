@@ -41,13 +41,18 @@ def run_huawei_3g_parser(parent_dag_name, child_dag_name, start_date, schedule_i
 
     t29 = BashOperator(
         task_id='run_huawei_3g_xml_nbi_parser',
-        bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/3g/raw/in /mediation/data/cm/huawei/3g/parsed/in /mediation/conf/cm/hua_cm_3g_nbi_parameters.cfg',
+        bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/raw/nbi_umts /mediation/data/cm/huawei/parsed/nbi_umts /mediation/conf/cm/hua_cm_3g_nbi_parser.cfg',
         dag=dag)
 
     t29_2 = BashOperator(
         task_id='run_huawei_3g_mml_parser',
-        bash_command='java -jar /mediation/bin/boda-huaweimmlparser.jar /mediation/data/cm/huawei/3g/raw/in /mediation/data/cm/huawei/3g/parsed/in /mediation/conf/cm/hua_cm_3g_nbi_parameters.cfg',
+        bash_command='java -jar /mediation/bin/boda-huaweimmlparser.jar /mediation/data/cm/huawei/raw/mml_umts /mediation/data/cm/huawei/parsed/mml_umts /mediation/conf/cm/mml_umts_parser.cfg',
         dag=dag)
+
+    run_huawei_2g_xml_gexport_parser = BashOperator(
+      task_id='run_huawei_3g_xml_gexport_parser',
+      bash_command='java -jar /mediation/bin/boda-huaweicmobjectparser.jar /mediation/data/cm/huawei/raw/gexport_wcdma /mediation/data/cm/huawei/parsed/gexport_wcdma /mediation/conf/cm/gexport_wcdma_parser.cfg',
+      dag=dag)
 
     t_join = DummyOperator(
         task_id='join_huawei_3g_parser',
@@ -56,9 +61,11 @@ def run_huawei_3g_parser(parent_dag_name, child_dag_name, start_date, schedule_i
 
     dag.set_dependency('branch_huawei_3g_parser', 'run_huawei_3g_mml_parser')
     dag.set_dependency('branch_huawei_3g_parser', 'run_huawei_3g_xml_nbi_parser')
+    dag.set_dependency('branch_huawei_3g_parser', 'run_huawei_3g_xml_gexport_parser')
 
     dag.set_dependency('run_huawei_3g_mml_parser', 'join_huawei_3g_parser')
     dag.set_dependency('run_huawei_3g_xml_nbi_parser', 'join_huawei_3g_parser')
+    dag.set_dependency('run_huawei_3g_xml_gexport_parser', 'join_huawei_3g_parser')
 
 
     return dag

@@ -2660,7 +2660,7 @@ class ProcessCMData(object):
         os.system("""
             for f in `ls -1  /mediation/data/cm/huawei/in/`
             do 
-                /mediation/bin/uncompress_archive_file.sh "$f"
+                /mediation/bin/uncompress.sh "$f"
             done 
         """)
 
@@ -2815,5 +2815,16 @@ class ProcessCMData(object):
             do 
                 [ -f "$f" ] && head -20 "$f" | grep ' URNCBASIC:' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/mml_umts
+            done 
+        """)
+
+        # Huawei Baseline Synch Dump
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/huawei/in/`
+            do 
+                [ -f "$f" ] && head -5 "$f" | grep 'bulkcm_xml_baseline_syn' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/cfgsyn
             done 
         """)

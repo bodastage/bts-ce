@@ -6,6 +6,8 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators.python_operator import BranchPythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.subdag_operator import SubDagOperator
+from cm_sub_dag_parse_huawei_4g_files import run_huawei_4g_parser
+from cm_sub_dag_import_huawei_4g_files import import_huawei_4g_parsed_csv
 
 sys.path.append('/mediation/packages');
 
@@ -24,20 +26,13 @@ def parse_and_import_huawei_4g(parent_dag_name, child_dag_name, start_date, sche
         start_date=start_date,
     )
 
-    t47 = BashOperator(
-        task_id='check_if_hua_4g_raw_files_exist',
-        bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/huawei/4g/raw/in | wc -l` ]; then exit 1; fi',
-        dag=dag)
+    sub_dag_parser_huawei_4g_cm_files = SubDagOperator(
+        subdag=run_huawei_4g_parser(dag_id, 'parse_huawei_4g_cm_files', start_date=dag.start_date,
+                                    schedule_interval=dag.schedule_interval),
+        task_id='parse_huawei_4g_cm_files',
+        dag=dag,
+    )
 
-    t48 = BashOperator(
-        task_id='backup_huawei_4g_csv_files',
-        bash_command='mv -f /mediation/data/cm/huawei/4g/parsed/in/* /mediation/data/cm/huawei/4g/parsed/out/ 2>/dev/null || true',
-        dag=dag)
-
-    t49 = BashOperator(
-        task_id='run_huawei_4g_parser',
-        bash_command='java -jar /mediation/bin/boda-huaweinbixmlparser.jar /mediation/data/cm/huawei/4g/raw/in /mediation/data/cm/huawei/4g/parsed/in /mediation/conf/cm/hua_cm_4g_nbi_parser.cfg',
-        dag=dag)
 
     # Clear 4G CM data tables
     def clear_huawei_4g_cm_tables():
@@ -48,14 +43,14 @@ def parse_and_import_huawei_4g(parent_dag_name, child_dag_name, start_date, sche
         python_callable=clear_huawei_4g_cm_tables,
         dag=dag)
 
-    t51 = BashOperator(
-        task_id='import_huawei_4g_cm_data',
-        bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/hua_cm_4g_nbi_loader.cfg"',
-        dag=dag)
+    sub_dag_import_huawei_4g_csv  = SubDagOperator(
+        subdag=import_huawei_4g_parsed_csv(dag_id, 'import_huawei_4g_parsed_csv', start_date=dag.start_date,
+                                    schedule_interval=dag.schedule_interval),
+        task_id='import_huawei_4g_parsed_csv',
+        dag=dag,
+    )
 
-    dag.set_dependency('check_if_hua_4g_raw_files_exist', 'backup_huawei_4g_csv_files')
-    dag.set_dependency('backup_huawei_4g_csv_files', 'run_huawei_4g_parser')
-    dag.set_dependency('run_huawei_4g_parser', 'clear_huawei_4g_cm_tables')
-    dag.set_dependency('clear_huawei_4g_cm_tables', 'import_huawei_4g_cm_data')
+    dag.set_dependency('parse_huawei_4g_cm_files', 'clear_huawei_4g_cm_tables')
+    dag.set_dependency('clear_huawei_4g_cm_tables', 'import_huawei_4g_parsed_csv')
 
     return dag
