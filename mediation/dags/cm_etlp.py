@@ -32,7 +32,7 @@ from cm_sub_dag_parse_and_import_eri_2g import parse_and_import_eri_2g
 from cm_sub_dag_parse_and_import_huawei_2g import parse_and_import_huawei_2g
 from cm_sub_dag_parse_and_import_huawei_3g import parse_and_import_huawei_3g
 from cm_sub_dag_parse_and_import_huawei_4g import parse_and_import_huawei_4g
-
+from cm_sub_dag_parse_and_import_huawei_cfgsyn import parse_and_import_huawei_cfgsyn
 from airflow.utils.trigger_rule import TriggerRule
 
 sys.path.append('/mediation/packages')
@@ -100,6 +100,13 @@ sub_dag_parse_and_import_huawei_4g_cm_files = SubDagOperator(
   subdag=parse_and_import_huawei_4g('cm_etlp', 'parse_and_import_huawei_4g', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_and_import_huawei_4g',
+  dag=dag,
+)
+
+sub_dag_parse_and_import_huawei_cfgsyn_cm_files = SubDagOperator(
+  subdag=parse_and_import_huawei_cfgsyn('cm_etlp', 'parse_and_import_huawei_cfgsyn', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_and_import_huawei_cfgsyn',
   dag=dag,
 )
 
@@ -402,7 +409,7 @@ def huawei_is_supported():
 
     # Backup any left over csv files
     os.system("""
-        mv -f /mediation/data/cm/huawei/parsed/{nbi_umts,nbi_sran,nbi_lte,nbi_gsm,mml_umts,mml_lte,mml_gsm,gexport_wcdma,gexport_sran,gexport_other,gexport_lte,gexport_gsm,gexport_cdma}/* /mediation/data/cm/huawei/parsed/backup 2>/dev/null || true
+        mv -f /mediation/data/cm/huawei/parsed/{nbi_umts,nbi_sran,nbi_lte,nbi_gsm,mml_umts,mml_lte,mml_gsm,gexport_wcdma,gexport_sran,gexport_other,gexport_lte,gexport_gsm,gexport_cdma,cfgsyn}/* /mediation/data/cm/huawei/parsed/backup 2>/dev/null || true
     """)
 
 t35 = PythonOperator(
@@ -874,6 +881,10 @@ dag.set_dependency('extract_huawei_4g_cells','extract_huawei_3g4g_nbrs')
 dag.set_dependency('extract_huawei_4g2g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_4g3g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_4g4g_nbrs','huawei_cm_done')
+
+# Huawei cfgsyn
+dag.set_dependency('huawei_is_supported','parse_and_import_huawei_cfgsyn')
+dag.set_dependency('parse_and_import_huawei_cfgsyn','huawei_parsing_done')
 
 # ZTE
 # ##############################################

@@ -51,6 +51,8 @@ function unachive_folder(){
 	done
 }
 
+
+# # Hande file
 unachive_folder "$input_file_or_dir" "$output_dir"
 
 #Delete folder 

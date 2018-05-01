@@ -1,6 +1,8 @@
 # Import CM data csv files 
 #   
 # Usage: load_cm_data_into_db.py <schema> <csv_directory>
+#
+#Note:  The file names must match the table names in the schema.
 
 import os
 import sys
