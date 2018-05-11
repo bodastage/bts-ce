@@ -47,7 +47,7 @@ class ProcessCMData(object):
             2 as tech_pk , -- 1=gsm, 2-umts,3=lte
             0 as added_by,
             0 as modified_by
-            FROM eri_cm_3g4g.rncfunction t1
+            FROM ericsson_bulkcm.rncfunction t1
             LEFT OUTER  JOIN live_network.nodes t2 ON t1."MeContext_id" = t2."name"
             WHERE 
             t2."name" IS NULL
@@ -59,7 +59,7 @@ class ProcessCMData(object):
 
 
     def extract_ericsson_bscs(self):
-        """Extract BSCs from Ericsson CM data(eri_cm_2g.bsc)"""
+        """Extract BSCs from Ericsson CM data(ericsson_cnaiv2.bsc)"""
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
@@ -76,7 +76,7 @@ class ProcessCMData(object):
              1 as tech_pk , -- 1=gsm, 2-umts,3=lte
              0 as added_by,
              0 as modified_by
-             FROM eri_cm_2g.bsc t1
+             FROM ericsson_cnaiv2.bsc t1
              LEFT OUTER  JOIN live_network.nodes t2 ON t1."BSC_NAME" = t2."name"
              WHERE 
              t2."name" IS NULL
@@ -104,11 +104,11 @@ class ProcessCMData(object):
             1, -- 1- Ericsson, 2 - Huawei, 3 - zte, 4-nokika, etc...
             t1."SITE_NAME",
             t2.pk -- node primary key
-            from eri_cm_2g.site t1
+            from ericsson_cnaiv2.site t1
             INNER join live_network.nodes t2 on t2."name" = t1."BSC_NAME" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 1
             LEFT JOIN live_network.sites t3 on t3."name" = t1."SITE_NAME" 
-               AND t2.vendor_pk = 1 and t2.tech_pk = 1
+               AND t3.vendor_pk = 1 and t3.tech_pk = 1
             WHERE 
             t3."name" IS NULL
 
@@ -136,7 +136,7 @@ class ProcessCMData(object):
             1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             t1."CELL_NAME",
             t4.pk -- site primary key
-            FROM eri_cm_2g.internal_cell t1
+            FROM ericsson_cnaiv2.internal_cell t1
             INNER JOIN live_network.nodes t3 on t3."name" = t1."BSC_NAME" 
                     AND t3.vendor_pk = 1
                     AND t3.tech_pk = 1
@@ -173,7 +173,7 @@ class ProcessCMData(object):
             "MeContext_id",
             0 as added_by,
             0 as modified_by
-            FROM eri_cm_3g4g.vsDataENodeBFunction t1
+            FROM ericsson_bulkcm.vsDataENodeBFunction t1
             LEFT OUTER  JOIN live_network.sites t2 ON t1."MeContext_id" = t2."name"
             WHERE 
             t2."name" IS NULL
@@ -202,7 +202,7 @@ class ProcessCMData(object):
             1, -- 1- Ericsson, 2 - Huawei,
             t1."MeContext_id",
             t2.pk -- node primary key
-            from eri_cm_3g4g.nodebfunction t1
+            from ericsson_bulkcm.nodebfunction t1
             INNER join live_network.nodes t2 on t2."name" = t1."SubNetwork_2_id" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 2
             LEFT JOIN live_network.sites t3 on t3."name" = t1."MeContext_id" 
@@ -234,8 +234,8 @@ class ProcessCMData(object):
             1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             t1."userLabel",
             t4.pk -- site primary key
-            FROM eri_cm_3g4g.utranCell t1
-            INNER JOIN eri_cm_3g4g.nodebfunction t2 on t2."nodeBFunctionIubLink" = t1."utranCellIubLink"
+            FROM ericsson_bulkcm.utranCell t1
+            INNER JOIN ericsson_bulkcm.nodebfunction t2 on t2."nodeBFunctionIubLink" = t1."utranCellIubLink"
             INNER JOIN live_network.nodes t3 on t3."name" = t1."MeContext_id" 
                     AND t3.vendor_pk = 1
                     AND t3.tech_pk = 2
@@ -302,8 +302,8 @@ class ProcessCMData(object):
                 1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
                 t1."userLabel",
                 t4.pk -- site primary key
-                FROM eri_cm_3g4g.utranCell t1
-                INNER JOIN eri_cm_3g4g.nodebfunction t2 on t2."nodeBFunctionIubLink" = t1."utranCellIubLink"
+                FROM ericsson_bulkcm.utranCell t1
+                INNER JOIN ericsson_bulkcm.nodebfunction t2 on t2."nodeBFunctionIubLink" = t1."utranCellIubLink"
                 INNER JOIN live_network.nodes t3 on t3."name" = t1."MeContext_id" 
                         AND t3.vendor_pk = 1
                         AND t3.tech_pk = 2
@@ -343,7 +343,7 @@ class ProcessCMData(object):
             1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             CASE WHEN t1."userLabel" IS NULL THEN t1."vsDataEUtranCellFDD_id" ELSE t1."userLabel" END AS "name",
             t2.pk -- site primary key
-            FROM eri_cm_3g4g.vsdataeutrancellfdd t1
+            FROM ericsson_bulkcm.vsdataeutrancellfdd t1
             INNER JOIN live_network.sites t2 on t2."name" = t1."MeContext_id" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 3 
             LEFT JOIN live_network.cells t3 on t3."name" = CASE WHEN t1."userLabel" IS NULL THEN t1."vsDataEUtranCellFDD_id" ELSE t1."userLabel" END,
@@ -403,7 +403,7 @@ class ProcessCMData(object):
             1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             CASE WHEN t1."userLabel" IS NULL THEN t1."vsDataEUtranCellFDD_id" ELSE t1."userLabel" END AS "name",
             t2.pk -- site primary key
-            FROM eri_cm_3g4g.vsdataeutrancellfdd t1
+            FROM ericsson_bulkcm.vsdataeutrancellfdd t1
             INNER JOIN live_network.sites t2 on t2."name" = t1."MeContext_id" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 3 
             LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
@@ -478,7 +478,7 @@ class ProcessCMData(object):
                         0 as added_by, 
                         t1."varDateTime" as date_added, 
                         t1."varDateTime" as date_modified
-                        FROM eri_cm_3g4g.vsdataeutrancellfdd t1
+                        FROM ericsson_bulkcm.vsdataeutrancellfdd t1
                         INNER JOIN live_network.cells t2 on t2."name" = t1."vsDataEUtranCellFDD_id"
                         WHERE t1."MeContext_id" = '{0}';
                     """.format(site_name)
@@ -551,15 +551,15 @@ class ProcessCMData(object):
                 t1."localCellId" as localcellid,
                 t1."cId" as ci
                 FROM 
-                eri_cm_3g4g.utrancell t1
-                INNER JOIN eri_cm_3g4g.vsdatarbslocalcell t2 on t2."localCellId" = t1."cId" and t2."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                ericsson_bulkcm.utrancell t1
+                INNER JOIN ericsson_bulkcm.vsdatarbslocalcell t2 on t2."localCellId" = t1."cId" and t2."SubNetwork_2_id" = t1."SubNetwork_2_id" 
                     -- and t2."MeContext_id" = t1."MeContext_id"
                 INNER JOIN live_network.cells t3 on t3."name" = t1."UtranCell_id"
-                INNER JOIN eri_cm_3g4g.vsDataUtranCell t4 on t4."UtranCell_id" = t1."UtranCell_id" and t4."SubNetwork_2_id" = t1."SubNetwork_2_id" 
-                INNER JOIN eri_cm_3g4g.vsdatacarrier t5 on  t5."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                INNER JOIN ericsson_bulkcm.vsDataUtranCell t4 on t4."UtranCell_id" = t1."UtranCell_id" and t4."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                INNER JOIN ericsson_bulkcm.vsdatacarrier t5 on  t5."SubNetwork_2_id" = t1."SubNetwork_2_id" 
                     and t5."MeContext_id" = t2."MeContext_id"
                     and concat('S',TRIM(t5."vsDataSector_id"),'C', TRIM(t5."vsDataCarrier_id")) = t2."vsDataRbsLocalCell_id" 
-                INNER JOIN eri_cm_3g4g.vsdatasector t6 on t6."SubNetwork_2_id" = t1."SubNetwork_2_id"
+                INNER JOIN ericsson_bulkcm.vsdatasector t6 on t6."SubNetwork_2_id" = t1."SubNetwork_2_id"
                     and t6."MeContext_id" = t5."MeContext_id"
                     and t6."vsDataSector_id" = t5."vsDataSector_id"
                 WHERE t6."MeContext_id" = '{0}';
@@ -627,7 +627,7 @@ class ProcessCMData(object):
                         0 as added_by,
                         t1."varDateTime" as date_added,
                         t1."varDateTime" as date_modified
-                        FROM eri_cm_2g.internal_cell t1
+                        FROM ericsson_cnaiv2.internal_cell t1
                         INNER JOIN live_network.cells t2 on t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
                         INNER JOIN live_network.sites t3 on t3."name" = LEFT(t1."CELL_NAME", LENGTH(t1."CELL_NAME")-1)
                         WHERE 
@@ -670,8 +670,8 @@ class ProcessCMData(object):
             t1."varDateTime" ,
             0, -- system
             0
-            FROM eri_cm_3g4g.utranrelation t1 
-            INNER JOIN eri_cm_3g4g.utrancell t2 ON t1."adjacentCell" = concat('SubNetwork=ONRM_ROOT_MO_R,SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
+            FROM ericsson_bulkcm.utranrelation t1 
+            INNER JOIN ericsson_bulkcm.utrancell t2 ON t1."adjacentCell" = concat('SubNetwork=ONRM_ROOT_MO_R,SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
             -- serving side
             INNER JOIN live_network.cells t3 ON t3."name" = t1."UtranCell_id" AND t3.vendor_pk = 1 AND t3.tech_pk = 2
             INNER JOIN live_network.sites t4 ON t4.pk = t3.site_pk
@@ -720,8 +720,8 @@ class ProcessCMData(object):
                 t1."varDateTime" ,
                 0, -- system
                 0
-                FROM eri_cm_3g4g.utranrelation t1 
-                INNER JOIN eri_cm_3g4g.utrancell t2 ON t1."adjacentCell" = concat('SubNetwork=',trim(t2."SubNetwork_id"),',SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
+                FROM ericsson_bulkcm.utranrelation t1 
+                INNER JOIN ericsson_bulkcm.utrancell t2 ON t1."adjacentCell" = concat('SubNetwork=',trim(t2."SubNetwork_id"),',SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
                 -- serving side
                 INNER JOIN live_network.cells t3 ON t3."name" = t1."UtranCell_id" AND t3.vendor_pk = 1 AND t3.tech_pk = 2
                 INNER JOIN live_network.sites t4 ON t4.pk = t3.site_pk
@@ -785,7 +785,7 @@ class ProcessCMData(object):
                 0 as modified_by,
                 0 as added_by
                 FROM 
-                eri_cm_2g.nrel t1
+                ericsson_cnaiv2.nrel t1
                 INNER JOIN live_network.cells t2 ON t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
                 LEFT JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.tech_pk = 1
                 INNER JOIN live_network.sites t4 on t4.pk = t2.site_pk AND  t4.tech_pk = 1
@@ -1023,7 +1023,7 @@ class ProcessCMData(object):
             1, -- 1- Ericsson, 2 - Huawei,
             t1."MeContext_id",
             t2.pk -- node primary key
-            from eri_cm_3g4g.nodebfunction t1
+            from ericsson_bulkcm.nodebfunction t1
             INNER join live_network.nodes t2 on t2."name" = t1."SubNetwork_2_id" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 2
             LEFT JOIN live_network.sites t3 on t3."name" = t1."MeContext_id" 
@@ -1540,7 +1540,7 @@ class ProcessCMData(object):
                 INNER JOIN live_network.sites t7 ON 
                     t7.pk = t6.site_pk 
                     AND t7.vendor_pk = 1 AND t7.tech_pk = 1
-                INNER JOIN eri_cm_2g.internal_cell t8 ON 
+                INNER JOIN ericsson_cnaiv2.internal_cell t8 ON 
                     t8."CI" = t3."EXT2GCELLID"
                 WHERE 
                     t4.site_pk = '{0}'
@@ -2510,7 +2510,7 @@ class ProcessCMData(object):
                 0 as modified_by,
                 0 as added_by
                 FROM 
-                eri_cm_2g.utran_nrel t1
+                ericsson_cnaiv2.utran_nrel t1
                 INNER JOIN live_network.cells t2 ON t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
                 LEFT JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.tech_pk = 2
                 INNER JOIN live_network.sites t4 on t4.pk = t2.site_pk AND  t4.tech_pk = 1
@@ -2561,8 +2561,8 @@ class ProcessCMData(object):
                 0, -- system
                 0
                 FROM
-                eri_cm_3g4g.utrancell t1
-                INNER JOIN eri_cm_3g4g.gsmrelation t2 ON 
+                ericsson_bulkcm.utrancell t1
+                INNER JOIN ericsson_bulkcm.gsmrelation t2 ON 
                     t2."SubNetwork_2_id" = t1."SubNetwork_2_id"
                     AND t2."MeContext_id" = t1."MeContext_id"
                     AND t2."UtranCell_id" = t2."UtranCell_id"
@@ -2574,7 +2574,7 @@ class ProcessCMData(object):
                     AND t3.tech_pk = 1
                 LEFT JOIN live_network.sites t4 ON t4.pk = t3.site_pk
                 AND t4.tech_pk = 1
-                -- INNER JOIN eri_cm_3g4g.externalgsmcell t3 on
+                -- INNER JOIN ericsson_bulkcm.externalgsmcell t3 on
                 --	CONCAT('SubNework=',t3."SubNetwork_id",',ExternalGsmCell=',t3."userLabel") = t2."adjacentCell"
                 WHERE 
                 t1."UtranCell_id" = '{0}'
@@ -2618,8 +2618,8 @@ class ProcessCMData(object):
                 0, -- system
                 0
                 FROM
-                eri_cm_3g4g.utrancell t1
-                INNER JOIN eri_cm_3g4g.utranrelation t2 ON 
+                ericsson_bulkcm.utrancell t1
+                INNER JOIN ericsson_bulkcm.utranrelation t2 ON 
                     t2."SubNetwork_2_id" = t1."SubNetwork_2_id"
                     AND t2."MeContext_id" = t1."MeContext_id"
                     AND t2."UtranCell_id" = t2."UtranCell_id"
@@ -2632,7 +2632,7 @@ class ProcessCMData(object):
                     t3.name = REPLACE(t2."adjacentCell", CONCAT('SubNetwork=',TRIM(t1."SubNetwork_id"),',ExternalUtranCell='),'')
                     AND t3.tech_pk = 3
                 LEFT JOIN live_network.sites t4 ON t4.pk = t3.site_pk  AND t4.tech_pk = 3
-                -- INNER JOIN eri_cm_3g4g.externalutrancell t3 on
+                -- INNER JOIN ericsson_bulkcm.externalutrancell t3 on
                 --	CONCAT('SubNework=',t3."SubNetwork_id",',ExternalGsmCell=',t3."userLabel") = t2."adjacentCell"
                 WHERE 
                 t1."UtranCell_id" = '{0}'
@@ -2652,6 +2652,38 @@ class ProcessCMData(object):
         pass
 
 
+    def detect_format_and_move_ericsson_cm_raw_files(self):
+        """Detect """
+
+        # Uncompress files
+        os.system("""
+            for f in `ls -1  /mediation/data/cm/ericsson/in/`
+            do 
+                /mediation/bin/uncompress.sh "$f"
+            done 
+        """)
+
+        # BulkCM
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/ericsson/in/`
+            do 
+                [ -f "$f" ] && head -2 "$f" | grep '<bulkCmConfigDataFile ' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/ericsson/raw/bulkcm
+            done 
+        """)
+
+        # CNAIV2
+        os.system("""
+            OIFS="$IFS"
+            IFS=$'\n'
+            for f in `ls -1 /mediation/data/cm/ericsson/in/`
+            do 
+                [ -f "$f" ] && head -1 "$f" | grep '..cnai ' 2>&1 > /dev/null
+                [ $? -eq 0 ] && mv "$f" /mediation/data/cm/ericsson/raw/cnaiv2 
+            done 
+        """)
 
     def detect_format_and_move_huawei_cm_raw_files(self):
         """Detect Huawei raw files format and move them to the respective <format>_tech folder"""

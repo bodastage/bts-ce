@@ -3,3 +3,7 @@
 *.xml
 *.log
 *.txt
+*.zip
+*.gz
+*.bz
+*.bzip

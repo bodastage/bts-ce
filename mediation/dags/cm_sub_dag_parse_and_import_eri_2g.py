@@ -14,6 +14,7 @@ bts_utils = Utils();
 
 
 def parse_and_import_eri_2g(parent_dag_name, child_dag_name, start_date, schedule_interval):
+    """Parse and import Ericsson GSM CM data"""
     dag = DAG(
         '%s.%s' % (parent_dag_name, child_dag_name),
         schedule_interval=schedule_interval,
@@ -21,37 +22,38 @@ def parse_and_import_eri_2g(parent_dag_name, child_dag_name, start_date, schedul
     )
 
     t22 = BashOperator(
-        task_id='check_if_2g_raw_files_exist',
-        bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/ericsson/2g/raw/in | wc -l` ]; then exit 1; fi',
+        task_id='check_if_cnaiv2_raw_files_exist',
+        # bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/ericsson/2g/raw/in | wc -l` ]; then exit 1; fi',
+        bash_command='echo 0;',
         dag=dag)
 
     # .. || true added to make sure the command alwasy succeeds
     t21 = BashOperator(
-        task_id='backup_ericsson_2g_csv_files',
-        bash_command='mv -f /mediation/data/cm/ericsson/2g/parsed/in/* /mediation/data/cm/ericsson/2g/parsed/out/ 2>/dev/null || true',
+        task_id='backup_ericsson_cnaiv2_csv_files',
+        bash_command='mv -f /mediation/data/cm/ericsson/parsed/cnaiv2/* /mediation/data/cm/ericsson/parsed/backup/ 2>/dev/null || true',
         dag=dag)
 
     t20 = BashOperator(
-        task_id='run_ericsson_2g_parser',
-        bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/in /mediation/data/cm/ericsson/2g/parsed/in /mediation/conf/cm/eri_cm_2g_cnaiv2_parser.cfg',
+        task_id='run_ericsson_cnaiv2_parser',
+        bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/cnaiv2 /mediation/data/cm/ericsson/2g/parsed/cnaiv2 /mediation/conf/cm/ericsson_cnaiv2_gsm_parser.cfg',
         dag=dag)
 
-    def clear_ericsson_2g_cm_tables():
+    def clear_ericsson_cnaiv2_cm_tables():
         pass
 
     t19 = PythonOperator(
-        task_id='clear_ericsson_2g_cm_tables',
-        python_callable=clear_ericsson_2g_cm_tables,
+        task_id='clear_ericsson_cnaiv2_cm_tables',
+        python_callable=clear_ericsson_cnaiv2_cm_tables,
         dag=dag)
 
-    t18 = BashOperator(
-        task_id='import_eri_2g_cm_data',
-        bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/eri_cm_2g_loader.cfg"',
+
+    import_csv_files = BashOperator(
+        task_id='import_ericsson_cnaiv2_data',
+        bash_command='python /mediation/bin/load_cm_data_into_db.py ericsson_cnaiv2 /mediation/data/cm/ericsson/parsed/cnaiv2 ',
         dag=dag)
 
-    dag.set_dependency('check_if_2g_raw_files_exist', 'backup_ericsson_2g_csv_files')
-    dag.set_dependency('backup_ericsson_2g_csv_files', 'run_ericsson_2g_parser')
-    dag.set_dependency('run_ericsson_2g_parser', 'clear_ericsson_2g_cm_tables')
-    dag.set_dependency('clear_ericsson_2g_cm_tables', 'import_eri_2g_cm_data')
+    dag.set_dependency('check_if_cnaiv2_raw_files_exist', 'backup_ericsson_cnaiv2_csv_files')
+    dag.set_dependency('backup_ericsson_cnaiv2_csv_files', 'run_ericsson_cnaiv2_parser')
+    dag.set_dependency('clear_ericsson_cnaiv2_cm_tables', 'import_ericsson_cnaiv2_data')
 
     return dag
