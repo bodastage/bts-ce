@@ -11,6 +11,19 @@ services:
             - "5432:5432"
         network_mode: "bridge"
         container_name: "bts-database"
+    bts-msgbroker"
+        image: rabbitmq:3.7.4-management
+        restart: always
+        ports:
+            - "4369:4369"
+            - "5671:5671"
+            - "5672:5672"
+            - "15672:15672"
+            - "15674:15674"
+            - "61613:61613"
+            - "15670:15670"
+        network_mode: "bridge"
+        container_name: "bts-msgbroker"
     bts-api:
         image: bodastage/bts-ce-api
         ports:
@@ -20,6 +33,7 @@ services:
           - ./bts-ce-api:/app
         depends_on: 
             - bts-database
+            - bts-msgbroker
         links:
           - "bts-database:database"
         network_mode: "bridge"
@@ -32,6 +46,8 @@ services:
           - ./web:/usr/share/nginx/html
         network_mode: "bridge"
         container_name: "bts-web"
+        depends_on: 
+            - bts-msgbroker
     bts-mediation:
         image: bodastage/bts-ce-mediation
         restart: always
@@ -49,6 +65,7 @@ services:
         command: webserver
         depends_on: 
            - bts-database
+           - bts-msgbroker
         network_mode: "bridge"
         container_name: "bts-mediation"
         links:
