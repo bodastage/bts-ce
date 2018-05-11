@@ -21,40 +21,41 @@ def parse_and_import_eri_3g4g(parent_dag_name, child_dag_name, start_date, sched
     )
 
     t1 = BashOperator(
-        task_id='check_if_eri_3g4g_raw_files_exist',
-        bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/ericsson/3g4g/raw/in | wc -l` ]; then exit 1; fi',
+        task_id='check_if_ericsson_bulkcm_raw_files_exist',
+        # bash_command='if [ 0 -eq `ls -1 /mediation/data/cm/ericsson/3g4g/raw/in | wc -l` ]; then exit 1; fi',
+        bash_command='echo "0"',
         dag=dag)
 
     # Backup previously generate csv files from parsing
     t5 = BashOperator(
-        task_id='backup_prev_eri_3g4g_csv_files',
-        bash_command='mv -f /mediation/data/cm/ericsson/3g4g/parsed/in/* /mediation/data/cm/ericsson/3g4g/parsed/out/ 2>/dev/null || true',
+        task_id='backup_ericsson_bulkcm_csv_files',
+        bash_command='mv -f /mediation/data/cm/ericsson/parsed/bulkcm/* /mediation/data/cm/ericsson/3g4g/parsed/backup/ 2>/dev/null || true',
         dag=dag)
 
     t2 = BashOperator(
-        task_id='run_eri_3g4g_parser',
+        task_id='run_ericsson_bulkcm_parser',
         bash_command='java -jar /mediation/bin/boda_bulkcmparser.jar /mediation/data/cm/ericsson/3g4g/raw/in /mediation/data/cm/ericsson/3g4g/parsed/in /mediation/conf/cm/eri_cm_3g4g_parser.cfg',
         dag=dag)
 
     # Truncate ericsson 3g4g cm tables
-    def clear_eri_3g4g_cm_tables():
+    def clear_ericsson_bulkcm_tables():
         bts_utils.truncate_schema_tables(schema="eri_cm_3g4g")
 
     t7 = PythonOperator(
-        task_id='clear_eri_3g4g_cm_tables',
-        python_callable=clear_eri_3g4g_cm_tables,
+        task_id='clear_ericsson_bulkcm_tables',
+        python_callable=clear_ericsson_bulkcm_tables,
         dag=dag)
 
-    # Import csv files into csv files
-    t3 = BashOperator(
-        task_id='import_eri_3g4g_cm_data',
-        bash_command='export PGPASSWORD=password && psql -h $POSTGRES_HOST -U bodastage -d bts -a -w -f "/mediation/conf/cm/eri_cm_3g4g_loader.cfg"',
+
+    import_csv_files = BashOperator(
+        task_id='import_ericsson_bulkcm_data',
+        bash_command='python /mediation/bin/load_cm_data_into_db.py ericsson_bulkcm /mediation/data/cm/ericsson/parsed/bulkcm ',
         dag=dag)
 
-    dag.set_dependency('check_if_eri_3g4g_raw_files_exist', 'backup_prev_eri_3g4g_csv_files')
-    dag.set_dependency('backup_prev_eri_3g4g_csv_files', 'run_eri_3g4g_parser')
-    dag.set_dependency('run_eri_3g4g_parser', 'clear_eri_3g4g_cm_tables')
-    dag.set_dependency('clear_eri_3g4g_cm_tables', 'import_eri_3g4g_cm_data')
+    dag.set_dependency('check_if_ericsson_bulkcm_raw_files_exist', 'backup_ericsson_bulkcm_csv_files')
+    dag.set_dependency('backup_ericsson_bulkcm_csv_files', 'run_ericsson_bulkcm_parser')
+    dag.set_dependency('run_ericsson_bulkcm_parser', 'clear_ericsson_bulkcm_tables')
+    dag.set_dependency('clear_ericsson_bulkcm_tables', 'import_ericsson_bulkcm_data')
 
     return dag
 
