@@ -2651,15 +2651,15 @@ class ProcessCMData(object):
     def extract_ericsson_4g3g_nbrs(self):
         pass
 
-
     def detect_format_and_move_ericsson_cm_raw_files(self):
         """Detect """
 
         # Uncompress files
         os.system("""
-            for f in `ls -1  /mediation/data/cm/ericsson/in/`
+            for f in `ls -1  /mediation/data/cm/ericsson/in`
             do 
-                /mediation/bin/uncompress.sh "$f"
+                f=" /mediation/data/cm/ericsson/in/$f"
+                /mediation/bin/uncompress.sh "$f" /mediation/data/cm/ericsson/in
             done 
         """)
 
@@ -2669,6 +2669,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/ericsson/in/`
             do 
+                f="/mediation/data/cm/ericsson/in/$f"
                 [ -f "$f" ] && head -2 "$f" | grep '<bulkCmConfigDataFile ' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/ericsson/raw/bulkcm
             done 
@@ -2679,7 +2680,8 @@ class ProcessCMData(object):
             OIFS="$IFS"
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/ericsson/in/`
-            do 
+            do  
+                f="/mediation/data/cm/ericsson/in/$f"
                 [ -f "$f" ] && head -1 "$f" | grep '..cnai ' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/ericsson/raw/cnaiv2 
             done 
@@ -2692,6 +2694,7 @@ class ProcessCMData(object):
         os.system("""
             for f in `ls -1  /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 /mediation/bin/uncompress.sh "$f"
             done 
         """)
@@ -2702,6 +2705,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -10 "$f" | grep 'object technique="GSM"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_gsm 
             done 
@@ -2713,6 +2717,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -10 "$f" | grep 'object technique="WCDMA"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_wcdma 
             done 
@@ -2724,6 +2729,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -10 "$f" | grep 'object technique="LTE"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_lte 
             done 
@@ -2735,6 +2741,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -10 "$f" | grep 'object technique="CDMA"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_cdma 
             done 
@@ -2746,6 +2753,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -10 "$f" | grep 'object technique="SRAN"' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_sran
             done 
@@ -2757,6 +2765,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -10 "$f" | grep 'object technique="" ' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/gexport_other
             done 
@@ -2768,6 +2777,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SOM CMEGBSS_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_gsm
             done 
@@ -2779,6 +2789,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SOM CMEWRAN_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_umts
             done 
@@ -2790,6 +2801,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -5 "$f" | grep 'xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMELTE_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_lte
             done 
@@ -2801,6 +2813,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMEMRAT_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_sran
             done 
@@ -2812,6 +2825,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN CMEUMTS_NRM_Spec' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_sran
             done 
@@ -2823,6 +2837,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -5 "$f" | grep 'xmlns="http://www.huawei.com/specs/SRAN" xsi:schemaLocation="http://www.huawei.com/specs/SRAN "' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/nbi_sran
             done 
@@ -2834,6 +2849,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -20 "$f" | grep ' BSCBASIC:' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/mml_gsm
             done 
@@ -2845,6 +2861,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -20 "$f" | grep ' URNCBASIC:' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/mml_umts
             done 
@@ -2856,6 +2873,7 @@ class ProcessCMData(object):
             IFS=$'\n'
             for f in `ls -1 /mediation/data/cm/huawei/in/`
             do 
+                f="/mediation/data/cm/huawei/in/$f"
                 [ -f "$f" ] && head -5 "$f" | grep 'bulkcm_xml_baseline_syn' 2>&1 > /dev/null
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/cfgsyn
             done 
