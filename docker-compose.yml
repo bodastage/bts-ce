@@ -11,7 +11,7 @@ services:
             - "5432:5432"
         network_mode: "bridge"
         container_name: "bts-database"
-    bts-msgbroker"
+    bts-msgbroker:
         image: rabbitmq:3.7.4-management
         restart: always
         ports:

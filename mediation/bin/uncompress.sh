@@ -30,10 +30,12 @@ function unachive_folder(){
 	    # if [[ $(file "$f") = *"ASCII text"* ]]
 		if [[ $(file "$f") = *"text"* ]]
 		then 
-			f2=${f#\./} # Remove leading point and forward slash e.g. ./path/to/file
+		    f2=${f/$output_dir/} # Remove the output directory from the file name first
+			f2=${f2#\./} # Remove leading point and forward slash e.g. ./path/to/file
 			f2=${f2#\/} # Remove leading forward slash e.g /path/to/file
 			new_name=${f2//\//_} 
-			mv -f $f $new_name
+			mv -f "$f" "$output_dir/$new_name"
+			continue
 		fi 
         
 		# Check if file is compressed
@@ -46,9 +48,12 @@ function unachive_folder(){
 			unachive_file $f $output_dir
 			# [ $? -ne 0 ] && echo "Failed to uncompress $f" && exit 1
 			unachive_folder $parent_dir $output_dir
+			continue
 			
 		fi
 	done
+	
+	rm -rf "$folder_name"
 }
 
 
