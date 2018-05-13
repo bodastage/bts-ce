@@ -14,6 +14,13 @@ If %errorLevel% == 0 (
    Exit /b 1
 )
 
+Rem Test if docker-machine is running
+@For /F "tokens=* USEBACKQ" %%F In (`docker-machine status default`) Do (
+	Set Status=%%F
+	If Not "%Status%" == "Running" (
+		docker-machine start default 2^>Nul
+	)
+)
 
 Rem Set docker env variables . Add so that docker commands can be run from cmd
 Rem Review this later.
@@ -90,7 +97,9 @@ If "%~1"=="restart" (
 Rem version 
 Rem -------------------------
 If "%~1"=="version" ( 
+    Rem This duplication is intentional. Needs to be fixed though. The version is only picked on the second call!
     Set /p Release=<VERSION
+	Set /p Release=<VERSION 
     Echo Version:%Release%
 	Echo Boda Telecom Suite - Community Edition
 	Echo Copyright 2017-2018. Bodastage Solutions. http://www.bodastage.com
