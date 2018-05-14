@@ -18,7 +18,7 @@ Rem Test if docker-machine is running
 @For /F "tokens=* USEBACKQ" %%F In (`docker-machine status default`) Do (
 	Set Status=%%F
 	If Not "%Status%" == "Running" (
-		docker-machine start default 2^>Nul
+		docker-machine start default
 	)
 )
 

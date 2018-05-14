@@ -29,12 +29,12 @@ def parse_and_import_eri_3g4g(parent_dag_name, child_dag_name, start_date, sched
     # Backup previously generate csv files from parsing
     t5 = BashOperator(
         task_id='backup_ericsson_bulkcm_csv_files',
-        bash_command='mv -f /mediation/data/cm/ericsson/parsed/bulkcm/* /mediation/data/cm/ericsson/3g4g/parsed/backup/ 2>/dev/null || true',
+        bash_command='mv -f /mediation/data/cm/ericsson/parsed/bulkcm/* /mediation/data/cm/ericsson/parsed/backup/ 2>/dev/null || true',
         dag=dag)
 
     t2 = BashOperator(
         task_id='run_ericsson_bulkcm_parser',
-        bash_command='java -jar /mediation/bin/boda_bulkcmparser.jar /mediation/data/cm/ericsson/3g4g/raw/in /mediation/data/cm/ericsson/3g4g/parsed/in /mediation/conf/cm/eri_cm_3g4g_parser.cfg',
+        bash_command='java -jar /mediation/bin/boda_bulkcmparser.jar /mediation/data/cm/ericsson/raw/bulkcm /mediation/data/cm/ericsson/parsed/bulkcm /mediation/conf/cm/ericsson_bulkcm_parser.cfg',
         dag=dag)
 
     # Truncate ericsson 3g4g cm tables

@@ -75,5 +75,3 @@ services:
         ports:
           - "6380:6380"
         network_mode: "bridge"
-        depends_on: 
-            - bts-cache
