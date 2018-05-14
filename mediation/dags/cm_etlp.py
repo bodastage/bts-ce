@@ -278,16 +278,16 @@ t18 = PythonOperator(
     python_callable=process_ericsson_bscs,
     dag=dag)
 
-
-def is_ericsson_2g_supported():
-    """
-    Check if Ericsson 2G is supported
-    :return: string parse_and_import_ericsson_2g | ericsson_2g_not_supported
-    """
-    if bts_utils.is_vendor_and_tech_supported(1,1) is True :
-        return 'ericsson_2g_supported'
-    else:
-        return 'ericsson_2g_not_supported'
+#
+# def is_ericsson_2g_supported():
+#     """
+#     Check if Ericsson 2G is supported
+#     :return: string parse_and_import_ericsson_2g | ericsson_2g_not_supported
+#     """
+#     if bts_utils.is_vendor_and_tech_supported(1,1) is True :
+#         return 'ericsson_2g_supported'
+#     else:
+#         return 'ericsson_2g_not_supported'
 
 
 def is_ericsson_3g_supported():
@@ -409,8 +409,8 @@ t27 = BranchPythonOperator(
 #     python_callable=is_ericsson_2g_supported,
 #     dag=dag)
 
-task_ericsson_2g_not_supported = DummyOperator(task_id='ericsson_2g_not_supported', dag=dag)
-task_ericsson_2g_not_supported = DummyOperator(task_id='ericsson_2g_supported', dag=dag)
+# task_ericsson_2g_not_supported = DummyOperator(task_id='ericsson_2g_not_supported', dag=dag)
+# task_ericsson_2g_not_supported = DummyOperator(task_id='ericsson_2g_supported', dag=dag)
 
 # End Extaction Transformation Load Process
 t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)
