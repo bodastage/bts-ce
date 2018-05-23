@@ -75,3 +75,15 @@ services:
         ports:
           - "6380:6380"
         network_mode: "bridge"
+    bts-ce-database:
+        image: bodastage/bts-ce-database
+        restart: always
+        environment:
+          - POSTGRES_PASSWORD=password
+        volumes:
+            - ./db/setup:/docker-entrypoint-initdb.d
+            - ./bts-ce-database:/migrations
+        ports:
+            - "5432:5432"
+        network_mode: "bridge"
+        container_name: "bts-ce-database"

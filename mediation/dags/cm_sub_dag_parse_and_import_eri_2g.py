@@ -35,7 +35,7 @@ def parse_and_import_eri_2g(parent_dag_name, child_dag_name, start_date, schedul
 
     t20 = BashOperator(
         task_id='run_ericsson_cnaiv2_parser',
-        bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/2g/raw/cnaiv2 /mediation/data/cm/ericsson/2g/parsed/cnaiv2 /mediation/conf/cm/ericsson_cnaiv2_gsm_parser.cfg',
+        bash_command='java -jar /mediation/bin/boda-ericssoncnaiparser.jar /mediation/data/cm/ericsson/raw/cnaiv2 /mediation/data/cm/ericsson/parsed/cnaiv2 /mediation/conf/cm/ericsson_cnaiv2_gsm_parser.cfg',
         dag=dag)
 
     def clear_ericsson_cnaiv2_cm_tables():
@@ -54,6 +54,7 @@ def parse_and_import_eri_2g(parent_dag_name, child_dag_name, start_date, schedul
 
     dag.set_dependency('check_if_cnaiv2_raw_files_exist', 'backup_ericsson_cnaiv2_csv_files')
     dag.set_dependency('backup_ericsson_cnaiv2_csv_files', 'run_ericsson_cnaiv2_parser')
+    dag.set_dependency('run_ericsson_cnaiv2_parser', 'clear_ericsson_cnaiv2_cm_tables')
     dag.set_dependency('clear_ericsson_cnaiv2_cm_tables', 'import_ericsson_cnaiv2_data')
 
     return dag

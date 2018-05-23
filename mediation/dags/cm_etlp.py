@@ -404,13 +404,6 @@ t27 = BranchPythonOperator(
     python_callable=is_nokia_supported,
     dag=dag)
 
-# branch_is_ericsson_2g_supported = BranchPythonOperator(
-#     task_id='is_ericsson_2g_supported',
-#     python_callable=is_ericsson_2g_supported,
-#     dag=dag)
-
-# task_ericsson_2g_not_supported = DummyOperator(task_id='ericsson_2g_not_supported', dag=dag)
-# task_ericsson_2g_not_supported = DummyOperator(task_id='ericsson_2g_supported', dag=dag)
 
 # End Extaction Transformation Load Process
 t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)

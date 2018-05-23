@@ -23,3 +23,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
 	select * from pg_reload_conf();
 	
 EOSQL
+
+cd /mediation
+alembic upgrade head

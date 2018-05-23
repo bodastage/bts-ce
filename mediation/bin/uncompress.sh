@@ -11,7 +11,7 @@ output_dir=$2 || $(pwd)
 function unachive_file(){
 	file_name=$1 
 	output_dir=$2
-	[ -f "$file_name" ] && [[ $(file "$file_name") = *"Zip archive data"* ]] && unzip -n "$file_name" && rm -rf "$file_name"
+	[ -f "$file_name" ] && [[ $(file "$file_name") = *"Zip archive data"* ]] && unzip -n "$file_name" -d "$output_dir" && rm -rf "$file_name"
 	[ -f "$file_name" ] && [[ $(file "$file_name") = *"RAR archive data"* ]] && unrar "$file_name"
 	[ -f "$file_name" ] && [[ $(file "$file_name") = *"gzip compressed data"* ]] && gunzip "$file_name"
 	[ -f "$file_name" ] && [[ $(file "$file_name") = *"7-zip archive data"* ]] && 7z e "$file_name" && rm -rf "$file_name"
@@ -53,7 +53,7 @@ function unachive_folder(){
 		fi
 	done
 	
-	rm -rf "$folder_name"
+	[ "$folder_name" != "$output_dir" ] && rm -rf "$folder_name"
 }
 
 
@@ -61,4 +61,4 @@ function unachive_folder(){
 unachive_folder "$input_file_or_dir" "$output_dir"
 
 #Delete folder 
-[ -d "$input_file_or_dir" ] && rm -rf "$input_file_or_dir"
+[ -d "$input_file_or_dir" ] && [ "$input_file_or_dir" != "$output_dir" ] && rm -rf "$input_file_or_dir"
