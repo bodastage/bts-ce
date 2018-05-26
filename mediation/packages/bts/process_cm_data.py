@@ -168,12 +168,12 @@ class ProcessCMData(object):
         t1."CELL_NAME" AS "name",
         t3.pk AS cell_pk,
         t2.pk AS node_pk,
-        t1."MCC" AS mcc,
-        t1."MNC" AS mnc,
+        t1."MCC"::integer AS mcc,
+        t1."MNC"::integer AS mnc,
         t1."LAC"::integer AS lac,
-        t1."BCCHNO" AS bcch,
-        t1."NCC" AS ncc,
-        t1."BCC" AS bcc,
+        t1."BCCHNO"::integer AS bcch,
+        t1."NCC"::integer AS ncc,
+        t1."BCC"::integer AS bcc,
         t1."CI"::integer AS ci,
         0 as modified_by,
         0 as added_by,
@@ -183,7 +183,7 @@ class ProcessCMData(object):
         ericsson_cm_2g."EXTERNAL_CELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."BSC_NAME"
         LEFT JOIN live_network.cells t3 on t3."name" = t1."CELL_NAME"
-        LEFT JOIN live_network.gsm_external_cells t4 on t4."name" on t1."CELL_NAME" 
+        LEFT JOIN live_network.gsm_external_cells t4 on t4."name" = t1."CELL_NAME" 
             AND t4.lac = t1."LAC"::integer
             AND t4.ci = t1."CI"::integer
         WHERE 
@@ -221,7 +221,7 @@ class ProcessCMData(object):
         ericsson_cm_2g."EXTERNAL_CELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."BSC_NAME"
         LEFT JOIN live_network.cells t3 on t3."name" = t1."CELL_NAME"
-        LEFT JOIN live_network.gsm_external_cells t4 on t4."name" on t1."CELL_NAME" 
+        LEFT JOIN live_network.umts_external_cells t4 on t4."name" = t1."CELL_NAME" 
             AND t4.lac = t1."LAC"::integer
             AND t4.ci = t1."CI"::integer
         WHERE 
@@ -338,7 +338,7 @@ class ProcessCMData(object):
         FROM
         ericsson_cm_3g."ExternalEUtranCellFDD" t1
         LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
-        LEFT JOIN live_network.gsm_external_cells t4 on t4."name" = t1."userLabel" 
+        LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."userLabel" 
             AND t4.ci = t1."localCellId"
         WHERE 
         t4.pk IS NULL
