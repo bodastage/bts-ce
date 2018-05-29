@@ -37,10 +37,12 @@ from airflow.utils.trigger_rule import TriggerRule
 
 sys.path.append('/mediation/packages')
 
-from bts import NetworkBaseLine, Utils, ProcessCMData
+from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM
 
 bts_utils = Utils()
 process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'))
+huawei_cm = HuaweiCM()
+
 
 schedule_interval = "@daily" # # bts_utils.get_setting('cm_dag_schedule_interval')
 
@@ -278,17 +280,6 @@ t18 = PythonOperator(
     python_callable=process_ericsson_bscs,
     dag=dag)
 
-#
-# def is_ericsson_2g_supported():
-#     """
-#     Check if Ericsson 2G is supported
-#     :return: string parse_and_import_ericsson_2g | ericsson_2g_not_supported
-#     """
-#     if bts_utils.is_vendor_and_tech_supported(1,1) is True :
-#         return 'ericsson_2g_supported'
-#     else:
-#         return 'ericsson_2g_not_supported'
-
 
 def is_ericsson_3g_supported():
     return bts_utils.is_vendor_and_tech_supported(1,2)
@@ -315,14 +306,6 @@ def is_huawei_3g_supported():
 def is_huawei_4g_supported():
     return bts_utils.is_vendor_and_tech_supported(2,3)
 
-
-# branch_is_ericsson_3g4g_supported = BranchPythonOperator(
-#     task_id='is_ericsson_3g4g_supported',
-#     python_callable=is_ericsson_3g4g_supported,
-#     dag=dag)
-
-# task_ericsson_3g4g_not_supported = DummyOperator(task_id='ericsson_3g4g_not_supported', dag=dag)
-# task_ericsson_3g4g_supported = DummyOperator(task_id='ericsson_3g4g_supported', dag=dag)
 
 huawei_parsing_done = DummyOperator(task_id='huawei_parsing_done', dag=dag)
 
@@ -447,8 +430,8 @@ t52 = PythonOperator(
     python_callable=extract_ericsson_2g_cell_params,
     dag=dag)
 
+
 def extract_ericsson_2g2g_nbrs():
-    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
     process_cm_data.extract_ericsson_2g2g_nbrs()
 
 
@@ -457,10 +440,10 @@ t53 = PythonOperator(
     python_callable=extract_ericsson_2g2g_nbrs,
     dag=dag)
 
+
 # Extract Huawei BSCs
 def extract_huawei_bscs():
-    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_huawei_bscs()
+    huawei_cm.extract_live_network_bscs()
 
 
 t54 = PythonOperator(
@@ -468,19 +451,20 @@ t54 = PythonOperator(
     python_callable=extract_huawei_bscs,
     dag=dag)
 
+
 # Build network tree
 def extract_huawei_2g_sites():
-    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_huawei_2g_sites()
+    huawei_cm.extract_live_network_2g_sites()
+
 
 t56 = PythonOperator(
     task_id='extract_huawei_2g_sites',
     python_callable=extract_huawei_2g_sites,
     dag=dag)
 
+
 def extract_huawei_2g_cells():
-    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_huawei_2g_cells()
+    huawei_cm.extract_live_network_2g_cells()
 
 
 t57 = PythonOperator(
@@ -489,8 +473,7 @@ t57 = PythonOperator(
     dag=dag)
 
 def extract_huawei_2g_cell_params():
-    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_huawei_2g_cell_params()
+    huawei_cm.extract_live_network_2g_cells_params()
 
 
 t58 = PythonOperator(
@@ -500,8 +483,7 @@ t58 = PythonOperator(
 
 # Process ericsson RNCs
 def extract_huawei_rncs():
-    # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_huawei_rncs()
+    huawei_cm.extract_live_network_rncs()
 
 
 t59 = PythonOperator(
@@ -512,7 +494,7 @@ t59 = PythonOperator(
 # Process Ericsson 3G Sites
 def extract_huawei_3g_sites():
     # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_huawei_3g_sites()
+    huawei_cm.extract_live_network_3g_sites()
 
 t60 = PythonOperator(
     task_id='extract_huawei_3g_sites',
@@ -522,7 +504,7 @@ t60 = PythonOperator(
 # Process Ericsson 3G Sites
 def extract_huawei_3g_cells():
     # process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'));
-    process_cm_data.extract_huawei_3g_cells()
+    huawei_cm.extract_live_network_3g_cells()
 
 
 t61 = PythonOperator(
@@ -533,7 +515,7 @@ t61 = PythonOperator(
 
 # Process Huawei 3G cell parameters
 def extract_huawei_3g_cell_params():
-    process_cm_data.extract_huawei_3g_cell_params()
+    huawei_cm.extract_live_network_3g_cells_params()
 
 
 t62 = PythonOperator(
@@ -544,7 +526,7 @@ t62 = PythonOperator(
 
 # Process ericsson ENodeBs
 def extract_huawei_enodebs():
-    process_cm_data.extract_huawei_enodebs()
+    huawei_cm.extract_live_network_enodebs()
 
 
 t63 = PythonOperator(
@@ -555,7 +537,7 @@ t63 = PythonOperator(
 
 # Process Huawei 4G Sites
 def extract_huawei_4g_cells():
-    process_cm_data.extract_huawei_4g_cells()
+    huawei_cm.extract_live_network_4g_cells()
 
 
 t64 = PythonOperator(
@@ -565,8 +547,7 @@ t64 = PythonOperator(
 
 # Process Huawei 4G Sites
 def extract_huawei_4g_cell_params():
-    process_cm_data.extract_huawei_4g_cell_params()
-
+    huawei_cm.extract_live_network_4g_cells_params()
 
 t65 = PythonOperator(
     task_id='extract_huawei_4g_cell_params',
@@ -574,7 +555,7 @@ t65 = PythonOperator(
     dag=dag)
 
 def extract_huawei_2g2g_nbrs():
-    process_cm_data.extract_huawei_2g2g_nbrs()
+    huawei_cm.extract_live_network_2g2g_nbrs()
 
 
 t66 = PythonOperator(
@@ -582,8 +563,40 @@ t66 = PythonOperator(
     python_callable=extract_huawei_2g2g_nbrs,
     dag=dag)
 
+def extract_huawei_2g_externals():
+    huawei_cm.extract_live_network_2g_externals_on_2g()
+    huawei_cm.extract_live_network_3g_externals_on_2g()
+    huawei_cm.extract_live_network_4g_externals_on_2g()
+
+def extract_huawei_3g_externals():
+    huawei_cm.extract_live_network_2g_externals_on_3g()
+    huawei_cm.extract_live_network_3g_externals_on_3g()
+    huawei_cm.extract_live_network_4g_externals_on_3g()
+
+def extract_huawei_4g_externals():
+    huawei_cm.extract_live_network_2g_externals_on_4g()
+    huawei_cm.extract_live_network_3g_externals_on_4g()
+    huawei_cm.extract_live_network_4g_externals_on_4g()
+
+
+huawei_2g_externals = PythonOperator(
+    task_id='extract_huawei_2g_externals',
+    python_callable=extract_huawei_2g_externals,
+    dag=dag)
+
+huawei_3g_externals = PythonOperator(
+    task_id='extract_huawei_3g_externals',
+    python_callable=extract_huawei_3g_externals,
+    dag=dag)
+
+huawei_4g_externals = PythonOperator(
+    task_id='extract_huawei_4g_externals',
+    python_callable=extract_huawei_4g_externals,
+    dag=dag)
+
+
 def extract_huawei_2g3g_nbrs():
-    process_cm_data.extract_huawei_2g3g_nbrs()
+    huawei_cm.extract_live_network_2g3g_nbrs()
 
 
 t66 = PythonOperator(
@@ -592,7 +605,7 @@ t66 = PythonOperator(
     dag=dag)
 
 def extract_huawei_3g3g_nbrs():
-    process_cm_data.extract_huawei_3g3g_nbrs()
+    huawei_cm.extract_live_network_3g3g_nbrs()
 
 
 t67 = PythonOperator(
@@ -601,7 +614,7 @@ t67 = PythonOperator(
     dag=dag)
 
 def extract_huawei_3g2g_nbrs():
-    process_cm_data.extract_huawei_3g2g_nbrs()
+    huawei_cm.extract_live_network_3g2g_nbrs()
 
 
 t68 = PythonOperator(
@@ -611,7 +624,7 @@ t68 = PythonOperator(
 
 
 def extract_huawei_3g4g_nbrs():
-    process_cm_data.extract_huawei_3g4g_nbrs()
+    huawei_cm.extract_live_network_3g4g_nbrs()
 
 
 t69 = PythonOperator(
@@ -620,7 +633,7 @@ t69 = PythonOperator(
     dag=dag)
 
 def extract_huawei_2g4g_nbrs():
-    process_cm_data.extract_huawei_2g4g_nbrs()
+    huawei_cm.extract_live_network_2g4g_nbrs()
 
 
 t69 = PythonOperator(
@@ -629,7 +642,7 @@ t69 = PythonOperator(
     dag=dag)
 
 def extract_huawei_4g2g_nbrs():
-    process_cm_data.extract_huawei_4g2g_nbrs()
+    huawei_cm.extract_live_network_4g2g_nbrs()
 
 
 t70 = PythonOperator(
@@ -637,8 +650,9 @@ t70 = PythonOperator(
     python_callable=extract_huawei_4g2g_nbrs,
     dag=dag)
 
+
 def extract_huawei_4g3g_nbrs():
-    process_cm_data.extract_huawei_4g3g_nbrs()
+    huawei_cm.extract_live_network_4g3g_nbrs()
 
 
 t71 = PythonOperator(
@@ -648,7 +662,7 @@ t71 = PythonOperator(
 
 
 def extract_huawei_4g4g_nbrs():
-    process_cm_data.extract_huawei_4g4g_nbrs()
+    huawei_cm.extract_live_network_4g4g_nbrs()
 
 
 t72 = PythonOperator(
@@ -693,13 +707,16 @@ t76 = PythonOperator(
     python_callable=extract_ericsson_3g4g_nbrs,
     dag=dag)
 
+
 def extract_ericsson_4g2g_nbrs():
     process_cm_data.extract_ericsson_4g2g_nbrs()
+
 
 t77 = PythonOperator(
     task_id='extract_ericsson_4g2g_nbrs',
     python_callable=extract_ericsson_4g2g_nbrs,
     dag=dag)
+
 
 def extract_ericsson_4g3g_nbrs():
     process_cm_data.extract_ericsson_4g3g_nbrs()
@@ -732,9 +749,6 @@ t82 = DummyOperator(
     trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag
 )
-
-# Ericsson
-
 
 # Build dependency graph
 # dag.set_dependency('start_cm_etlp','is_ericsson_supported')
@@ -830,6 +844,9 @@ dag.set_dependency('huawei_parsing_done','extract_huawei_bscs')
 # dag.set_dependency('parse_and_import_huawei_2g','extract_huawei_bscs')
 dag.set_dependency('extract_huawei_bscs','extract_huawei_2g_sites')
 dag.set_dependency('extract_huawei_2g_sites','extract_huawei_2g_cells')
+
+
+
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g_cell_params')
 dag.set_dependency('extract_huawei_2g_cell_params','huawei_cm_done')
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g2g_nbrs')
@@ -841,6 +858,9 @@ dag.set_dependency('extract_huawei_2g2g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_2g3g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_2g4g_nbrs','huawei_cm_done')
 
+# Externals
+dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g_externals')
+dag.set_dependency('extract_huawei_2g_externals','huawei_cm_done')
 
 # Huawei 3G
 dag.set_dependency('huawei_is_supported','parse_and_import_huawei_3g')
@@ -860,6 +880,11 @@ dag.set_dependency('extract_huawei_3g2g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_3g3g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_3g4g_nbrs','huawei_cm_done')
 
+# #G Externals
+dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g_externals')
+dag.set_dependency('extract_huawei_3g_externals','huawei_cm_done')
+
+
 # Huawei 4G
 dag.set_dependency('huawei_is_supported','parse_and_import_huawei_4g')
 dag.set_dependency('parse_and_import_huawei_4g','huawei_parsing_done')
@@ -875,6 +900,11 @@ dag.set_dependency('extract_huawei_4g_cells','extract_huawei_3g4g_nbrs')
 dag.set_dependency('extract_huawei_4g2g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_4g3g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_4g4g_nbrs','huawei_cm_done')
+
+# #G Externals
+dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g_externals')
+dag.set_dependency('extract_huawei_4g_externals','huawei_cm_done')
+
 
 # Huawei cfgsyn
 dag.set_dependency('huawei_is_supported','parse_and_import_huawei_cfgsyn')

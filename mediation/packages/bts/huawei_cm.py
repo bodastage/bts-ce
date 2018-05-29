@@ -84,10 +84,11 @@ class HuaweiCM(object):
              2 as vendor_pk, -- 1=Ericsson, 2=Huawei
              t1."ENODEBFUNCTIONNAME",
              0 as added_by,
-             0 as modified_by
+             0 as modified_by 
+             FROM
              huawei_cm_4g."ENODEBFUNCTION" t1
              LEFT OUTER  JOIN live_network.sites t2 ON t1."ENODEBFUNCTIONNAME" = t2."name"
-             WHERE 11
+             WHERE 
              t2."name" IS NULL
          """
 
@@ -95,7 +96,7 @@ class HuaweiCM(object):
 
         session.close()
 
-    def extract_2g_live_network_sites(self):
+    def extract_live_network_2g_sites(self):
         """Extract Huawei 2G sites from itf-N dumps"""
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
@@ -126,7 +127,7 @@ class HuaweiCM(object):
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
         session.close()
 
-    def extract_2g_live_network_cells(self):
+    def extract_live_network_2g_cells(self):
         """Extract Huawei 2G cells """
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
@@ -166,7 +167,7 @@ class HuaweiCM(object):
 
         session.close()
 
-    def extract_2g_live_network_cell_params(self):
+    def extract_live_network_2g_cells_params(self):
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
@@ -216,45 +217,13 @@ class HuaweiCM(object):
                          null as hsn,
                          null as hopping_type,
                          null as tch_carriers,
-                         t1."MCC",
-                         t1."MNC",
+                         t1."MCC"::integer,
+                         t1."MNC"::integer,
                          0 as modified_by,
                          0 as added_by,
                          t1."varDateTime" as date_added,
-                         t1."varDateTime" as date_modified
-                         FROM                          INSERT INTO live_network.gsm_cells_data
-                         (pk, name, cell_pk, ci, bcc, ncc, bsic, bcch, lac, latitude, longitude, cgi, azimuth, height, 
-                         mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, mcc, mnc, modified_by, added_by, date_added, date_modified)
-                         SELECT 
-                         NEXTVAL('live_network.seq_gsm_cells_data_pk'),
-                         t1."CELLNAME" as name,
-                         t2.pk as cell_pk,
-                         t1."CI"::integer as ci,
-                         t1."BCC"::integer as bcc,
-                         t1."NCC"::integer as ncc,
-                         CONCAT(trim(t1."NCC"),trim(t1."BCC"))::integer as bsic,
-                         t4."FREQ"::integer as bcch,
-                         t1."LAC"::integer as lac,
-                         t6."LATIINT"::float as latitude,
-                         t6."LONGIINT"::float,
-                         CONCAT( TRIM(t1."MCC"),'-', TRIM(t1."MNC"),'-',TRIM(t1."LAC"),'-',TRIM(t1."CI")) as cgi,
-                         t6."ANTAANGLE"::integer as azimuth,
-                         t6."ALTITUDE"::integer as height,
-                         null as mechanical_tilt,
-                         -- t1."SECTOR_ANGLE"::integer as sector_angle,
-                         -- t6."MAXTA" as ta
-                         -- t1."STATE" as STATE -- ACTIVE or INACTIVE
-                         null as electrical_tilt,
-                         null as hsn,
-                         null as hopping_type,
-                         null as tch_carriers,
-                         t1."MCC",
-                         t1."MNC",
-                         0 as modified_by,
-                         0 as added_by,
-                         t1."varDateTime" as date_added,
-                         t1."varDateTime" as date_modified
-                         FROM huawei_cm_2g.gcell t1
+                         t1."varDateTime" as date_modified            
+                         FROM huawei_cm_2g."GCELL" t1             
                          INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 1
                          INNER JOIN huawei_cm_2g."GCELLBASICPARA" t3 on t3."CELLID" = t1."CELLID" AND t3.neid = t1.neid 
                          INNER JOIN huawei_cm_2g."GTRX" t4 on t4."neid" = t1.neid AND t4."CELLID" = t1."CELLID"
@@ -263,16 +232,7 @@ class HuaweiCM(object):
                          INNER JOIN huawei_cm_2g."CELLBIND2BTS" t7 on t7."CELLID" = t1."CELLID" AND t6.neid = t1.neid
                          WHERE 
                          t5."name" ='{0}'
-                         AND trim(t1.module_type) = 'Radio'cm_2g.gcell t1
-                         INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 1
-                         INNER JOIN huawei_cm_2g."GCELLBASICPARA" t3 on t3."CELLID" = t1."CELLID" AND t3.neid = t1.neid 
-                         INNER JOIN huawei_cm_2g."GTRX" t4 on t4."neid" = t1.neid AND t4."CELLID" = t1."CELLID"
-                         INNER JOIN live_network.sites t5 on t5.pk = t2.site_pk
-                         INNER JOIN huawei_cm_2g."GCELLLCS" t6 on t6.neid = t1.neid AND t6."CELLID" = t1."CELLID"
-                         INNER JOIN huawei_cm_2g."CELLBIND2BTS" t7 on t7."CELLID" = t1."CELLID" AND t6.neid = t1.neid
-                         WHERE 
-                         t5."name" ='{0}'
-                         AND trim(t1.module_type) = 'Radio'
+                        -- AND trim(t1.module_type) = 'Radio'
                          ;
                      """.format(site_name)
 
@@ -1294,7 +1254,7 @@ class HuaweiCM(object):
             2, -- 1- Ericsson, 2 - Huawei,
             t1."NODEBNAME",
             t2.pk -- node primary key
-            from hua_cm_3g."UNODEB" t1
+            from huawei_cm_3g."UNODEB" t1
             INNER join live_network.nodes t2 on t2."name" = t1."neid" 
                 AND t2.vendor_pk = 2 and t2.tech_pk = 2
             LEFT JOIN live_network.sites t3 on t3."name" = t1."NODEBNAME"
@@ -1469,7 +1429,7 @@ class HuaweiCM(object):
             2, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             t1."CELLNAME" as name,
             t2.pk -- site primary key
-            FROM hua_cm_4g."CELL" t1
+            FROM huawei_cm_4g."CELL" t1
             INNER JOIN live_network.sites t2 on t2."name" = t1."neid" 
                 AND t2.vendor_pk = 2 and t2.tech_pk = 3 
             LEFT JOIN live_network.cells t3 on t3."name" = t1."CELLNAME"
@@ -1544,12 +1504,12 @@ class HuaweiCM(object):
                         0 as added_by, 
                         t1."varDateTime" as date_added, 
                         t1."varDateTime" as date_modified
-                        FROM hua_cm_4g."CELL" t1
+                        FROM huawei_cm_4g."CELL" t1
                         INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 3
                         INNER JOIN public.lte_frequency_bands t3 on t3.band_id = t1."FREQBAND"::integer
-                        INNER JOIN hua_cm_4g."CNOPERATORTA" t4 on t4.neid = t1.neid
-                        INNER JOIN hua_cm_4g."CNOPERATOR" t6 on t6.neid  = t1.neid
-                        INNER JOIN hua_cm_4g."CELLDLSCHALGO" t7 on t7.neid = t1.neid AND t7."LOCALCELLID" = t1."LOCALCELLID"
+                        INNER JOIN huawei_cm_4g."CNOPERATORTA" t4 on t4.neid = t1.neid
+                        INNER JOIN huawei_cm_4g."CNOPERATOR" t6 on t6.neid  = t1.neid
+                        INNER JOIN huawei_cm_4g."CELLDLSCHALGO" t7 on t7.neid = t1.neid AND t7."LOCALCELLID" = t1."LOCALCELLID"
                         WHERE t1."neid" = '{0}';
                     """.format(site_name)
 
