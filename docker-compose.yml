@@ -1,12 +1,24 @@
 version: "3"
 services:
+#    bts-database:
+#        image: postgres:10.1
+#        restart: always
+#        environment:
+#          - POSTGRES_PASSWORD=password
+#        volumes:
+#            - ./db/setup:/docker-entrypoint-initdb.d
+#        ports:
+#            - "5432:5432"
+#        network_mode: "bridge"
+#        container_name: "bts-database"
     bts-database:
-        image: postgres:10.1
+        image: bodastage/bts-ce-database:latest
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
         volumes:
             - ./db/setup:/docker-entrypoint-initdb.d
+            - ./bts-ce-database:/migrations
         ports:
             - "5432:5432"
         network_mode: "bridge"
@@ -70,20 +82,8 @@ services:
         container_name: "bts-mediation"
         links:
             - "bts-database:database"
-    bts-cache:
-        image: redis:latest
-        ports:
-          - "6380:6380"
-        network_mode: "bridge"
-    bts-ce-database:
-        image: bodastage/bts-ce-database
-        restart: always
-        environment:
-          - POSTGRES_PASSWORD=password
-        volumes:
-            - ./db/setup:/docker-entrypoint-initdb.d
-            - ./bts-ce-database:/migrations
-        ports:
-            - "5432:5432"
-        network_mode: "bridge"
-        container_name: "bts-ce-database"
+#    bts-cache:
+#        image: redis:latest
+#        ports:
+#          - "6380:6380"
+#        network_mode: "bridge"
