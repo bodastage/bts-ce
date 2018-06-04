@@ -26,7 +26,7 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 ## Deployment/Installation
 
 ### Windows
-* Download latest release files from https://github.com/bodastage/bts-ce/releases
+* Download latest release files from https://github.com/bodastage/bts-ce/releases/download/1.0.22-alpha-2/bts-ce-1.0.22-alpha-2.zip
 * Unzip the downloaded files to Drive:/Bodastage
 * Launch the Windows **command prompt**
 * Change directory to **Drive**:/Bodastage/bts-ce-**version** from the Windows command prompt
