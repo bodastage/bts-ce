@@ -1,28 +1,18 @@
 version: "3"
 services:
-#    bts-database:
-#        image: postgres:10.1
-#        restart: always
-#        environment:
-#          - POSTGRES_PASSWORD=password
-#        volumes:
-#            - ./db/setup:/docker-entrypoint-initdb.d
-#        ports:
-#            - "5432:5432"
-#        network_mode: "bridge"
-#        container_name: "bts-database"
     bts-database:
-        image: bodastage/bts-ce-database:latest
+        image: postgres:10.1
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
+          - POSTGRES_HOST=database
         volumes:
             - ./db/setup:/docker-entrypoint-initdb.d
-            - ./bts-ce-database:/migrations
         ports:
             - "5432:5432"
         network_mode: "bridge"
         container_name: "bts-database"
+        command: ["postgres","-c","max_locks_per_transaction=1024"]
     bts-msgbroker:
         image: rabbitmq:3.7.4-management
         restart: always
@@ -41,8 +31,11 @@ services:
         ports:
           - 8181:8181
         restart: always
+        environment:
+          - POSTGRES_PASSWORD=password
         volumes:
           - ./bts-ce-api:/app
+          - ./bts-ce-database:/migrations
         depends_on: 
             - bts-database
             - bts-msgbroker
@@ -50,19 +43,24 @@ services:
           - "bts-database:database"
         network_mode: "bridge"
         container_name: "bts-api"
+        command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
     bts-web:
         image: nginx:latest
         ports:
           - "80:80"
         volumes:
-          - ./web:/usr/share/nginx/html
+#          - ./web:/usr/share/nginx/html
+          - ./bts-ce-web/dist:/usr/share/nginx/html
         network_mode: "bridge"
         container_name: "bts-web"
         depends_on: 
             - bts-msgbroker
+            - bts-api
     bts-mediation:
         image: bodastage/bts-ce-mediation
         restart: always
+        environment:
+          - POSTGRES_PASSWORD=password
         ports:
           - "8080:8080"
         environment:

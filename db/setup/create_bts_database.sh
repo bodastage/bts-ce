@@ -16,13 +16,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
 	ALTER ROLE airflow SET search_path = 'public';
 	
 	
-	CREATE EXTENSION tablefunc;
-	 
-	alter system set max_locks_per_transaction='1024';
-	select pending_restart from pg_settings where name = 'max_locks_per_transaction';
-	select * from pg_reload_conf();
+	-- CREATE EXTENSION tablefunc;
+
 	
 EOSQL
 
-cd /mediation
-alembic upgrade head
+# cd /migrations
+# alembic upgrade head
