@@ -26,6 +26,7 @@ services:
             - "15670:15670"
         network_mode: "bridge"
         container_name: "bts-msgbroker"
+        command: bash -c "rabbitmq-server; rabbitmq-plugins enable rabbitmq_web_stomp"
     bts-api:
         image: bodastage/bts-ce-api
         ports:
