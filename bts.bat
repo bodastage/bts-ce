@@ -24,7 +24,7 @@ Rem Test if docker-machine is running
 
 Rem Set docker env variables . Add so that docker commands can be run from cmd
 Rem Review this later.
-@FOR /f "tokens=*" %%i In ('docker-machine env --shell=cmd 2^>Nul') Do @%%i
+@FOR /f "tokens=*" %%i In ('docker-machine env --shell=cmd 2^>Nul 1^>Nul') Do @%%i
 
 
 Rem application root directory 

@@ -672,7 +672,7 @@ class ProcessCMData(object):
                         0 as added_by, 
                         t1."varDateTime" as date_added, 
                         t1."varDateTime" as date_modified
-                        FROM ericsson_cm_3g."EUtranCellFDD" t1 t1
+                        FROM ericsson_cm_3g."EUtranCellFDD" t1
                         INNER JOIN live_network.cells t2 on t2."name" = t1."vsDataEUtranCellFDD_id"
                         WHERE t1."MeContext_id" = '{0}';
                     """.format(site_name)

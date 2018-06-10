@@ -26,6 +26,11 @@ class NetworkBaseLine(object):
         schema = cur.fetchone()
         schema_name = schema[1]
 
+        schema_name = 'ericsson_bulkcm'
+
+
+        tech_id = 2
+        vendor_id = 1
 
         # Get MOs
         # UMTS, Ericsson
@@ -33,7 +38,8 @@ class NetworkBaseLine(object):
             SELECT DISTINCT t1.pk, t1."name" 
             FROM managedobjects t1
             INNER JOIN live_network.baseline_parameter_config t2 on t2.mo_pk = t1.pk
-            WHERE tech_pk = %s and vendor_pk = %s""", (tech_id, vendor_id))
+            WHERE t1.tech_pk = %s and t1.vendor_pk =%s """, (tech_id, vendor_id))
+
 
         mos = cur.fetchall()
 
@@ -59,7 +65,7 @@ class NetworkBaseLine(object):
 
                 sql = """
                     SELECT "{2}" AS parameter, count(1) as cnt
-                    FROM  {0}.{1}
+                    FROM  {0}."{1}"
                     WHERE 
                     "{2}" IS NOT NULL AND TRIM("{2}") != '####'
                     GROUP BY "{2}"

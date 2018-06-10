@@ -33,6 +33,9 @@ from cm_sub_dag_parse_and_import_huawei_2g import parse_and_import_huawei_2g
 from cm_sub_dag_parse_and_import_huawei_3g import parse_and_import_huawei_3g
 from cm_sub_dag_parse_and_import_huawei_4g import parse_and_import_huawei_4g
 from cm_sub_dag_parse_and_import_huawei_cfgsyn import parse_and_import_huawei_cfgsyn
+from cm_sub_dag_parse_and_import_zte_2g import parse_and_import_zte_2g
+from cm_sub_dag_parse_and_import_zte_3g import parse_and_import_zte_3g
+from cm_sub_dag_parse_and_import_zte_4g import parse_and_import_zte_4g
 from airflow.utils.trigger_rule import TriggerRule
 
 sys.path.append('/mediation/packages')
@@ -112,6 +115,27 @@ sub_dag_parse_and_import_huawei_cfgsyn_cm_files = SubDagOperator(
   dag=dag,
 )
 
+sub_dag_parse_and_import_zte_2g_cm_files = SubDagOperator(
+  subdag=parse_and_import_zte_2g('cm_etlp', 'parse_and_import_zte_2g', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_and_import_zte_2g',
+  dag=dag,
+)
+
+sub_dag_parse_and_import_zte_3g_cm_files = SubDagOperator(
+  subdag=parse_and_import_zte_3g('cm_etlp', 'parse_and_import_zte_3g', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_and_import_zte_3g',
+  dag=dag,
+)
+
+sub_dag_parse_and_import_zte_4g_cm_files = SubDagOperator(
+  subdag=parse_and_import_zte_4g('cm_etlp', 'parse_and_import_zte_4g', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_and_import_zte_4g',
+  dag=dag,
+)
+
 # Backup raw files that have been parsed
 t4 = BashOperator(
     task_id='backup_3g4g_raw_files',
@@ -121,7 +145,7 @@ t4 = BashOperator(
 # Run network baseline
 def generate_eri_3g4g_network_baseline():
     networkBaseLine = NetworkBaseLine(dbhost=os.environ.get('POSTGRES_HOST'));
-    networkBaseLine.run(vendor_pk, tech_pk)
+    networkBaseLine.run('1', '2')
 
 
 t6 = PythonOperator(
@@ -308,6 +332,7 @@ def is_huawei_4g_supported():
 
 
 huawei_parsing_done = DummyOperator(task_id='huawei_parsing_done', dag=dag)
+zte_parsing_done = DummyOperator(task_id='zte_parsing_done', dag=dag)
 
 
 # Task to check whether ericsson is supported in the network
@@ -916,7 +941,13 @@ dag.set_dependency('start_cm_etlp','is_zte_supported')
 dag.set_dependency('is_zte_supported','zte_is_supported')
 dag.set_dependency('is_zte_supported','zte_not_supported')
 dag.set_dependency('zte_not_supported','end_cm_etlp')
-dag.set_dependency('zte_is_supported','end_cm_etlp')
+dag.set_dependency('zte_is_supported','parse_and_import_zte_2g')
+dag.set_dependency('zte_is_supported','parse_and_import_zte_3g')
+dag.set_dependency('zte_is_supported','parse_and_import_zte_4g')
+dag.set_dependency('parse_and_import_zte_2g','zte_parsing_done')
+dag.set_dependency('parse_and_import_zte_3g','zte_parsing_done')
+dag.set_dependency('parse_and_import_zte_4g','zte_parsing_done')
+dag.set_dependency('zte_parsing_done','end_cm_etlp')
 
 # Nokia
 # ##############################################
