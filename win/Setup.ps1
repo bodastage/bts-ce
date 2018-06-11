@@ -142,41 +142,52 @@ if ( $UseHyperVDriver -eq $True ){
 	$DFWInstaller = $BTSDir + "\" + "Docker for Windows Installer.exe"
 	
 	
-	# Check if file exits 
-	$InstallerExists = [System.IO.File]::Exists($DFWInstaller)
-	if($InstallerExists -ne $True){
-		Write-Host "Downloading Docker for Windows..."
-		(New-Object System.Net.WebClient).DownloadFile($DockerForWindowsURI, $DFWInstaller)
-		
-		if([System.IO.File]::Exists($DFWInstaller) -ne $True){
-			Write-Host -ForegroundColor Red "Failed."
-			Write-Host ""
+	Write-Host -NoNewline "Checking if Docker Toolbox is installed..."
+	$IsDockerToolBoxInstalled = Is-Installed("Docker Toolbox")
+	if($IsDockerToolBoxInstalled -eq $False){
+		Write-Host -ForegroundColor Yellow "Not Installed"
+		Write-Host ""
 			
-			Write-Host -NoNewline "Check your network connectivity. "
-			Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe"
+		# Check if file exits 
+		$InstallerExists = [System.IO.File]::Exists($DFWInstaller)
+		if($InstallerExists -ne $True){
+			Write-Host "Downloading Docker for Windows..."
+			(New-Object System.Net.WebClient).DownloadFile($DockerForWindowsURI, $DFWInstaller)
+			
+			if([System.IO.File]::Exists($DFWInstaller) -ne $True){
+				Write-Host -ForegroundColor Red "Failed."
+				Write-Host ""
+				
+				Write-Host -NoNewline "Check your network connectivity. "
+				Write-Host "Or download and install Docker Toolbox from https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe"
+				Write-Host ""
+				Exit 1
+			}else{
+				Write-Host "Completed."
+				Write-Host ""
+			}
+		}
+		
+		#Install Docker for Windows
+		Write-Host -NoNewline "Installing Docker for Windows..."
+		Start-Process -wait -FilePath $DFWInstaller -ArgumentList "/VERYSILENT LOG $BTSDir+'\DockerForWindows.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
+		# @TODO: Check status of installation before continuing
+		$IsDockerForWinInstalled = Is-Installed("Docker Toolbox")
+		If($IsDockerForWinInstalled -eq $True){
+			Write-Host "Done"
+			Write-Host ""
+		}else{
+			Write-Host -ForegroundColor Red "Failed"
 			Write-Host ""
 			Exit 1
-		}else{
-			Write-Host "Completed."
-			Write-Host ""
 		}
-	}
-	
-	#Install Docker for Windows
-	Write-Host -NoNewline "Installing Docker for Windows..."
-	Start-Process -wait -FilePath $DFWInstaller -ArgumentList "/VERYSILENT LOG $BTSDir+'\DockerForWindows.log'  /SP /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
-	# @TODO: Check status of installation before continuing
-	$IsDockerForWinInstalled = Is-Installed("Docker Toolbox")
-	If($IsDockerForWinInstalled -eq $True){
-		Write-Host "Done"
-		Write-Host ""
+		
 	}else{
-		Write-Host -ForegroundColor Red "Failed"
+		Write-Host -ForegroundColor Green "Yes"
 		Write-Host ""
-		Exit 1
 	}
-
 	
+
 	# Create virtual Switches
 	Import-Module Hyper-V
 
@@ -315,6 +326,7 @@ if($IsDockerToolBoxInstalled -eq $False){
 	
     Write-Host -NoNewline "Configuring system..."
 	# Run Docker Quick Start Terminal to setup default machine
+	# @TODO: The line below may not be necessary. Test jsut running docker-machine [machine_name]
 	Start-Process -FilePath "C:\Program Files\Git\bin\bash.exe" -WorkingDirectory "C:\Program Files\Docker Toolbox" -ArgumentList '--login -i "C:\Program Files\Docker Toolbox\start.sh" & exit 0' -Wait
     Write-Host "Done"
 	Write-Host ""
@@ -329,7 +341,7 @@ if($IsDockerToolBoxInstalled -eq $False){
 # Setup Docker environment variables
 Try{
 	# Add Docker env variables to powershell
-	( "& '$DockerToolbox\docker-machine.exe' env --shell=powershell default") | Invoke-Expression
+	( "& '$DockerToolbox\docker-machine.exe' env --shell=powershell default") | Invoke-Expression 2>$Null 1>$Null
 }Catch{
 	Write-Host -ForegroundColor Red "Docker commands not in path. It may not be installed"
 	Write-Host ""
@@ -348,14 +360,14 @@ if($DockerMachineExist -eq $True){
 	
 	# Create docker machine 
 	Write-Host "Creating default docker-machine..."
-	("& '$DockerToolbox\docker-machine.exe' create -d virtualbox default") | Invoke-Expression
+	("& '$DockerToolbox\docker-machine.exe' create -d virtualbox default") | Invoke-Expression 2>$Null 1>$Null
 	Write-Host "Done"
 	Write-Host ""
 }
 
 # Create the containers 
 Write-Host "Creating and starting containers..."
-& $DockerToolbox\docker-machine.exe env --shell=powershell default | Invoke-Expression
+& $DockerToolbox\docker-machine.exe env --shell=powershell default | Invoke-Expression 2>$Null 1>$Null
 ("& '$DockerToolbox\docker-compose.exe' up -d") | Invoke-Expression
 
 if($LastExitCode -ne 0 ){
