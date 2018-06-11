@@ -25,10 +25,9 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 
 ## Deployment/Installation
 
-### Windows
-* Download latest release files from https://github.com/bodastage/bts-ce/releases/download/1.0.22-alpha-2/bts-ce-1.0.22-alpha-2.zip
+* Download latest release files from https://github.com/bodastage/bts-ce/releases/latest
 * Unzip the downloaded files
-* Launch the Windows **command prompt**
+* Launch the **command prompt**
 * From the commad prompt, change to unzipped BTS-CE folder
   ```batch 
   > cd  /path/to/bts-ce-<version>
@@ -40,19 +39,17 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 * Open web broswer and paste the URL http://localhost on windows or http://192.168.99.100
 * Login with username: **btsuser@bodastage.org** and password: **password**
 
-> If you are on a metered internet connection, note that the setup process will download about 1GB.
+> If you are on a metered internet connection, note that the setup process will download about 1GB of dependent packages
 
-### Unix
-To be added
 
 ## Supported Web Browsers
 
-| Desktop Browsers |
-| -------- |
-| Safari 6.1+ |
-| Google Chrome 32+ |
-| Microsoft Edge |
-| Firefox 27+ |
+| Desktop Browsers | Version |
+| -------- | -------- |
+| Safari | 6.1+ |
+| Google Chrome | 32+ |
+| Microsoft Edge | |
+| Firefox | 27+ |
 
 ## Built With
 - [Python](https://www.python.org)

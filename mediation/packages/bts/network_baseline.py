@@ -26,12 +26,6 @@ class NetworkBaseLine(object):
         schema = cur.fetchone()
         schema_name = schema[1]
 
-        schema_name = 'ericsson_bulkcm'
-
-
-        tech_id = 2
-        vendor_id = 1
-
         # Get MOs
         # UMTS, Ericsson
         cur.execute("""
