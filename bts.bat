@@ -115,6 +115,7 @@ If "%~1"=="stop" (
 	)
 	
     docker-compose stop
+	docker-machine stop
 )
 
 Rem logs 
