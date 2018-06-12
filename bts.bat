@@ -15,7 +15,7 @@ If %errorLevel% == 0 (
 )
 
 Rem Test if docker-machine is running
-@For /F "tokens=* USEBACKQ" %%F In (`docker-machine status default`) Do (
+@For /F "tokens=* USEBACKQ" %%F In (`docker-machine status default 2^>Nul`) Do (
 	Set Status=%%F
 	If Not "%Status%" == "Running" (
 		docker-machine start default
@@ -24,7 +24,7 @@ Rem Test if docker-machine is running
 
 Rem Set docker env variables . Add so that docker commands can be run from cmd
 Rem Review this later.
-@FOR /f "tokens=*" %%i In ('docker-machine env --shell=cmd 2^>Nul') Do @%%i 2>Nul 1>Nul
+@FOR /f "tokens=*" %%i In ('docker-machine env --shell=cmd 2^>Nul') Do @%%i
 
 Rem application root directory 
 For /F %%i In ("%~dp0") Do Set BD_ROOT_DIR=%%~fi
@@ -174,7 +174,6 @@ If "%~1"=="ps" (
 		Exit /b 0
 	)
 	
-    docker-compose top
 )
 
 Rem Pause services
