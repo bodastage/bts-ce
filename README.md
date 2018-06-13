@@ -18,7 +18,7 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 ## Requirements 
 
 * 4GB memory
-* 64 bit OS
+* 64 bit OS (Kernel version 3.10+ for Linux and build 10.0.14393+ for Windows)
 * [Docker](https://www.docker.com/get-docker)
 * 5GB hard disk space
 * Latest web browser

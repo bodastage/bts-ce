@@ -48,7 +48,7 @@ services:
     bts-web:
         image: nginx:latest
         ports:
-          - "80:8888"
+          - "8888:80"
         volumes:
 #          - ./web:/usr/share/nginx/html
           - ./bts-ce-web/dist:/usr/share/nginx/html
