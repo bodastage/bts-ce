@@ -201,11 +201,7 @@ class EricssonCM(object):
     def extract_live_network_4g_externals_on_2g(self):
         pass
 
-    def extract_live_network_externals_on_2g(self):
-        """Extract live network externals defined on Ericsson 2G"""
-        self.extract_live_network_2g_externals_on_2g()
-        self.extract_live_network_3g_externals_on_2g()
-        self.extract_live_network_4g_externals_on_2g()
+
 
     def extract_live_network_2g_externals_3g(self):
         """Extract live network 3G externals defined on Ericsson RNCs"""
@@ -430,3 +426,21 @@ class EricssonCM(object):
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
+
+    def extract_live_network_externals_on_2g(self):
+        """Extract live network externals defined on Ericsson 2G"""
+        self.extract_live_network_2g_externals_on_2g()
+        self.extract_live_network_3g_externals_on_2g()
+        self.extract_live_network_4g_externals_on_2g()
+
+    def extract_live_network_externals_on_3g(self):
+        """Extract live network externals defined on Ericsson 3G"""
+        self.extract_live_network_2g_externals_on_3g()
+        self.extract_live_network_3g_externals_on_3g()
+        self.extract_live_network_4g_externals_on_3g()
+
+    def extract_live_network_externals_on_4g(self):
+        """Extract live network externals defined on Ericsson 4G"""
+        self.extract_live_network_2g_externals_on_4g()
+        self.extract_live_network_3g_externals_on_4g()
+        self.extract_live_network_4g_externals_on_4g()

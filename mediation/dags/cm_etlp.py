@@ -37,14 +37,17 @@ from cm_sub_dag_parse_and_import_zte_2g import parse_and_import_zte_2g
 from cm_sub_dag_parse_and_import_zte_3g import parse_and_import_zte_3g
 from cm_sub_dag_parse_and_import_zte_4g import parse_and_import_zte_4g
 from airflow.utils.trigger_rule import TriggerRule
+from cm_sub_dag_extract_externals import extract_network_externals
 
 sys.path.append('/mediation/packages')
 
-from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM
+from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM
 
 bts_utils = Utils()
 process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'))
 huawei_cm = HuaweiCM()
+ericsson_cm = EricssonCM()
+
 
 
 schedule_interval = "@daily" # # bts_utils.get_setting('cm_dag_schedule_interval')
@@ -72,6 +75,12 @@ dag = DAG(
     dagrun_timeout=timedelta(minutes=60))
 
 
+sub_dag_extract_network_externals_task = SubDagOperator(
+  subdag=extract_network_externals('cm_etlp', 'extract_network_externals', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='extract_network_externals',
+  dag=dag,
+)
 
 sub_dag_parse_and_import_eri_3g4g_cm_files = SubDagOperator(
   subdag=parse_and_import_eri_3g4g('cm_etlp', 'parse_and_import_ericsson_3g4g', start_date=dag.start_date,
@@ -142,6 +151,7 @@ t4 = BashOperator(
     bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ 2>/dev/null',
     dag=dag)
 
+
 # Run network baseline
 def generate_eri_3g4g_network_baseline():
     networkBaseLine = NetworkBaseLine(dbhost=os.environ.get('POSTGRES_HOST'));
@@ -198,6 +208,9 @@ t10 = PythonOperator(
     python_callable=extract_ericsson_3g_cells,
     dag=dag)
 
+def extract_ericsson_3g_externals(self):
+    """Extract Ericsson 3G externals defined on 2G, 3G and 4G"""
+    pass
 
 # Process Ericsson 4G Sites
 def extract_ericsson_4g_cells():
@@ -444,6 +457,9 @@ t39 = DummyOperator(task_id='zte_not_supported', dag=dag)
 t40 = DummyOperator(task_id='nokia_is_supported', dag=dag)
 
 t41 = DummyOperator(task_id='nokia_not_supported', dag=dag)
+
+cell_extaction_done_task = DummyOperator(task_id='cell_extraction_done', dag=dag)
+
 
 
 def extract_ericsson_2g_cell_params():
@@ -795,6 +811,7 @@ dag.set_dependency('parse_and_import_ericsson_3g4g','process_eri_enodebs')
 dag.set_dependency('process_eri_rncs','extract_ericsson_3g_sites')
 dag.set_dependency('extract_ericsson_3g_sites','extract_ericsson_3g_cells')
 dag.set_dependency('process_eri_enodebs','extract_ericsson_4g_cells')
+dag.set_dependency('extract_ericsson_3g_cells','cell_extraction_done')
 
 dag.set_dependency('generate_eri_3g4g_network_baseline','ericsson_cm_done')
 dag.set_dependency('backup_3g4g_raw_files','ericsson_cm_done')
@@ -820,6 +837,8 @@ dag.set_dependency('extract_ericsson_4g_cell_params','ericsson_cm_done')
 dag.set_dependency('extract_ericsson_4g2g_nbrs','ericsson_cm_done')
 dag.set_dependency('extract_ericsson_4g3g_nbrs','ericsson_cm_done')
 dag.set_dependency('extract_ericsson_4g4g_nbrs','ericsson_cm_done')
+
+dag.set_dependency('extract_ericsson_4g_cells','cell_extraction_done')
 
 
 # Extract UMTS cell parameter after the cells have been extracted
@@ -852,6 +871,8 @@ dag.set_dependency('extract_ericsson_3g_cells','build_network_tree')
 dag.set_dependency('extract_ericsson_4g_cells','build_network_tree')
 dag.set_dependency('build_network_tree','ericsson_cm_done')
 
+dag.set_dependency('extract_ericsson_2g_cells','cell_extraction_done')
+
 # ###########################################################################
 # Huawei
 # ##########################################################################
@@ -883,6 +904,8 @@ dag.set_dependency('extract_huawei_2g2g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_2g3g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_2g4g_nbrs','huawei_cm_done')
 
+dag.set_dependency('extract_huawei_2g_cells','cell_extraction_done')
+
 # Externals
 dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g_externals')
 dag.set_dependency('extract_huawei_2g_externals','huawei_cm_done')
@@ -905,6 +928,8 @@ dag.set_dependency('extract_huawei_3g2g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_3g3g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_3g4g_nbrs','huawei_cm_done')
 
+dag.set_dependency('extract_huawei_3g_cells','cell_extraction_done')
+
 # #G Externals
 dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g_externals')
 dag.set_dependency('extract_huawei_3g_externals','huawei_cm_done')
@@ -925,6 +950,8 @@ dag.set_dependency('extract_huawei_4g_cells','extract_huawei_3g4g_nbrs')
 dag.set_dependency('extract_huawei_4g2g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_4g3g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_4g4g_nbrs','huawei_cm_done')
+
+dag.set_dependency('extract_huawei_4g_cells','cell_extraction_done')
 
 # #G Externals
 dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g_externals')
@@ -956,3 +983,11 @@ dag.set_dependency('is_nokia_supported','nokia_is_supported')
 dag.set_dependency('is_nokia_supported','nokia_not_supported')
 dag.set_dependency('nokia_not_supported','end_cm_etlp')
 dag.set_dependency('nokia_is_supported','end_cm_etlp')
+
+
+# After
+dag.set_dependency('cell_extraction_done','end_cm_etlp')
+
+
+dag.set_dependency('cell_extraction_done', 'extract_network_externals')
+dag.set_dependency('extract_network_externals', 'end_cm_etlp')
