@@ -38,6 +38,7 @@ from cm_sub_dag_parse_and_import_zte_3g import parse_and_import_zte_3g
 from cm_sub_dag_parse_and_import_zte_4g import parse_and_import_zte_4g
 from airflow.utils.trigger_rule import TriggerRule
 from cm_sub_dag_extract_externals import extract_network_externals
+from cm_sub_dag_run_network_audits import run_network_audits
 
 sys.path.append('/mediation/packages')
 
@@ -74,6 +75,13 @@ dag = DAG(
     catchup = False,
     dagrun_timeout=timedelta(minutes=60))
 
+
+sub_dag_run_network_audits_task = SubDagOperator(
+  subdag=run_network_audits('cm_etlp', 'run_network_audits', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='run_network_audits',
+  dag=dag,
+)
 
 sub_dag_extract_network_externals_task = SubDagOperator(
   subdag=extract_network_externals('cm_etlp', 'extract_network_externals', start_date=dag.start_date,
@@ -991,3 +999,7 @@ dag.set_dependency('cell_extraction_done','end_cm_etlp')
 
 dag.set_dependency('cell_extraction_done', 'extract_network_externals')
 dag.set_dependency('extract_network_externals', 'end_cm_etlp')
+
+
+# Network audits
+dag.set_dependency('end_cm_etlp', 'run_network_audits')
