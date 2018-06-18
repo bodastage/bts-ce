@@ -323,13 +323,12 @@ class ProcessCMData(object):
         (pk, name, cell_pk, mcc, mnc, pci, dl_earfcn, ci, modified_by, added_by, date_added, date_modified)
         SELECT 
         NEXTVAL('live_network.seq_gsm_external_cells_pk') as pk,
-        t1."CELL_NAME" AS "name",
+        t1."userLabel" AS "name",
         t3.pk AS cell_pk,
-        t2.pk AS node_pk,
-        t1."mcc"::integer AS mcc,
-        t1."mnc"::integer AS mnc,
-        t1."pci"::integer AS pci,
-        t1."earfcnDl"::integer AS dl_earfcn_dl,
+        null AS mcc,
+        null AS mnc,
+        (t1."localCellId"::integer + 3 * t1."physicalLayerCellIdGroup"::integer) AS pci,
+        t1."earfcndl"::integer AS dl_earfcn_dl,
         t1."localCellId"::integer AS ci,
         0 as modified_by,
         0 as added_by,
@@ -339,7 +338,8 @@ class ProcessCMData(object):
         ericsson_cm_3g."ExternalEUtranCellFDD" t1
         LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
         LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."userLabel" 
-            AND t4.ci = t1."localCellId"
+            AND t4.ci = t1."localCellId"::integer
+        LEFT JOIN live_network.nodes t5 ON t5.name = 'SubNetwork' AND t5.vendor_pk = 1 AND t5.tech_pk = 3
         WHERE 
         t4.pk IS NULL
         """
