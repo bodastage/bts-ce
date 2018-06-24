@@ -74,8 +74,6 @@ class NetworkAudit(object):
                 LIMIT 5
             """.format(vendor_parameter, mo, baseline_value, pseudo_parameter)
 
-            # print(parameter_sql)
-
             r = self.engine.execute(parameter_sql)
 
             for rw in r:

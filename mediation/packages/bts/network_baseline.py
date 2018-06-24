@@ -134,7 +134,6 @@ class NetworkBaseLine(object):
 
         self.generate_huawei_2g_cell_level_discrepancies()
 
-
     def generate_huawei_2g_cell_level_discrepancies(self):
         """Generate Huawei 2G baseline descripancies for cell level parameters"""
         engine = create_engine('postgresql://bodastage:password@database/bts')
