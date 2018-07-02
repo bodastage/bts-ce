@@ -48,7 +48,7 @@ def parse_and_import_zte_2g(parent_dag_name, child_dag_name, start_date, schedul
 
     parse_zte_2g_cm_files = BashOperator(
       task_id='parse_zte_2g_cm_files',
-      bash_command='java -jar /mediation/bin/boda_bulkcmparser.jar /mediation/data/cm/zte/raw/bulkcm_gsm /mediation/data/cm/zte/parsed/bulkcm_gsm /mediation/conf/cm/zte_cm_2g_blkcm_parser.cfg',
+      bash_command='java -jar /mediation/bin/boda-bulkcmparser.jar /mediation/data/cm/zte/raw/bulkcm_gsm /mediation/data/cm/zte/parsed/bulkcm_gsm /mediation/conf/cm/zte_cm_2g_blkcm_parser.cfg',
       dag=dag)
 
     import_zte_cm_data = BashOperator(

@@ -34,7 +34,7 @@ def extract_network_externals(parent_dag_name, child_dag_name, start_date, sched
     branch_externals_task = DummyOperator( task_id='branch_externals', dag=dag)
     join_externals_task = DummyOperator(task_id='join_externals', dag=dag)
 
-    def extract_external_definitions_on_ericsson(self):
+    def extract_external_definitions_on_ericsson():
         ericsson_cm.extract_live_network_externals_on_2g()
         ericsson_cm.extract_live_network_externals_on_3g()
         ericsson_cm.extract_live_network_externals_on_4g()
@@ -44,7 +44,7 @@ def extract_network_externals(parent_dag_name, child_dag_name, start_date, sched
         python_callable=extract_external_definitions_on_ericsson,
         dag=dag)
 
-    def extract_external_definitions_on_huawei(self):
+    def extract_external_definitions_on_huawei():
         huawei_cm.extract_live_network_externals_on_2g()
         huawei_cm.extract_live_network_externals_on_3g()
         huawei_cm.extract_live_network_externals_on_4g()
