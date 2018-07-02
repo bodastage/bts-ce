@@ -479,8 +479,8 @@ class ProcessCMData(object):
                 placeholders.append(':p'+ str(r))
                 site_list_placeholders['p'+ str(r)] = site_list[r]
 
-            print(site_list_placeholders)
-            print(site_list)
+            # print(site_list_placeholders)
+            # print(site_list)
 
             i = i+5
             sql = """
@@ -580,8 +580,8 @@ class ProcessCMData(object):
                 placeholders.append(':p'+ str(r))
                 site_list_placeholders['p'+ str(r)] = site_list[r]
 
-            print(site_list_placeholders)
-            print(site_list)
+            # print(site_list_placeholders)
+            # print(site_list)
 
             i = i+5
             sql = """
@@ -631,7 +631,7 @@ class ProcessCMData(object):
         for row in result:
             (site_pk, site_name) = row
 
-            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                         INSERT INTO live_network.lte_cells_data
@@ -700,7 +700,7 @@ class ProcessCMData(object):
         for row in result:
             (site_pk,site_name)=row
 
-            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk,site_name))
+            # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk,site_name))
 
             sql = """
                 INSERT INTO live_network.umts_cells_data
@@ -747,7 +747,7 @@ class ProcessCMData(object):
                 ericsson_cm_3g."UtranCell" t1
                 INNER JOIN ericsson_cm_3g."RbsLocalCell" t2 on t2."localCellId" = t1."cId" and t2."SubNetwork_2_id" = t1."SubNetwork_2_id" 
                     -- and t2."MeContext_id" = t1."MeContext_id"
-                INNER JOIN live_network.cells t3 on t3."name" = t1."UtranCell_id"
+                INNER JOIN live_network.cells t3 on t3."name" = t1."userLabel"
                 INNER JOIN ericsson_bulkcm."vsDataUtranCell" t4 on t4."UtranCell_id" = t1."UtranCell_id" and t4."SubNetwork_2_id" = t1."SubNetwork_2_id" 
                 INNER JOIN ericsson_bulkcm."vsDataCarrier" t5 on  t5."SubNetwork_2_id" = t1."SubNetwork_2_id" 
                     and t5."MeContext_id" = t2."MeContext_id"
@@ -844,6 +844,8 @@ class ProcessCMData(object):
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
+        print("extract_ericsson_3g3g_nbrs_with_ericsson")
+
         sql = """
             INSERT INTO live_network.relations 
             (pk, svrnode_pk,svrsite_pk,svrtech_pk,svrvendor_pk,svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
@@ -868,12 +870,18 @@ class ProcessCMData(object):
             0
             FROM ericsson_cm_3g."UtranRelation" t1 
             INNER JOIN ericsson_cm_3g."UtranCell" t2 ON t1."adjacentCell" = concat('SubNetwork=ONRM_ROOT_MO_R,SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
-            -- serving side
-            INNER JOIN live_network.cells t3 ON t3."name" = t1."UtranCell_id" AND t3.vendor_pk = 1 AND t3.tech_pk = 2
+            -- -- serving side
+            INNER JOIN ericsson_cm_3g."UtranCell" t10 ON 
+                t10."UtranCell_id" = t1."UtranCell_id" 
+                AND TRIM(t10."SubNetwork_2_id") = TRIM(t1."SubNetwork_2_id") 
+                AND TRIM(t10."MeContext_id") = TRIM(t1."MeContext_id")
+                AND TRIM(t10."ManagedElement_id") = TRIM(t1."ManagedElement_id")
+                AND TRIM(t10."RncFunction_id") = TRIM(t1."RncFunction_id")
+            INNER JOIN live_network.cells t3 ON t3."name" = TRIM(t10."userLabel") AND t3.vendor_pk = 1 AND t3.tech_pk = 2
             INNER JOIN live_network.sites t4 ON t4.pk = t3.site_pk
             INNER JOIN live_network.nodes t5 ON t5.pk = t4.node_pk 
-            -- nbr side 
-            INNER JOIN live_network.cells t6 ON t6."name" = t1."UtranRelation_id" AND t3.vendor_pk = 1 AND t3.tech_pk = 2
+            -- -- nbr side 
+            INNER JOIN live_network.cells t6 ON t6."name" = TRIM(t2."userLabel") AND t3.vendor_pk = 1 AND t3.tech_pk = 2
             INNER JOIN live_network.sites t7 ON t7.pk = t6.site_pk
             -- This part is to extract only new relations
             LEFT JOIN live_network.relations t9 ON t9.svrcell_pk = t3.pk 
@@ -917,13 +925,19 @@ class ProcessCMData(object):
                 0, -- system
                 0
                 FROM ericsson_cm_3g."UtranRelation" t1 
-                INNER JOIN ericsson_cm_3g."UtranCell" t2 ON t1."adjacentCell" = concat('SubNetwork=',trim(t2."SubNetwork_id"),',SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
-                -- serving side
-                INNER JOIN live_network.cells t3 ON t3."name" = t1."UtranCell_id" AND t3.vendor_pk = 1 AND t3.tech_pk = 2
+                INNER JOIN ericsson_cm_3g."UtranCell" t2 ON t1."adjacentCell" = concat('SubNetwork=ONRM_ROOT_MO_R,SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
+                -- -- serving side
+                INNER JOIN ericsson_cm_3g."UtranCell" t10 ON 
+                    t10."UtranCell_id" = t1."UtranCell_id" 
+                    AND TRIM(t10."SubNetwork_2_id") = TRIM(t1."SubNetwork_2_id") 
+                    AND TRIM(t10."MeContext_id") = TRIM(t1."MeContext_id")
+                    AND TRIM(t10."ManagedElement_id") = TRIM(t1."ManagedElement_id")
+                    AND TRIM(t10."RncFunction_id") = TRIM(t1."RncFunction_id")
+                INNER JOIN live_network.cells t3 ON t3."name" = TRIM(t10."userLabel") AND t3.vendor_pk = 1 AND t3.tech_pk = 2
                 INNER JOIN live_network.sites t4 ON t4.pk = t3.site_pk
                 INNER JOIN live_network.nodes t5 ON t5.pk = t4.node_pk 
-                -- nbr side 
-                INNER JOIN live_network.cells t6 ON t6."name" = t1."UtranRelation_id" AND t3.vendor_pk = 1 AND t3.tech_pk = 2
+                -- -- nbr side 
+                INNER JOIN live_network.cells t6 ON t6."name" = TRIM(t2."userLabel") AND t3.vendor_pk = 1 AND t3.tech_pk = 2
                 INNER JOIN live_network.sites t7 ON t7.pk = t6.site_pk
                 -- This part is to extract only new relations
                 LEFT JOIN live_network.relations t9 ON t9.svrcell_pk = t3.pk 
@@ -957,7 +971,7 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=1).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print("Extracting E// 2G-2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting E// 2G-2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1121,7 +1135,7 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=1).yield_per(5):
             (site_pk, site_name) = (site[0],site[1])
 
-            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                         INSERT INTO live_network.gsm_cells_data
@@ -1296,8 +1310,8 @@ class ProcessCMData(object):
                 placeholders.append(':p' + str(r))
                 site_list_placeholders['p' + str(r)] = site_list[r]
 
-            print(site_list_placeholders)
-            print(site_list)
+            # print(site_list_placeholders)
+            # print(site_list)
 
             i = i + 5
             sql = """
@@ -1353,7 +1367,7 @@ class ProcessCMData(object):
         for row in result:
             (site_pk,site_name)=row
 
-            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk,site_name))
+            # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk,site_name))
 
             sql = """
                 INSERT INTO live_network.umts_cells_data
@@ -1498,7 +1512,7 @@ class ProcessCMData(object):
         for row in result:
             (site_pk, site_name) = row
 
-            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                         INSERT INTO live_network.lte_cells_data
@@ -1569,7 +1583,7 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=1).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print("Extracting Huawei 2G-2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting Huawei 2G-2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1623,7 +1637,7 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=1).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print("Extracting Huawei 2G-2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting Huawei 2G-2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1689,7 +1703,7 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=1).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print("Extracting Huawei 2G- Ericsson 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting Huawei 2G- Ericsson 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1770,7 +1784,7 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print("Extracting Huawei 3G- Huawei 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting Huawei 3G- Huawei 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1834,7 +1848,7 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print("Extracting Huawei 3G- Huawei 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting Huawei 3G- Huawei 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1899,7 +1913,7 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print("Extracting Huawei 3G- Huawei 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting Huawei 3G- Huawei 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1963,7 +1977,7 @@ class ProcessCMData(object):
             for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
                 (site_pk, site_name) = (site[0], site[1])
 
-                print("Extracting Huawei 3G- Huawei 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+                # print("Extracting Huawei 3G- Huawei 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
                 sql = """
                     INSERT INTO live_network.relations 
@@ -2028,8 +2042,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 3G- Vendor 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 3G- Vendor 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2094,8 +2108,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2159,8 +2173,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 3G- Huawei 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 3G- Huawei 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2228,8 +2242,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2292,8 +2306,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=1).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2357,8 +2371,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=1).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2428,8 +2442,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 3G - 4G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 3G - 4G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2491,8 +2505,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=3).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2551,8 +2565,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=3).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2617,8 +2631,8 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=3).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print(
-            "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print(
+            # "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2682,7 +2696,7 @@ class ProcessCMData(object):
         for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=1).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
-            print("Extracting E// 2G-3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting E// 2G-3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2732,8 +2746,8 @@ class ProcessCMData(object):
         for cell in session.query(Cell).filter_by(vendor_pk=1).filter_by(tech_pk=2).yield_per(5):
             (cell_pk, cell_name) = (cell[0], cell[1])
 
-            print(
-            "Extracting Ericsson 3G - 2G relations for cell_pk: {0}, cell_name: {1}".format(cell_pk, cell_name))
+            # print(
+            # "Extracting Ericsson 3G - 2G relations for cell_pk: {0}, cell_name: {1}".format(cell_pk, cell_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -2758,19 +2772,19 @@ class ProcessCMData(object):
                 0
                 FROM
                 ericsson_cm_3g."UtranCell" t1
-                INNER JOIN ericsson_bulkcm.gsmrelation t2 ON 
-                    t2."SubNetwork_2_id" = t1."SubNetwork_2_id"
-                    AND t2."MeContext_id" = t1."MeContext_id"
-                    AND t2."UtranCell_id" = t2."UtranCell_id"
+                INNER JOIN ericsson_cm_3g."GsmRelation" t2 ON 
+                    TRIM(t2."SubNetwork_2_id") = TRIM(t1."SubNetwork_2_id")
+                    AND TRIM(t2."MeContext_id") = TRIM(t1."MeContext_id")
+                    AND TRIM(t2."UtranCell_id") = TRIM(t2."UtranCell_id")
                     AND t2."UtranCell_id" =  '{0}'
-                INNER JOIN live_network.cells t5 ON t5.name = t2."UtranCell_id" AND t5.vendor_pk = 1 AND t5.tech_pk = 2
-                INNER JOIN live_network.sites t6 on t6.pk = t5.site_pk AND t6.vendor_pk = 1 AND t6.tech_pk = 2
+                INNER JOIN live_network.cells t5 on t5.name = TRIM(t1."userLabel")
+                INNER JOIN live_network.sites t6 on t6.pk = t5.site_pk AND  t6.tech_pk = 1
                 -- nbr side
                 LEFT JOIN live_network.cells t3 on t3.name = REPLACE(t2."adjacentCell", CONCAT('SubNetwork=',TRIM(t2."SubNetwork_id"),',ExternalGsmCell='),'')
                     AND t3.tech_pk = 1
                 LEFT JOIN live_network.sites t4 ON t4.pk = t3.site_pk
                 AND t4.tech_pk = 1
-                -- INNER JOIN ericsson_bulkcm.externalgsmcell t3 on
+                -- INNER JOIN ericsson_cm_3g."ExternalGsmCell" t3 on
                 --	CONCAT('SubNework=',t3."SubNetwork_id",',ExternalGsmCell=',t3."userLabel") = t2."adjacentCell"
                 WHERE 
                 t1."UtranCell_id" = '{0}'
@@ -2789,8 +2803,8 @@ class ProcessCMData(object):
         for cell in session.query(Cell).filter_by(vendor_pk=1).filter_by(tech_pk=2).yield_per(5):
             (cell_pk, cell_name) = (cell[0], cell[1])
 
-            print(
-            "Extracting Ericsson 3G - 3G relations for cell_pk: {0}, cell_name: {1}".format(cell_pk, cell_name))
+            # print(
+            # "Extracting Ericsson 3G - 3G relations for cell_pk: {0}, cell_name: {1}".format(cell_pk, cell_name))
 
             sql = """
                 INSERT INTO live_network.relations 

@@ -1635,7 +1635,7 @@ class HuaweiCM(object):
 
         sql = """
         INSERT INTO live_network.umts_external_cells
-        (pk, name, cell_pk,  mcc, mnc, lac, rncid, ci, psc, uarfcn_dl, modified_by, added_by, date_added, date_modified)
+        (pk, name, cell_pk,  mcc, mnc, lac, rncid, ci, psc, modified_by, added_by, date_added, date_modified)
         SELECT 
         NEXTVAL('live_network.seq_umts_external_cells_pk') as pk,
         t1."EXT3GCELLNAME" AS "name",
@@ -1646,7 +1646,6 @@ class HuaweiCM(object):
         t1."RNCID"::integer as rncid,
         t1."CI"::integer as ci,
         t1."SCRAMBLE"::integer AS psc,
-        t1."FDDARFCN"::integer AS dl_uarfcn,
         0 as modified_by,
         0 as added_by,
         now()::timestamp as date_added,
@@ -1672,7 +1671,7 @@ class HuaweiCM(object):
 
         sql = """
         INSERT INTO live_network.umts_external_cells
-        (pk, name, cell_pk,  mcc, mnc, lac, rac, rncid, ci, psc, dl_uarfcn, ul_uarfcn, modified_by, added_by, date_added, date_modified)
+        (pk, name, cell_pk,  mcc, mnc, lac, rac, rncid, ci, psc, uarfcn_dl, ul_uarfcn, modified_by, added_by, date_added, date_modified)
         SELECT 
         NEXTVAL('live_network.seq_umts_external_cells_pk') as pk,
         t1."CELLNAME" AS "name",
@@ -1684,7 +1683,7 @@ class HuaweiCM(object):
         t1."RNCID"::integer as rncid,
         t1."CELLID"::integer as ci,
         t1."PSCRAMBCODE"::integer AS psc,
-        t1."UARFCNDOWNLINK"::integer AS dl_uarfcn,
+        t1."UARFCNDOWNLINK"::integer AS uarfcn_dl,
         t1."UARFCNUPLINK"::integer AS ul_uarfcn,
         0 as modified_by,
         0 as added_by,
@@ -1709,8 +1708,8 @@ class HuaweiCM(object):
         session = Session()
 
         sql = """
-        INSERT INTO live_network.lte_external_cells
-        (pk, name, cell_pk,  mcc, mnc, lac, rac, rncid, ci, psc, dl_uarfcn, ul_uarfcn, modified_by, added_by, date_added, date_modified)
+        INSERT INTO live_network.umts_external_cells
+        (pk, name, cell_pk,  mcc, mnc, lac, rac, rncid, ci, psc, uarfcn_dl, modified_by, added_by, date_added, date_modified)
         SELECT 
         NEXTVAL('live_network.seq_umts_external_cells_pk') as pk,
         t1."CELLNAME" AS "name",
@@ -1721,7 +1720,8 @@ class HuaweiCM(object):
         t1."RAC"::integer AS rac,
         t1."RNCID"::integer as rncid,
         t1."CELLID"::integer as ci,
-        t1."UTRANDLARFCN"::integer AS dl_uarfcn,
+        t1."PSCRAMBCODE"::integer as psc,
+        t1."UTRANDLARFCN"::integer AS uarfcn_dl,
         0 as modified_by,
         0 as added_by,
         now()::timestamp as date_added,
@@ -1730,7 +1730,7 @@ class HuaweiCM(object):
         huawei_cm_4g."UTRANEXTERNALCELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."neid"
         LEFT JOIN live_network.cells t3 on t3."name" = t1."CELLNAME"
-        LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."CELLNAME" 
+        LEFT JOIN live_network.umts_external_cells t4 on t4."name" = t1."CELLNAME" 
             AND t4.lac = t1."LAC"::integer
         WHERE 
         t4.pk IS NULL
@@ -1746,7 +1746,7 @@ class HuaweiCM(object):
 
         sql = """
         INSERT INTO live_network.lte_external_cells
-        (pk, name, cell_pk, mcc, mnc, pci, dl_earfcn, ci, tac, modified_by, added_by, date_added, date_modified)
+        (pk, name, cell_pk, node_pk, mcc, mnc, pci, dl_earfcn, ci, tac, modified_by, added_by, date_added, date_modified)
         SELECT 
         NEXTVAL('live_network.seq_gsm_external_cells_pk') as pk,
         t1."EXTLTECELLNAME" AS "name",
@@ -1755,9 +1755,9 @@ class HuaweiCM(object):
         t1."MCC"::integer AS mcc,
         t1."MNC"::integer AS mnc,
         t1."PCID"::integer AS pci,
-        t1."FREQ"::integer AS dl_earfcn_dl,
-        t1."EXTLTECELLID"::integer AS ci,
-        t1."TAC" as tac,
+        t1."FREQ"::integer AS dl_earfcn,
+        t1."CI"::integer AS ci,
+        t1."TAC"::integer as tac,
         0 as modified_by,
         0 as added_by,
         now()::timestamp as date_added,
@@ -1765,8 +1765,9 @@ class HuaweiCM(object):
         FROM
         huawei_cm_2g."GEXTLTECELL" t1
         LEFT JOIN live_network.cells t3 on t3."name" = t1."EXTLTECELLNAME"
+        INNER JOIN live_network.sites t2 on t2.pk  = t3.site_pk
         LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."EXTLTECELLNAME" 
-            AND t4.ci = t1."localCellId"
+            AND t4.ci = t1."CI"::integer
         WHERE 
         t4.pk IS NULL
         """
@@ -1786,7 +1787,7 @@ class HuaweiCM(object):
 
         sql = """
             INSERT INTO live_network.lte_external_cells
-            (pk, name, cell_pk, mcc, mnc, pci, dl_earfcn, ci, tac, modified_by, added_by, date_added, date_modified)
+            (pk, name, cell_pk, node_pk, mcc, mnc, pci, dl_earfcn, ci, tac, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('live_network.seq_gsm_external_cells_pk') as pk,
             t1."CELLNAME" AS "name",
@@ -1795,17 +1796,18 @@ class HuaweiCM(object):
             t1."MCC"::integer AS mcc,
             t1."MNC"::integer AS mnc,
             t1."PHYCELLID"::integer AS pci,
-            t1."DELEARFCN"::integer AS dl_earfcn,
+            t1."DLEARFCN"::integer AS dl_earfcn,
             t1."CELLID"::integer AS ci,
-            t1."TAC" as tac,
+            t1."TAC"::integer as tac,
             0 as modified_by,
             0 as added_by,
             now()::timestamp as date_added,
             now()::timestamp as date_modified
             FROM
             huawei_cm_4g."EUTRANEXTERNALCELL" t1
-            LEFT JOIN live_network.cells t3 on t3."name" = t1."EXTLTECELLNAME"
-            LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."EXTLTECELLNAME" 
+            LEFT JOIN live_network.cells t3 on t3."name" = t1."CELLNAME"
+            INNER JOIN live_network.sites t2 ON t2.pk = t3.site_pk
+            LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."CELLNAME" 
             WHERE 
             t4.pk IS NULL
         """
