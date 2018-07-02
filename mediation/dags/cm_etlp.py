@@ -73,7 +73,7 @@ dag = DAG(
     max_active_runs = 1,
     concurrency = 1,
     catchup = False,
-    dagrun_timeout=timedelta(minutes=60))
+    dagrun_timeout=timedelta(minutes=24*60)) # dag runs out after 1 day of running
 
 
 sub_dag_run_network_audits_task = SubDagOperator(
@@ -787,14 +787,26 @@ t80 = DummyOperator(
     dag=dag
 )
 
-t81 = DummyOperator(
+join_ericsson_supported_task = DummyOperator(
     task_id='join_ericsson_supported',
     trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag
 )
 
-t82 = DummyOperator(
+join_huawei_supported_task = DummyOperator(
     task_id='join_huawei_supported',
+    trigger_rule=TriggerRule.ONE_SUCCESS,
+    dag=dag
+)
+
+join_zte_supported_task = DummyOperator(
+    task_id='join_zte_supported',
+    trigger_rule=TriggerRule.ONE_SUCCESS,
+    dag=dag
+)
+
+join_nokia_supported_task = DummyOperator(
+    task_id='join_nokia_supported',
     trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag
 )
@@ -806,7 +818,7 @@ dag.set_dependency('start_cm_etlp','is_ericsson_supported')
 dag.set_dependency('is_ericsson_supported','ericsson_is_supported')
 dag.set_dependency('is_ericsson_supported','ericsson_not_supported')
 
-dag.set_dependency('ericsson_not_supported','ericsson_cm_done')
+dag.set_dependency('ericsson_not_supported','join_ericsson_supported')
 dag.set_dependency('ericsson_cm_done','join_ericsson_supported')
 dag.set_dependency('join_ericsson_supported','end_cm_etlp')
 
@@ -975,22 +987,23 @@ dag.set_dependency('parse_and_import_huawei_cfgsyn','huawei_parsing_done')
 dag.set_dependency('start_cm_etlp','is_zte_supported')
 dag.set_dependency('is_zte_supported','zte_is_supported')
 dag.set_dependency('is_zte_supported','zte_not_supported')
-dag.set_dependency('zte_not_supported','end_cm_etlp')
+dag.set_dependency('zte_not_supported','join_zte_supported')
 dag.set_dependency('zte_is_supported','parse_and_import_zte_2g')
 dag.set_dependency('zte_is_supported','parse_and_import_zte_3g')
 dag.set_dependency('zte_is_supported','parse_and_import_zte_4g')
 dag.set_dependency('parse_and_import_zte_2g','zte_parsing_done')
 dag.set_dependency('parse_and_import_zte_3g','zte_parsing_done')
 dag.set_dependency('parse_and_import_zte_4g','zte_parsing_done')
-dag.set_dependency('zte_parsing_done','end_cm_etlp')
-
+dag.set_dependency('zte_parsing_done','join_zte_supported')
+dag.set_dependency('join_zte_supported','end_cm_etlp')
 # Nokia
 # ##############################################
 dag.set_dependency('start_cm_etlp','is_nokia_supported')
 dag.set_dependency('is_nokia_supported','nokia_is_supported')
 dag.set_dependency('is_nokia_supported','nokia_not_supported')
-dag.set_dependency('nokia_not_supported','end_cm_etlp')
-dag.set_dependency('nokia_is_supported','end_cm_etlp')
+dag.set_dependency('nokia_not_supported','join_nokia_supported')
+dag.set_dependency('nokia_is_supported','join_nokia_supported')
+dag.set_dependency('join_nokia_supported','end_cm_etlp')
 
 
 # After
