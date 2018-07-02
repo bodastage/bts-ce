@@ -162,7 +162,7 @@ If "%~1"=="rm" (
 	
     docker-compose stop
     docker-compose rm -f
-	docker volume prune
+	docker volume prune -f
 )
 
 Rem Create container and start service  

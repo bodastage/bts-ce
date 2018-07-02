@@ -150,7 +150,7 @@ do
 		 
 		docker-compose stop
 		docker-compose rm -f 
-		docker volume prune
+		docker volume prune -f
 	    exit 0
 	 ;;
 	 pause)
