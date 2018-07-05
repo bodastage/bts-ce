@@ -201,9 +201,7 @@ class EricssonCM(object):
     def extract_live_network_4g_externals_on_2g(self):
         pass
 
-
-
-    def extract_live_network_2g_externals_3g(self):
+    def extract_live_network_2g_externals_on_3g(self):
         """Extract live network 3G externals defined on Ericsson RNCs"""
         Session = sessionmaker(bind=self.db_engine)
         session = Session()

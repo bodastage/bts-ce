@@ -1671,7 +1671,7 @@ class HuaweiCM(object):
 
         sql = """
         INSERT INTO live_network.umts_external_cells
-        (pk, name, cell_pk,  mcc, mnc, lac, rac, rncid, ci, psc, uarfcn_dl, ul_uarfcn, modified_by, added_by, date_added, date_modified)
+        (pk, name, cell_pk,  mcc, mnc, lac, rac, rncid, ci, psc, uarfcn_dl, uarfcn_ul, modified_by, added_by, date_added, date_modified)
         SELECT 
         NEXTVAL('live_network.seq_umts_external_cells_pk') as pk,
         t1."CELLNAME" AS "name",

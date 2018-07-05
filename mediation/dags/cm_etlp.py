@@ -156,7 +156,8 @@ sub_dag_parse_and_import_zte_4g_cm_files = SubDagOperator(
 # Backup raw files that have been parsed
 t4 = BashOperator(
     task_id='backup_3g4g_raw_files',
-    bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ 2>/dev/null',
+    bash_command='echo 0;',
+    # bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ 2>/dev/null',
     dag=dag)
 
 
