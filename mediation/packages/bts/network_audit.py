@@ -98,7 +98,6 @@ class NetworkAudit(object):
 
                 self.engine.execute(text(insert_sql).execution_options(autocommit=True))
 
-
     def incosistent_gsm_externals(self):
         """
         GSM externals where the external cell parameters don't match the internal cell parameters
@@ -133,8 +132,8 @@ class NetworkAudit(object):
             t2.bcch as int_bcch,
             t2.lac as inter_lac,
             datediff( 'day', COALESCE(t4.date_added, t1.date_added)::DATE, COALESCE(t4.date_modified, t1.date_added)::DATE ) as age,
-            COALESCE(t4.date_added, t1.date_added) as date_added,
-            COALESCE(t4.date_modified, t1.date_added) as date_modified , 
+            COALESCE(t4.date_added, NOW()::DATE) as date_added,
+            COALESCE(t4.date_modified, NOW()::DATE) as date_modified , 
             0 as added_by,
             0 as modified_by
             FROM 
@@ -147,7 +146,7 @@ class NetworkAudit(object):
                 ON t3.pk = t1.cell_pk
             INNER JOIN vendors t7 on t7.pk = t3.vendor_pk
             LEFT JOIN network_audit.incosistent_2g_externals t4 
-                ON t4.svrcell = t1."name"
+                ON t4.ext_cellname = t1."name"
             WHERE 
             t1.mnc != t2.mnc
             OR t1.mcc != t2.mcc
@@ -160,4 +159,99 @@ class NetworkAudit(object):
 
         self.engine.execute(sql)
 
+        # Delete inconsistencies that nolonger exist in external 2G cells
+        sql = """
+            DELETE FROM 
+            network_audit.incosistent_2g_externals t1
+            WHERE 
+            t1."ext_cellname" IN (
+            SELECT "name" FROM live_network.gsm_external_cells t2 
+                WHERE  t2.mnc  = t1.mnc
+                AND t2.mcc = t1.mcc
+                AND t2.bcc = t1.bcc
+                AND t2.ncc = t1.ncc
+                AND t2.bcch::integer = t1.bcch::integer
+                AND t2.lac = t1.lac
+            )
+        """
+        self.engine.execute(sql)
         session.close()
+
+    def incosistent_umts_externals(self):
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO 
+            network_audit.incosistent_3g_externals
+            (nodename, ext_vendor, int_vendor, ext_cellname, ext_mnc, ext_mcc, ext_dl_uarfcn, ext_rac, ext_lac, ext_psc,
+            int_mnc, int_mcc, int_dl_uarfcn, int_rac, int_lac, int_psc, age, date_added, date_modified, added_by, modified_by)
+            SELECT 
+            t5."name" as nodename,
+            t6."name" as ext_vendor,
+            t7."name" as int_vendor,
+            
+            t1."name" as ext_cellname,
+            -- externals values
+            t1.mnc as ext_mnc,
+            t1.mcc as ext_mcc,
+            t1.bcc as ext_dl_uarfcn, 
+            t1.ncc as ext_rac,
+            t1.bcch as ext_lac,
+            t1.lac as ext_psc,
+            
+            -- internal values
+            t2.mnc as int_mnc,
+            t2.mcc as int_mcc,
+            t2.bcc as int_dl_uarfcn,
+            t2.ncc as int_rac,
+            t2.bcch as int_lac,
+            t2.lac as int_psc,
+            datediff( 'day', COALESCE(t4.date_added, t1.date_added)::DATE, COALESCE(t4.date_modified, t1.date_added)::DATE ) as age,
+            COALESCE(t4.date_added, now()::date) as date_added,
+            COALESCE(t4.date_modified, now()::date) as date_modified , 
+            0 as added_by,
+            0 as modified_by
+            FROM 
+            live_network.umts_external_cells t1
+            INNER JOIN live_network.umts_cells_data t2
+                ON t2.cell_pk = t1.cell_pk
+            INNER JOIN live_network.nodes t5 on t5.pk = t1.node_pk
+            INNER JOIN vendors t6 ON t6.pk = t5.vendor_pk
+            INNER JOIN live_network.cells t3 
+                ON t3.pk = t1.cell_pk
+            INNER JOIN vendors t7 on t7.pk = t3.vendor_pk
+            LEFT JOIN network_audit.incosistent_3g_externals t4 
+                ON t4.ext_cellname = t1."name"
+            WHERE 
+            t1.mnc != t2.mnc
+            OR t1.mcc != t2.mcc
+            OR t1.rac != t2.rac
+            OR t1.lac != t2.lac
+            OR t1.dl_uarfcn::integer != t2.dl_uarfcn::integer
+            OR t1.psc != t2.psc
+
+        """
+
+        self.engine.execute(sql)
+
+        # Delete inconsistencies that nolonger exist in external 2G cells
+        sql = """
+            DELETE FROM 
+            network_audit.incosistent_3g_externals t1
+            WHERE 
+            t1."ext_cellname" IN (
+            SELECT "name" FROM live_network.umts_external_cells t2 
+                WHERE  t2.mnc  = t1.mnc
+                AND t2.mcc = t1.mcc
+                AND t2.dl_uarfcn = t1.dl_uarfcn
+                AND t2.rac = t1.rac
+                AND t2.psc = t1.psc
+                AND t2.lac = t1.lac
+            )
+        """
+        self.engine.execute(sql)
+        session.close()
+
+    def incosistent_lte_externals(self):
+        pass
