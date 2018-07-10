@@ -9,7 +9,7 @@ from airflow.operators.dummy_operator import DummyOperator
 
 sys.path.append('/mediation/packages');
 
-from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM
+from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM, NetworkAudit
 
 huawei_cm = HuaweiCM()
 ericsson_cm = EricssonCM()
@@ -38,13 +38,55 @@ def run_network_audits(parent_dag_name, child_dag_name, start_date, schedule_int
         """Run network baseline audits"""
         pass
 
+    def inconsistent_gsm_externals(self):
+        """
+        Generate GSM external inconsistencies
+        """
+        network_audit = NetworkAudit()
+        network_audit.generate_incosistent_gsm_externals()
+
+    def inconsistent_umts_externals():
+        """
+        Generate UMTS external inconsistencies
+        """
+        network_audit = NetworkAudit()
+        network_audit.generate_incosistent_umts_externals()
+
+    def inconsistent_lte_externals():
+        """
+        Generate LTE external inconsistencies
+        """
+        network_audit = NetworkAudit()
+        network_audit.generate_incosistent_lte_externals()
+
     base_line_audits = BranchPythonOperator(
         task_id='base_line_audits',
         python_callable=base_line_audits,
         dag=dag)
 
+    inconsistent_gsm_externals_task = PythonOperator(
+        task_id='generate_inconsistent_gsm_externals',
+        python_callable=inconsistent_gsm_externals,
+        dag=dag)
+
+    inconsistent_umts_externals_task = PythonOperator(
+        task_id='generate_inconsistent_umts_externals',
+        python_callable=inconsistent_umts_externals,
+        dag=dag)
+
+    inconsistent_lte_externals_task = PythonOperator(
+        task_id='generate_inconsistent_lte_externals',
+        python_callable=inconsistent_lte_externals,
+        dag=dag)
 
     dag.set_dependency('branch_network_audits', 'base_line_audits')
+    dag.set_dependency('branch_network_audits', 'generate_inconsistent_gsm_externals')
+    dag.set_dependency('branch_network_audits', 'generate_inconsistent_umts_externals')
+    dag.set_dependency('branch_network_audits', 'generate_inconsistent_lte_externals')
+
+    dag.set_dependency('generate_inconsistent_gsm_externals', 'join_network_audits')
+    dag.set_dependency('generate_inconsistent_umts_externals', 'join_network_audits')
+    dag.set_dependency('generate_inconsistent_lte_externals', 'join_network_audits')
 
     dag.set_dependency('base_line_audits', 'join_network_audits')
 
