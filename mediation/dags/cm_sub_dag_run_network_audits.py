@@ -59,6 +59,10 @@ def run_network_audits(parent_dag_name, child_dag_name, start_date, schedule_int
         network_audit = NetworkAudit()
         network_audit.generate_incosistent_lte_externals()
 
+    def generate_missing_one_way_relations(self):
+        network_audit = NetworkAudit()
+        network_audit.generate_incosistent_lte_externals()
+
     base_line_audits = BranchPythonOperator(
         task_id='base_line_audits',
         python_callable=base_line_audits,
@@ -79,14 +83,23 @@ def run_network_audits(parent_dag_name, child_dag_name, start_date, schedule_int
         python_callable=inconsistent_lte_externals,
         dag=dag)
 
+    generate_missing_one_way_relations_task = PythonOperator(
+        task_id='generate_missing_one_way_relations',
+        python_callable=generate_missing_one_way_relations,
+        dag=dag)
+
+
+
     dag.set_dependency('branch_network_audits', 'base_line_audits')
     dag.set_dependency('branch_network_audits', 'generate_inconsistent_gsm_externals')
     dag.set_dependency('branch_network_audits', 'generate_inconsistent_umts_externals')
     dag.set_dependency('branch_network_audits', 'generate_inconsistent_lte_externals')
+    dag.set_dependency('branch_network_audits', 'generate_missing_one_way_relations')
 
     dag.set_dependency('generate_inconsistent_gsm_externals', 'join_network_audits')
     dag.set_dependency('generate_inconsistent_umts_externals', 'join_network_audits')
     dag.set_dependency('generate_inconsistent_lte_externals', 'join_network_audits')
+    dag.set_dependency('generate_missing_one_way_relations', 'join_network_audits')
 
     dag.set_dependency('base_line_audits', 'join_network_audits')
 

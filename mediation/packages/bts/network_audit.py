@@ -98,7 +98,7 @@ class NetworkAudit(object):
 
                 self.engine.execute(text(insert_sql).execution_options(autocommit=True))
 
-    def incosistent_gsm_externals(self):
+    def generate_incosistent_gsm_externals(self):
         """
         GSM externals where the external cell parameters don't match the internal cell parameters
         """
@@ -177,7 +177,7 @@ class NetworkAudit(object):
         self.engine.execute(sql)
         session.close()
 
-    def incosistent_umts_externals(self):
+    def generate_incosistent_umts_externals(self):
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
@@ -253,5 +253,131 @@ class NetworkAudit(object):
         self.engine.execute(sql)
         session.close()
 
-    def incosistent_lte_externals(self):
-        pass
+    def generate_incosistent_lte_externals(self):
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+             INSERT INTO 
+            network_audit.incosistent_4g_externals
+            (pk, nodename, ext_vendor, int_vendor, ext_cellname, ext_mnc, ext_mcc, ext_dl_earfcn, ext_pci
+            int_mnc, int_mcc, int_dl_earfcn, int_pci, age, date_added, date_modified, added_by, modified_by)
+            SELECT 
+            NEXTVAL('seq_incosistent_4g_externals_pk') as pk,
+            t5."name" as nodename,
+            t6."name" as ext_vendor,
+            t7."name" as int_vendor,
+            
+            t1."name" as ext_cellname,
+            -- externals values
+            t1.mnc as ext_mnc,
+            t1.mcc as ext_mcc,
+            t1.bcc as ext_dl_uarfcn, 
+            t1.ncc as ext_pci,
+            
+            -- internal values
+            t2.mnc as int_mnc,
+            t2.mcc as int_mcc,
+            t2.bcc as int_dl_uarfcn,
+            t2.ncc as int_pci,
+            datediff( 'day', COALESCE(t4.date_added, t1.date_added)::DATE, COALESCE(t4.date_modified, t1.date_added)::DATE ) as age,
+            COALESCE(t4.date_added, now()::date) as date_added,
+            COALESCE(t4.date_modified, now()::date) as date_modified , 
+            0 as added_by,
+            0 as modified_by
+            FROM 
+            live_network.lte_external_cells t1
+            INNER JOIN live_network.umts_cells_data t2
+                ON t2.cell_pk = t1.cell_pk
+            INNER JOIN live_network.nodes t5 on t5.pk = t1.node_pk
+            INNER JOIN vendors t6 ON t6.pk = t5.vendor_pk
+            INNER JOIN live_network.cells t3 
+                ON t3.pk = t1.cell_pk
+            INNER JOIN vendors t7 on t7.pk = t3.vendor_pk
+            LEFT JOIN network_audit.incosistent_3g_externals t4 
+                ON t4.ext_cellname = t1."name"
+            WHERE 
+            t1.mnc != t2.mnc
+            OR t1.mcc != t2.mcc
+            OR t1.rac != t2.rac
+            OR t1.pci != t2.pci
+            OR t1.dl_earfcn != t2.dl_earfcn
+
+        """
+
+        self.engine.execute(sql)
+
+        # Delete inconsistencies that nolonger exist in external 2G cells
+        sql = """
+            DELETE FROM 
+            network_audit.incosistent_4g_externals t1
+            WHERE 
+            t1."ext_cellname" IN (
+            SELECT "name" FROM live_network.lte_external_cells t2 
+                WHERE  t2.mnc  = t1.mnc
+                AND t2.mcc = t1.mcc
+                AND t2.dl_earfcn = t1.dl_earfcn
+                AND t2.pci = t1.pci
+            )
+        """
+        self.engine.execute(sql)
+        session.close()
+
+
+    def generate_missing_one_way_relations(self):
+        """
+        Generate missing opposite relations. For examle, if a relation from A to B exists and from B to A
+        doesn't, then B to A is reported as a mmising one way relation
+        """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+        INSERT INTO network_audit.missing_one_way_relations
+        (pk, svrvendor, svrtech, svrnode, svrsite, svrcell, nbrvendor, nbrtech, nbrnode, nbrsite, nbrcell, age, 
+        date_added, date_modified, added_by, modified_by)
+        SELECT
+        NEXTVAL('seq_missing_one_way_relations_pk') as pk, 
+         t3.name as svrvendor,
+         t4.name as svrtech,
+         t5.name as svrnode,
+         t6.name as svrsite,
+         t7.name as svrcell,
+         t8.name as nbrvendor,
+         t9.name as nbrtech,
+         t10.name as nbrnode,
+         t11.name as nbrsite,
+         t12.name as nbrcell,
+        datediff( 'day', COALESCE(t13.date_added, t1.date_added)::DATE, COALESCE(t1.date_added, t1.date_added)::DATE ) as age,
+        COALESCE(t13.date_added, t1.date_added::date) as date_added,
+        COALESCE(t13.date_modified, t1.date_added::date) as date_modified ,
+        0 as added_by,
+        0 as modified_by
+        FROM live_network.relations t1 
+        LEFT JOIN live_network.relations t2 
+            ON t1.svrcell_pk = t2.nbrcell_pk
+        -- SERVING SIDE
+        INNER JOIN vendors t3 ON t3.pk = t1.svrvendor_pk
+        INNER JOIN technologies t4 on t4.pk = t1.svrtech_pk
+        INNER JOIN live_network.nodes t5 on t5.pk = t1.svrnode_pk
+        INNER JOIN live_network.sites t6 ON t6.pk = t1.svrsite_pk
+        INNER JOIN live_network.cells t7 ON t7.pk = t1.svrcell_pk 
+        -- 
+        INNER JOIN vendors t8 ON t8.pk = t1.nbrvendor_pk
+        INNER JOIN technologies t9 on t9.pk = t1.nbrtech_pk
+        INNER JOIN live_network.nodes t10 on t10.pk = t1.nbrnode_pk
+        INNER JOIN live_network.sites t11 ON t11.pk = t1.nbrsite_pk
+        INNER JOIN live_network.cells t12 ON t12.pk = t1.nbrcell_pk 
+        LEFT JOIN network_audit.missing_one_way_relations t13 
+            ON t13.svrcell = t7.name 
+        WHERE t2.nbrcell_pk is NULL
+        """
+
+        # @todo: Add update query based on ON CONFLICT phrase
+
+        self.engine.execute(sql)
+
+        # @TODO: Add delete query
+        session.close()
+
+        #
