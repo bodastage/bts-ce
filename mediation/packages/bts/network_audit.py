@@ -254,6 +254,9 @@ class NetworkAudit(object):
         session.close()
 
     def generate_incosistent_lte_externals(self):
+        """
+        Generate incosistent LTE external cells
+        """
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
@@ -323,7 +326,6 @@ class NetworkAudit(object):
         self.engine.execute(sql)
         session.close()
 
-
     def generate_missing_one_way_relations(self):
         """
         Generate missing opposite relations. For examle, if a relation from A to B exists and from B to A
@@ -337,22 +339,22 @@ class NetworkAudit(object):
         (pk, svrvendor, svrtech, svrnode, svrsite, svrcell, nbrvendor, nbrtech, nbrnode, nbrsite, nbrcell, age, 
         date_added, date_modified, added_by, modified_by)
         SELECT
-        NEXTVAL('seq_missing_one_way_relations_pk') as pk, 
-         t3.name as svrvendor,
-         t4.name as svrtech,
-         t5.name as svrnode,
-         t6.name as svrsite,
-         t7.name as svrcell,
-         t8.name as nbrvendor,
-         t9.name as nbrtech,
-         t10.name as nbrnode,
-         t11.name as nbrsite,
-         t12.name as nbrcell,
-        datediff( 'day', COALESCE(t13.date_added, t1.date_added)::DATE, COALESCE(t1.date_added, t1.date_added)::DATE ) as age,
-        COALESCE(t13.date_added, t1.date_added::date) as date_added,
-        COALESCE(t13.date_modified, t1.date_added::date) as date_modified ,
-        0 as added_by,
-        0 as modified_by
+        NEXTVAL('network_audit.seq_missing_one_way_relations_pk') AS pk, 
+         t3.name AS svrvendor,
+         t4.name AS svrtech,
+         t5.name AS svrnode,
+         t6.name AS svrsite,
+         t7.name AS svrcell,
+         t8.name AS nbrvendor,
+         t9.name AS nbrtech,
+         t10.name AS nbrnode,
+         t11.name AS nbrsite,
+         t12.name AS nbrcell,
+        DATEDIFF( 'day', COALESCE(t13.date_added, t1.date_added)::DATE, COALESCE(t1.date_added, t1.date_added)::DATE ) AS age,
+        COALESCE(t13.date_added, t1.date_added::date) AS date_added,
+        COALESCE(t13.date_modified, t1.date_added::date) AS date_modified ,
+        0 AS added_by,
+        0 AS modified_by
         FROM live_network.relations t1 
         LEFT JOIN live_network.relations t2 
             ON t1.svrcell_pk = t2.nbrcell_pk
@@ -380,4 +382,60 @@ class NetworkAudit(object):
         # @TODO: Add delete query
         session.close()
 
-        #
+
+    def generate_missing_cosite_relations(self):
+        """
+        Generate missing cosite relation
+        """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO network_audit.missing_cosite_relations
+            (pk, svrvendor, svrtech, svrsite, svrcell, nbrvendor, nbrtech, nbrnode, nbrsite, nbrcell,
+            age, date_added, date_modified)
+            SELECT
+            NEXTVAL('network_audit.seq_missing_cosite_relations_pk') AS pk,
+            
+            t5.name AS svrvendor,
+            t6.name AS svrtech,
+            t7.name AS svrnode,
+            t1.name AS svrsite,
+            t2.name AS svrcell,
+            
+            -- nbr 
+            t8.name AS nbrvendor,
+            t9.name AS nbrtech,
+            t7.name AS nbrnode,
+            t1.name AS nbrsite,
+            t3.name AS nbrcell,
+            datediff( 'day', COALESCE(t10.date_added, t1.date_added)::DATE, COALESCE(t1.date_added, t1.date_added)::DATE ) AS age,
+            COALESCE(t2.date_added, t2.date_added::date) AS date_added,
+            COALESCE(t2.date_modified, t2.date_added::date) AS date_modified
+            FROM 
+            
+            live_network.sites t1
+            INNER JOIN live_network.cells t2 on t2.site_pk = t1.pk 
+            INNER JOIN live_network.cells t3 on t3.site_pk = t1.pk
+            LEFT JOIN live_network.relations t4 
+                ON t4.svrsite_pk = t1.pk 
+                AND t4.nbrsite_pk = t1.pk 
+                AND t2.pk = t4.svrcell_pk
+                AND t3.pk = t4.nbrcell_pk
+            -- 
+            INNER JOIN vendors t5 ON t5.pk = t2.vendor_pk
+            INNER JOIN technologies t6 ON t6.pk = t2.tech_pk
+            INNER JOIN live_network.nodes t7 on t7.pk = t1.node_pk
+            -- 
+            INNER JOIN vendors t8 ON t8.pk = t3.vendor_pk
+            INNER JOIN technologies t9 ON t9.pk = t3.tech_pk
+            -- 
+            LEFT JOIN network_audit.missing_cosite_relations t10 on t10.svrcell = t2.name AND t10.nbrcell = t3.name
+            WHERE 
+            t2.site_pk = t3.site_pk
+            -- AND t1.pk = 1
+            AND t2.pk != t3.pk
+            AND t4.pk IS NULL
+        """
+        self.engine.execute(sql)
+        session.close()

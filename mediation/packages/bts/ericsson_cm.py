@@ -80,7 +80,6 @@ class EricssonCM(object):
 
         session.close()
 
-
     def extract_live_network_3g_cells(self):
         """Extract Ericsson UTMS Cells"""
         Session = sessionmaker(bind=self.db_engine)
