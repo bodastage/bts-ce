@@ -36,7 +36,7 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
   ```batch 
   > bts setup
   ```
-* Open web broswer and paste the URL http://localhost on windows or http://192.168.99.100
+* Open web broswer and paste the URL http://localhost:8888 on windows or http://192.168.99.100:8888
 * Login with username: **btsuser@bodastage.org** and password: **password**
 
 > If you are on a metered internet connection, note that the setup process will download about 1GB of dependent packages
