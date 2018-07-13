@@ -22,14 +22,14 @@ class HuaweiCM(object):
             (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
             SELECT 
             NEXTVAL('live_network.seq_nodes_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
-            'BSC' as node_type,
-            t1."neid" as "name" , 
-            2 as vendor_pk, -- 1=Ericsson, 2=Huawei
-            1 as tech_pk , -- 1=gsm, 2-umts,3=lte
-            0 as added_by,
-            0 as modified_by
+            t1."varDateTime" AS date_added, 
+            t1."varDateTime" AS date_modified, 
+            'BSC' AS node_type,
+            t1."neid" AS "name" , 
+            2 AS vendor_pk, -- 1=Ericsson, 2=Huawei
+            1 AS tech_pk , -- 1=gsm, 2-umts,3=lte
+            0 AS added_by,
+            0 AS modified_by
             FROM huawei_cm_2g."BSCBASIC" t1
             LEFT OUTER  JOIN live_network.nodes t2 ON t1."neid" = t2."name"
             WHERE 
@@ -50,14 +50,14 @@ class HuaweiCM(object):
              (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
              SELECT 
              NEXTVAL('live_network.seq_nodes_pk'),
-             "varDateTime" as date_added, 
-             "varDateTime" as date_modified, 
-             'RNC' as node_type,
-             "neid" as "name" , 
-             2 as vendor_pk, -- 1=Ericsson, 2=Huawei, 3-ZTE
-             2 as tech_pk , -- 1=gsm, 2-umts,3=lte
-             0 as added_by,
-             0 as modified_by
+             "varDateTime" AS date_added, 
+             "varDateTime" AS date_modified, 
+             'RNC' AS node_type,
+             "neid" AS "name" , 
+             2 AS vendor_pk, -- 1=Ericsson, 2=Huawei, 3-ZTE
+             2 AS tech_pk , -- 1=gsm, 2-umts,3=lte
+             0 AS added_by,
+             0 AS modified_by
              FROM huawei_cm_3g."URNCBASIC" t1
              LEFT OUTER  JOIN live_network.nodes t2 ON t1."neid" = t2."name"
              WHERE 
@@ -78,13 +78,13 @@ class HuaweiCM(object):
              (pk, date_added,date_modified, tech_pk, vendor_pk, "name", added_by, modified_by)
              SELECT 
              NEXTVAL('live_network.seq_sites_pk'),
-             "varDateTime" as date_added, 
-             "varDateTime" as date_modified, 
-             3 as tech_pk , -- 1=gsm, 2-umts,3=lte,
-             2 as vendor_pk, -- 1=Ericsson, 2=Huawei
+             "varDateTime" AS date_added, 
+             "varDateTime" AS date_modified, 
+             3 AS tech_pk , -- 1=gsm, 2-umts,3=lte,
+             2 AS vendor_pk, -- 1=Ericsson, 2=Huawei
              t1."ENODEBFUNCTIONNAME",
-             0 as added_by,
-             0 as modified_by 
+             0 AS added_by,
+             0 AS modified_by 
              FROM
              huawei_cm_4g."ENODEBFUNCTION" t1
              LEFT OUTER  JOIN live_network.sites t2 ON t1."ENODEBFUNCTIONNAME" = t2."name"
@@ -106,12 +106,12 @@ class HuaweiCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
-            0 as added_by,
-            0 as modified_by,
-            1 as tech_pk, -- tech 3 -lte, 2 -umts, 1-gms
-            2 as vendor_pk, -- 1- Ericsson, 2 - Huawei, 3 - zte, 4-nokika, etc...
+            t1."varDateTime" AS date_added, 
+            t1."varDateTime" AS date_modified, 
+            0 AS added_by,
+            0 AS modified_by,
+            1 AS tech_pk, -- tech 3 -lte, 2 -umts, 1-gms
+            2 AS vendor_pk, -- 1- Ericsson, 2 - Huawei, 3 - zte, 4-nokika, etc...
             t1."BTSNAME",
             t2.pk -- node primary key
             from huawei_cm_2g."BTS" t1
@@ -137,10 +137,10 @@ class HuaweiCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             nextval('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
-            0 as added_by,
-            0 as modified_by,
+            t1."varDateTime" AS date_added, 
+            t1."varDateTime" AS date_modified, 
+            0 AS added_by,
+            0 AS modified_by,
             1, -- tech 3 -lte, 2 -umts, 1-gms
             2, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             t1."CELLNAME" AS name,
@@ -196,33 +196,33 @@ class HuaweiCM(object):
                          mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, mcc, mnc, modified_by, added_by, date_added, date_modified)
                          SELECT 
                          NEXTVAL('live_network.seq_gsm_cells_data_pk'),
-                         t1."CELLNAME" as name,
-                         t2.pk as cell_pk,
-                         t1."CI"::integer as ci,
-                         t1."BCC"::integer as bcc,
-                         t1."NCC"::integer as ncc,
-                         CONCAT(trim(t1."NCC"),trim(t1."BCC"))::integer as bsic,
-                         t4."FREQ"::integer as bcch,
-                         t1."LAC"::integer as lac,
-                         t6."LATIINT"::float as latitude,
+                         t1."CELLNAME" AS name,
+                         t2.pk AS cell_pk,
+                         t1."CI"::integer AS ci,
+                         t1."BCC"::integer AS bcc,
+                         t1."NCC"::integer AS ncc,
+                         CONCAT(trim(t1."NCC"),trim(t1."BCC"))::integer AS bsic,
+                         t4."FREQ"::integer AS bcch,
+                         t1."LAC"::integer AS lac,
+                         t6."LATIINT"::float AS latitude,
                          t6."LONGIINT"::float,
-                         CONCAT( TRIM(t1."MCC"),'-', TRIM(t1."MNC"),'-',TRIM(t1."LAC"),'-',TRIM(t1."CI")) as cgi,
-                         t6."ANTAANGLE"::integer as azimuth,
-                         t6."ALTITUDE"::integer as height,
-                         null as mechanical_tilt,
-                         -- t1."SECTOR_ANGLE"::integer as sector_angle,
-                         -- t6."MAXTA" as ta
-                         -- t1."STATE" as STATE -- ACTIVE or INACTIVE
-                         null as electrical_tilt,
-                         null as hsn,
-                         null as hopping_type,
-                         null as tch_carriers,
+                         CONCAT( TRIM(t1."MCC"),'-', TRIM(t1."MNC"),'-',TRIM(t1."LAC"),'-',TRIM(t1."CI")) AS cgi,
+                         t6."ANTAANGLE"::integer AS azimuth,
+                         t6."ALTITUDE"::integer AS height,
+                         null AS mechanical_tilt,
+                         -- t1."SECTOR_ANGLE"::integer AS sector_angle,
+                         -- t6."MAXTA" AS ta
+                         -- t1."STATE" AS STATE -- ACTIVE or INACTIVE
+                         null AS electrical_tilt,
+                         null AS hsn,
+                         null AS hopping_type,
+                         null AS tch_carriers,
                          t1."MCC"::integer,
                          t1."MNC"::integer,
-                         0 as modified_by,
-                         0 as added_by,
-                         t1."varDateTime" as date_added,
-                         t1."varDateTime" as date_modified            
+                         0 AS modified_by,
+                         0 AS added_by,
+                         t1."varDateTime" AS date_added,
+                         t1."varDateTime" AS date_modified            
                          FROM huawei_cm_2g."GCELL" t1             
                          INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 1
                          INNER JOIN huawei_cm_2g."GCELLBASICPARA" t3 on t3."CELLID" = t1."CELLID" AND t3.neid = t1.neid 
@@ -258,21 +258,21 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t4.node_pk as svrnode_pk,
-                t3.site_pk as svrsite_pk,
-                t3.tech_pk as svrtech_pk,
-                t3.vendor_pk as svrvendor_pk,
-                t3.pk as svrcell_pk,
+                t4.node_pk AS svrnode_pk,
+                t3.site_pk AS svrsite_pk,
+                t3.tech_pk AS svrtech_pk,
+                t3.vendor_pk AS svrvendor_pk,
+                t3.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as nbrcell_pk,
-                t1."varDateTime" as date_added,
-                t1."varDateTime" as date_modified,
-                0 as modified_by,
-                0 as added_by
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS nbrcell_pk,
+                t1."varDateTime" AS date_added,
+                t1."varDateTime" AS date_modified,
+                0 AS modified_by,
+                0 AS added_by
                 from hua_cm_2g."G2GNCELL" t1
                 -- svr side
                 INNER JOIN hua_cm_2g."GCELL" t2 ON t2.neid = t1.neid AND t2."CELLID" = t1."SRC2GNCELLID"
@@ -310,17 +310,17 @@ class HuaweiCM(object):
                  SELECT 
                  NEXTVAL('live_network.seq_relations_pk'),
                  -- serving side
-                 t5.node_pk as svrnode_pk,
-                 t4.site_pk as svrsite_pk,
-                 t4.tech_pk as svrtech_pk,
-                 t4.vendor_pk as svrvendor_pk,
-                 t4.pk as svrcell_pk,
+                 t5.node_pk AS svrnode_pk,
+                 t4.site_pk AS svrsite_pk,
+                 t4.tech_pk AS svrtech_pk,
+                 t4.vendor_pk AS svrvendor_pk,
+                 t4.pk AS svrcell_pk,
                  -- nbr side
-                 t7.node_pk as nbrnode_pk,
-                 t6.site_pk as nbrsite_pk,
-                 t6.tech_pk as nbrtech_pk,
-                 t6.vendor_pk as nbrvendor_pk,
-                 t6.pk as nbrcell_pk,
+                 t7.node_pk AS nbrnode_pk,
+                 t6.site_pk AS nbrsite_pk,
+                 t6.tech_pk AS nbrtech_pk,
+                 t6.vendor_pk AS nbrvendor_pk,
+                 t6.pk AS nbrcell_pk,
                  t1."varDateTime" ,
                  t1."varDateTime" ,
                  0, -- system
@@ -376,21 +376,21 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t1.neid as svrnode,
-                t2."CELLNAME" as svrcell,
-                t3."EXT2GCELLNAME" as nbrcell,
+                t1.neid AS svrnode,
+                t2."CELLNAME" AS svrcell,
+                t3."EXT2GCELLNAME" AS nbrcell,
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as svrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as svrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS svrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -459,17 +459,17 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as svrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as nbrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS nbrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -523,17 +523,17 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as svrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as nbrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS nbrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -587,17 +587,17 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as svrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as nbrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS nbrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -651,17 +651,17 @@ class HuaweiCM(object):
                     SELECT 
                     NEXTVAL('live_network.seq_relations_pk'),
                     -- serving side
-                    t5.node_pk as svrnode_pk,
-                    t4.site_pk as svrsite_pk,
-                    t4.tech_pk as svrtech_pk,
-                    t4.vendor_pk as svrvendor_pk,
-                    t4.pk as svrcell_pk,
+                    t5.node_pk AS svrnode_pk,
+                    t4.site_pk AS svrsite_pk,
+                    t4.tech_pk AS svrtech_pk,
+                    t4.vendor_pk AS svrvendor_pk,
+                    t4.pk AS svrcell_pk,
                     -- nbr side
-                    t7.node_pk as nbrnode_pk,
-                    t6.site_pk as nbrsite_pk,
-                    t6.tech_pk as nbrtech_pk,
-                    t6.vendor_pk as nbrvendor_pk,
-                    t6.pk as nbrcell_pk,
+                    t7.node_pk AS nbrnode_pk,
+                    t6.site_pk AS nbrsite_pk,
+                    t6.tech_pk AS nbrtech_pk,
+                    t6.vendor_pk AS nbrvendor_pk,
+                    t6.pk AS nbrcell_pk,
                     t1."varDateTime" ,
                     t1."varDateTime" ,
                     0, -- system
@@ -717,17 +717,17 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as svrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as svrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS svrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -783,17 +783,17 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as svrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as svrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS svrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -852,17 +852,17 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as svrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as svrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS svrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -917,17 +917,17 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as nbrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS nbrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as svrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS svrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -980,17 +980,17 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as svrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as nbrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS nbrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -1040,17 +1040,17 @@ class HuaweiCM(object):
                  SELECT 
                  NEXTVAL('live_network.seq_relations_pk'),
                  -- serving side
-                 t5.node_pk as svrnode_pk,
-                 t4.site_pk as svrsite_pk,
-                 t4.tech_pk as svrtech_pk,
-                 t4.vendor_pk as svrvendor_pk,
-                 t4.pk as svrcell_pk,
+                 t5.node_pk AS svrnode_pk,
+                 t4.site_pk AS svrsite_pk,
+                 t4.tech_pk AS svrtech_pk,
+                 t4.vendor_pk AS svrvendor_pk,
+                 t4.pk AS svrcell_pk,
                  -- nbr side
-                 t7.node_pk as nbrnode_pk,
-                 t6.site_pk as nbrsite_pk,
-                 t6.tech_pk as nbrtech_pk,
-                 t6.vendor_pk as nbrvendor_pk,
-                 t6.pk as nbrcell_pk,
+                 t7.node_pk AS nbrnode_pk,
+                 t6.site_pk AS nbrsite_pk,
+                 t6.tech_pk AS nbrtech_pk,
+                 t6.vendor_pk AS nbrvendor_pk,
+                 t6.pk AS nbrcell_pk,
                  t1."varDateTime" ,
                  t1."varDateTime" ,
                  0, -- system
@@ -1100,17 +1100,17 @@ class HuaweiCM(object):
                  SELECT 
                  NEXTVAL('live_network.seq_relations_pk'),
                  -- serving side
-                 t5.node_pk as svrnode_pk,
-                 t4.site_pk as svrsite_pk,
-                 t4.tech_pk as svrtech_pk,
-                 t4.vendor_pk as svrvendor_pk,
-                 t4.pk as svrcell_pk,
+                 t5.node_pk AS svrnode_pk,
+                 t4.site_pk AS svrsite_pk,
+                 t4.tech_pk AS svrtech_pk,
+                 t4.vendor_pk AS svrvendor_pk,
+                 t4.pk AS svrcell_pk,
                  -- nbr side
-                 t7.node_pk as nbrnode_pk,
-                 t6.site_pk as nbrsite_pk,
-                 t6.tech_pk as nbrtech_pk,
-                 t6.vendor_pk as nbrvendor_pk,
-                 t6.pk as nbrcell_pk,
+                 t7.node_pk AS nbrnode_pk,
+                 t6.site_pk AS nbrsite_pk,
+                 t6.tech_pk AS nbrtech_pk,
+                 t6.vendor_pk AS nbrvendor_pk,
+                 t6.pk AS nbrcell_pk,
                  t1."varDateTime" ,
                  t1."varDateTime" ,
                  0, -- system
@@ -1192,17 +1192,17 @@ class HuaweiCM(object):
                 SELECT 
                 NEXTVAL('live_network.seq_relations_pk'),
                 -- serving side
-                t5.node_pk as svrnode_pk,
-                t4.site_pk as svrsite_pk,
-                t4.tech_pk as svrtech_pk,
-                t4.vendor_pk as svrvendor_pk,
-                t4.pk as svrcell_pk,
+                t5.node_pk AS svrnode_pk,
+                t4.site_pk AS svrsite_pk,
+                t4.tech_pk AS svrtech_pk,
+                t4.vendor_pk AS svrvendor_pk,
+                t4.pk AS svrcell_pk,
                 -- nbr side
-                t7.node_pk as nbrnode_pk,
-                t6.site_pk as nbrsite_pk,
-                t6.tech_pk as nbrtech_pk,
-                t6.vendor_pk as nbrvendor_pk,
-                t6.pk as svrcell_pk,
+                t7.node_pk AS nbrnode_pk,
+                t6.site_pk AS nbrsite_pk,
+                t6.tech_pk AS nbrtech_pk,
+                t6.vendor_pk AS nbrvendor_pk,
+                t6.pk AS svrcell_pk,
                 t1."varDateTime" ,
                 t1."varDateTime" ,
                 0, -- system
@@ -1246,10 +1246,10 @@ class HuaweiCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
-            0 as added_by,
-            0 as modified_by,
+            t1."varDateTime" AS date_added, 
+            t1."varDateTime" AS date_modified, 
+            0 AS added_by,
+            0 AS modified_by,
             2, -- tech 3 -lte, 2 -umts, 1-gms
             2, -- 1- Ericsson, 2 - Huawei,
             t1."NODEBNAME",
@@ -1306,10 +1306,10 @@ class HuaweiCM(object):
                  (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
                  SELECT 
                  nextval('live_network.seq_cells_pk'),
-                 t1."varDateTime" as date_added, 
-                 t1."varDateTime" as date_modified, 
-                 0 as added_by,
-                 0 as modified_by,
+                 t1."varDateTime" AS date_added, 
+                 t1."varDateTime" AS date_modified, 
+                 0 AS added_by,
+                 0 AS modified_by,
                  2, -- tech 3 -lte, 2 -umts, 1-gms
                  2, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
                  t1."CELLNAME" AS name,
@@ -1361,42 +1361,42 @@ class HuaweiCM(object):
                 height, site_sector_carrier, mcc,mnc,ura,localcellid)
                 SELECT 
                 NEXTVAL('live_network.seq_umts_cells_data_pk'),
-                t1."varDateTime" as date_added, 
-                t1."varDateTime" as date_modified, 
-                0 as added_by,
-                0 as modified_by,
-                t5."BCHPOWER"::integer as bch_power,
+                t1."varDateTime" AS date_added, 
+                t1."varDateTime" AS date_modified, 
+                0 AS added_by,
+                0 AS modified_by,
+                t5."BCHPOWER"::integer AS bch_power,
                 t1."CELLID"::integer,
-                t3.pk as cell_pk, -- cellid
-                t1."LAC"::integer as lac,
+                t3.pk AS cell_pk, -- cellid
+                t1."LAC"::integer AS lac,
                 -- (t4."antennaPosition_latitude"::float/93206.76)*(-1::float*t4."antennaPosition_latitudeSign"::float) 
-                null as latitude,
-                -- t4."antennaPosition_longitude"::float/46603.38 as longitude,
-                null as longitude,
-                t1."MAXTXPOWER"::integer as maximum_transmission_power,
+                null AS latitude,
+                -- t4."antennaPosition_longitude"::float/46603.38 AS longitude,
+                null AS longitude,
+                t1."MAXTXPOWER"::integer AS maximum_transmission_power,
                 t1."CELLNAME",
-                t4."MAXPCPICHPOWER"::integer  as cpich_power,
-                t6."PSCHPOWER"::integer as primary_sch_power,
-                t1."PSCRAMBCODE"::integer as scrambling_code,
-                -- t1."LAC" as lac,
+                t4."MAXPCPICHPOWER"::integer  AS cpich_power,
+                t6."PSCHPOWER"::integer AS primary_sch_power,
+                t1."PSCRAMBCODE"::integer AS scrambling_code,
+                -- t1."LAC" AS lac,
                 t1."RAC"::integer,
                 t1."SAC"::integer,
-                null as secondary_sch_power,
+                null AS secondary_sch_power,
                 t3.site_pk, -- site pk
                 2, -- umts
                 2, -- Huawei
                 t1."UARFCNDOWNLINK"::integer,
                 t1."UARFCNUPLINK"::integer,
-                null as ura_list ,
-                null as azimuth, -- azimuth,
-                null as cell_range, -- cellrange,
-                null as height, -- height
-                null as site_sector_carrier,
-                t7."MCC" as mcc,
-                t7."MNC" as mnc,
-                t8."URAID" as ura ,
-                t1."LOCELL" as localcellid,
-                t1."CELLID" as ci
+                null AS ura_list ,
+                null AS azimuth, -- azimuth,
+                null AS cell_range, -- cellrange,
+                null AS height, -- height
+                null AS site_sector_carrier,
+                t7."MCC" AS mcc,
+                t7."MNC" AS mnc,
+                t8."URAID" AS ura ,
+                t1."LOCELL" AS localcellid,
+                t1."CELLID" AS ci
                 FROM 
                 hua_cm_3g.ucell t1
                 INNER JOIN live_network.cells t3 on t3."name" = t1."CELLNAME" and t3.vendor_pk = 2 and t3.tech_pk = 2
@@ -1421,13 +1421,13 @@ class HuaweiCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             NEXTVAL('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
-            0 as added_by,
-            0 as modified_by,
+            t1."varDateTime" AS date_added, 
+            t1."varDateTime" AS date_modified, 
+            0 AS added_by,
+            0 AS modified_by,
             3, -- tech 3 -lte, 2 -umts, 1-gms
             2, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
-            t1."CELLNAME" as name,
+            t1."CELLNAME" AS name,
             t2.pk -- site primary key
             FROM huawei_cm_4g."CELL" t1
             INNER JOIN live_network.sites t2 on t2."name" = t1."neid" 
@@ -1472,38 +1472,38 @@ class HuaweiCM(object):
                         site_pk, tech_pk, vendor_pk, modified_by, added_by, date_added, date_modified)
                         SELECT 
                         NEXTVAL('live_network.seq_lte_cells_data_pk'),
-                        t1."CELLNAME" as name,
-                        t2.pk as cell_pk,
-                        t1."DLEARFCN"::integer as uarfcn_dl,
-                        t3.dl_freq_low as uarfcn_ul,
-                        t6."MCC"::integer as mcc,
-                        t6."MNC"::integer as mnc,
-                        t4."TAC"::integer as tac,
-                        t1."PHYCELLID"::integer as pci,
-                        null as ecgi,
-                        t1."ROOTSEQUENCEIDX" as rach_root_sequence,
-                        null as max_tx_power,
-                        null as latitude,
-                        null as longitude,
-                        null as height,
-                        t1."DLBANDWIDTH"::integer as dl_bandwidth,
-                        null as ul_bandwidth,
-                        null as ta,
-                        null as ta_mode,
-                        t1."TXRXMODE"::integer as tx_elements, -- @TODO: Conform
-                        t1."TXRXMODE"::integer as rx_elements, -- @TODO: Conform
-                        t7."DLSCHSTRATEGY"::integer as scheduler,
-                        null as azimuth,
-                        null as mechanical_tilt,
-                        null as electrical_tilt,
-                        t1."CELLRADIUS"::integer as cell_range,
-                        t2.site_pk as site_pk,
-                        t2.tech_pk as tech_pk,
-                        t2.vendor_pk as vendor_pk,
-                        0 as modified_by, 
-                        0 as added_by, 
-                        t1."varDateTime" as date_added, 
-                        t1."varDateTime" as date_modified
+                        t1."CELLNAME" AS name,
+                        t2.pk AS cell_pk,
+                        t1."DLEARFCN"::integer AS uarfcn_dl,
+                        t3.dl_freq_low AS uarfcn_ul,
+                        t6."MCC"::integer AS mcc,
+                        t6."MNC"::integer AS mnc,
+                        t4."TAC"::integer AS tac,
+                        t1."PHYCELLID"::integer AS pci,
+                        null AS ecgi,
+                        t1."ROOTSEQUENCEIDX" AS rach_root_sequence,
+                        null AS max_tx_power,
+                        null AS latitude,
+                        null AS longitude,
+                        null AS height,
+                        t1."DLBANDWIDTH"::integer AS dl_bandwidth,
+                        null AS ul_bandwidth,
+                        null AS ta,
+                        null AS ta_mode,
+                        t1."TXRXMODE"::integer AS tx_elements, -- @TODO: Conform
+                        t1."TXRXMODE"::integer AS rx_elements, -- @TODO: Conform
+                        t7."DLSCHSTRATEGY"::integer AS scheduler,
+                        null AS azimuth,
+                        null AS mechanical_tilt,
+                        null AS electrical_tilt,
+                        t1."CELLRADIUS"::integer AS cell_range,
+                        t2.site_pk AS site_pk,
+                        t2.tech_pk AS tech_pk,
+                        t2.vendor_pk AS vendor_pk,
+                        0 AS modified_by, 
+                        0 AS added_by, 
+                        t1."varDateTime" AS date_added, 
+                        t1."varDateTime" AS date_modified
                         FROM huawei_cm_4g."CELL" t1
                         INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 3
                         INNER JOIN public.lte_frequency_bands t3 on t3.band_id = t1."FREQBAND"::integer
@@ -1525,7 +1525,7 @@ class HuaweiCM(object):
         INSERT INTO live_network.gsm_external_cells
         (pk, name, cell_pk, node_pk, mcc, mnc, lac, bcch, ncc, bcc, ci, modified_by, added_by, date_added, date_modified)
         SELECT 
-        NEXTVAL('live_network.seq_gsm_external_cells_pk') as pk,
+        NEXTVAL('live_network.seq_gsm_external_cells_pk') AS pk,
         t1."EXT2GCELLNAME" AS "name",
         t3.pk AS cell_pk,
         t2.pk AS node_pk,
@@ -1536,10 +1536,10 @@ class HuaweiCM(object):
         t1."NCC"::integer AS ncc,
         t1."BCC"::integer AS bcc,
         t1."CI"::integer AS ci,
-        0 as modified_by,
-        0 as added_by,
-        now()::timestamp as date_added,
-        now()::timestamp as date_modified
+        0 AS modified_by,
+        0 AS added_by,
+        now()::timestamp AS date_added,
+        now()::timestamp AS date_modified
         FROM
         huawei_cm_2g."GEXT2GCELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."neid"
@@ -1563,7 +1563,7 @@ class HuaweiCM(object):
         INSERT INTO live_network.gsm_external_cells
         (pk, name, cell_pk, node_pk, mcc, mnc, lac, bcch, ncc, bcc, ci,rac, modified_by, added_by, date_added, date_modified)
         SELECT 
-        NEXTVAL('live_network.seq_gsm_external_cells_pk') as pk,
+        NEXTVAL('live_network.seq_gsm_external_cells_pk') AS pk,
         t1."GSMCELLNAME" AS "name",
         t3.pk AS cell_pk,
         t2.pk AS node_pk,
@@ -1575,10 +1575,10 @@ class HuaweiCM(object):
         t1."BCC"::integer AS bcc,
         t1."CID"::integer AS ci,
         t1."RAC"::integer AS rac,
-        0 as modified_by,
-        0 as added_by,
-        now()::timestamp as date_added,
-        now()::timestamp as date_modified
+        0 AS modified_by,
+        0 AS added_by,
+        now()::timestamp AS date_added,
+        now()::timestamp AS date_modified
         FROM
         huawei_cm_3g."UEXT2GCELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."neid"
@@ -1602,7 +1602,7 @@ class HuaweiCM(object):
             INSERT INTO live_network.gsm_external_cells
             (pk, name, cell_pk, node_pk, mcc, mnc, lac, bcch,rac, modified_by, added_by, date_added, date_modified)
             SELECT 
-            NEXTVAL('live_network.seq_gsm_external_cells_pk') as pk,
+            NEXTVAL('live_network.seq_gsm_external_cells_pk') AS pk,
             t1."CELLNAME" AS "name",
             t3.pk AS cell_pk,
             t2.pk AS node_pk,
@@ -1611,10 +1611,10 @@ class HuaweiCM(object):
             t1."LAC"::integer AS lac,
             t1."GERANARFCN"::integer AS bcch,
             t1."RAC"::integer AS rac,
-            0 as modified_by,
-            0 as added_by,
-            now()::timestamp as date_added,
-            now()::timestamp as date_modified
+            0 AS modified_by,
+            0 AS added_by,
+            now()::timestamp AS date_added,
+            now()::timestamp AS date_modified
             FROM
             huawei_cm_4g."GERANEXTERNALCELL" t1
             LEFT JOIN live_network.nodes t2 ON t2."name" = t1."neid"
@@ -1637,19 +1637,19 @@ class HuaweiCM(object):
         INSERT INTO live_network.umts_external_cells
         (pk, name, cell_pk,  mcc, mnc, lac, rncid, ci, psc, modified_by, added_by, date_added, date_modified)
         SELECT 
-        NEXTVAL('live_network.seq_umts_external_cells_pk') as pk,
+        NEXTVAL('live_network.seq_umts_external_cells_pk') AS pk,
         t1."EXT3GCELLNAME" AS "name",
         t3.pk AS cell_pk,
         t1."MCC"::integer AS mcc,
         t1."MNC"::integer AS mnc,
         t1."LAC"::integer AS lac,
-        t1."RNCID"::integer as rncid,
-        t1."CI"::integer as ci,
+        t1."RNCID"::integer AS rncid,
+        t1."CI"::integer AS ci,
         t1."SCRAMBLE"::integer AS psc,
-        0 as modified_by,
-        0 as added_by,
-        now()::timestamp as date_added,
-        now()::timestamp as date_modified
+        0 AS modified_by,
+        0 AS added_by,
+        now()::timestamp AS date_added,
+        now()::timestamp AS date_modified
         FROM
         huawei_cm_2g."GEXT3GCELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."neid"
@@ -1671,24 +1671,21 @@ class HuaweiCM(object):
 
         sql = """
         INSERT INTO live_network.umts_external_cells
-        (pk, name, cell_pk,  mcc, mnc, lac, rac, rncid, ci, psc, uarfcn_dl, uarfcn_ul, modified_by, added_by, date_added, date_modified)
+        (pk, name, cell_pk, lac, rac, ci, psc, uarfcn_dl, uarfcn_ul, modified_by, added_by, date_added, date_modified)
         SELECT 
-        NEXTVAL('live_network.seq_umts_external_cells_pk') as pk,
+        NEXTVAL('live_network.seq_umts_external_cells_pk') AS pk,
         t1."CELLNAME" AS "name",
         t3.pk AS cell_pk,
-        t1."MCC"::integer AS mcc,
-        t1."MNC"::integer AS mnc,
         t1."LAC"::integer AS lac,
         t1."RAC"::integer AS rac,
-        t1."RNCID"::integer as rncid,
-        t1."CELLID"::integer as ci,
+        t1."CELLID"::integer AS ci,
         t1."PSCRAMBCODE"::integer AS psc,
         t1."UARFCNDOWNLINK"::integer AS uarfcn_dl,
         t1."UARFCNUPLINK"::integer AS ul_uarfcn,
-        0 as modified_by,
-        0 as added_by,
-        now()::timestamp as date_added,
-        now()::timestamp as date_modified
+        0 AS modified_by,
+        0 AS added_by,
+        now()::timestamp AS date_added,
+        now()::timestamp AS date_modified
         FROM
         huawei_cm_3g."UEXT3GCELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."neid"
@@ -1711,21 +1708,21 @@ class HuaweiCM(object):
         INSERT INTO live_network.umts_external_cells
         (pk, name, cell_pk,  mcc, mnc, lac, rac, rncid, ci, psc, uarfcn_dl, modified_by, added_by, date_added, date_modified)
         SELECT 
-        NEXTVAL('live_network.seq_umts_external_cells_pk') as pk,
+        NEXTVAL('live_network.seq_umts_external_cells_pk') AS pk,
         t1."CELLNAME" AS "name",
         t3.pk AS cell_pk,
         t1."MCC"::integer AS mcc,
         t1."MNC"::integer AS mnc,
         t1."LAC"::integer AS lac,
         t1."RAC"::integer AS rac,
-        t1."RNCID"::integer as rncid,
-        t1."CELLID"::integer as ci,
-        t1."PSCRAMBCODE"::integer as psc,
+        t1."RNCID"::integer AS rncid,
+        t1."CELLID"::integer AS ci,
+        t1."PSCRAMBCODE"::integer AS psc,
         t1."UTRANDLARFCN"::integer AS uarfcn_dl,
-        0 as modified_by,
-        0 as added_by,
-        now()::timestamp as date_added,
-        now()::timestamp as date_modified
+        0 AS modified_by,
+        0 AS added_by,
+        now()::timestamp AS date_added,
+        now()::timestamp AS date_modified
         FROM
         huawei_cm_4g."UTRANEXTERNALCELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."neid"
@@ -1748,7 +1745,7 @@ class HuaweiCM(object):
         INSERT INTO live_network.lte_external_cells
         (pk, name, cell_pk, node_pk, mcc, mnc, pci, dl_earfcn, ci, tac, modified_by, added_by, date_added, date_modified)
         SELECT 
-        NEXTVAL('live_network.seq_gsm_external_cells_pk') as pk,
+        NEXTVAL('live_network.seq_gsm_external_cells_pk') AS pk,
         t1."EXTLTECELLNAME" AS "name",
         t3.pk AS cell_pk,
         t2.pk AS node_pk,
@@ -1757,11 +1754,11 @@ class HuaweiCM(object):
         t1."PCID"::integer AS pci,
         t1."FREQ"::integer AS dl_earfcn,
         t1."CI"::integer AS ci,
-        t1."TAC"::integer as tac,
-        0 as modified_by,
-        0 as added_by,
-        now()::timestamp as date_added,
-        now()::timestamp as date_modified
+        t1."TAC"::integer AS tac,
+        0 AS modified_by,
+        0 AS added_by,
+        now()::timestamp AS date_added,
+        now()::timestamp AS date_modified
         FROM
         huawei_cm_2g."GEXTLTECELL" t1
         LEFT JOIN live_network.cells t3 on t3."name" = t1."EXTLTECELLNAME"
@@ -1789,7 +1786,7 @@ class HuaweiCM(object):
             INSERT INTO live_network.lte_external_cells
             (pk, name, cell_pk, node_pk, mcc, mnc, pci, dl_earfcn, ci, tac, modified_by, added_by, date_added, date_modified)
             SELECT 
-            NEXTVAL('live_network.seq_gsm_external_cells_pk') as pk,
+            NEXTVAL('live_network.seq_gsm_external_cells_pk') AS pk,
             t1."CELLNAME" AS "name",
             t3.pk AS cell_pk,
             t2.pk AS node_pk,
@@ -1798,11 +1795,11 @@ class HuaweiCM(object):
             t1."PHYCELLID"::integer AS pci,
             t1."DLEARFCN"::integer AS dl_earfcn,
             t1."CELLID"::integer AS ci,
-            t1."TAC"::integer as tac,
-            0 as modified_by,
-            0 as added_by,
-            now()::timestamp as date_added,
-            now()::timestamp as date_modified
+            t1."TAC"::integer AS tac,
+            0 AS modified_by,
+            0 AS added_by,
+            now()::timestamp AS date_added,
+            now()::timestamp AS date_modified
             FROM
             huawei_cm_4g."EUTRANEXTERNALCELL" t1
             LEFT JOIN live_network.cells t3 on t3."name" = t1."CELLNAME"

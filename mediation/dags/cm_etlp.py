@@ -613,36 +613,6 @@ t66 = PythonOperator(
     python_callable=extract_huawei_2g2g_nbrs,
     dag=dag)
 
-def extract_huawei_2g_externals():
-    huawei_cm.extract_live_network_2g_externals_on_2g()
-    huawei_cm.extract_live_network_3g_externals_on_2g()
-    huawei_cm.extract_live_network_4g_externals_on_2g()
-
-def extract_huawei_3g_externals():
-    huawei_cm.extract_live_network_2g_externals_on_3g()
-    huawei_cm.extract_live_network_3g_externals_on_3g()
-    huawei_cm.extract_live_network_4g_externals_on_3g()
-
-def extract_huawei_4g_externals():
-    huawei_cm.extract_live_network_2g_externals_on_4g()
-    huawei_cm.extract_live_network_3g_externals_on_4g()
-    huawei_cm.extract_live_network_4g_externals_on_4g()
-
-
-huawei_2g_externals = PythonOperator(
-    task_id='extract_huawei_2g_externals',
-    python_callable=extract_huawei_2g_externals,
-    dag=dag)
-
-huawei_3g_externals = PythonOperator(
-    task_id='extract_huawei_3g_externals',
-    python_callable=extract_huawei_3g_externals,
-    dag=dag)
-
-huawei_4g_externals = PythonOperator(
-    task_id='extract_huawei_4g_externals',
-    python_callable=extract_huawei_4g_externals,
-    dag=dag)
 
 
 def extract_huawei_2g3g_nbrs():
@@ -927,9 +897,6 @@ dag.set_dependency('extract_huawei_2g4g_nbrs','huawei_cm_done')
 
 dag.set_dependency('extract_huawei_2g_cells','cell_extraction_done')
 
-# Externals
-dag.set_dependency('extract_huawei_2g_cells','extract_huawei_2g_externals')
-dag.set_dependency('extract_huawei_2g_externals','huawei_cm_done')
 
 # Huawei 3G
 dag.set_dependency('huawei_is_supported','parse_and_import_huawei_3g')
@@ -951,11 +918,6 @@ dag.set_dependency('extract_huawei_3g4g_nbrs','huawei_cm_done')
 
 dag.set_dependency('extract_huawei_3g_cells','cell_extraction_done')
 
-# #G Externals
-dag.set_dependency('extract_huawei_3g_cells','extract_huawei_3g_externals')
-dag.set_dependency('extract_huawei_3g_externals','huawei_cm_done')
-
-
 # Huawei 4G
 dag.set_dependency('huawei_is_supported','parse_and_import_huawei_4g')
 dag.set_dependency('parse_and_import_huawei_4g','huawei_parsing_done')
@@ -973,10 +935,6 @@ dag.set_dependency('extract_huawei_4g3g_nbrs','huawei_cm_done')
 dag.set_dependency('extract_huawei_4g4g_nbrs','huawei_cm_done')
 
 dag.set_dependency('extract_huawei_4g_cells','cell_extraction_done')
-
-# #G Externals
-dag.set_dependency('extract_huawei_4g_cells','extract_huawei_4g_externals')
-dag.set_dependency('extract_huawei_4g_externals','huawei_cm_done')
 
 
 # Huawei cfgsyn
