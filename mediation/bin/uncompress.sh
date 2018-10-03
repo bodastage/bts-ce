@@ -53,7 +53,7 @@ function unachive_folder(){
 		fi
 	done
 	
-	[ "$folder_name" != "$output_dir" ] && rm -rf "$folder_name"
+	[ "$folder_name" != "$output_dir" ] && [ -d "$folder_name" ]  && rm -rf "$folder_name"
 }
 
 
