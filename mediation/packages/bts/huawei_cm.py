@@ -104,7 +104,7 @@ class HuaweiCM(object):
         sql = """
             INSERT INTO live_network.sites
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
-            SELECT 
+            SELECT DISTINCT
             NEXTVAL('live_network.seq_sites_pk'),
             t1."varDateTime" AS date_added, 
             t1."varDateTime" AS date_modified, 
@@ -121,7 +121,6 @@ class HuaweiCM(object):
                AND t2.vendor_pk = 2 and t2.tech_pk = 1
             WHERE 
             t3."name" IS NULL
-            AND trim(t1.module_type) = 'Radio'
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
