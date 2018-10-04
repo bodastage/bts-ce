@@ -134,7 +134,7 @@ class HuaweiCM(object):
         sql = """
             INSERT INTO live_network.cells
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
-            SELECT 
+            SELECT DISTINCT
             nextval('live_network.seq_cells_pk'),
             t1."varDateTime" AS date_added, 
             t1."varDateTime" AS date_modified, 
@@ -148,8 +148,8 @@ class HuaweiCM(object):
             INNER JOIN live_network.nodes t3 on t3."name" = t1."neid" 
                     AND t3.vendor_pk = 2
                     AND t3.tech_pk = 1
-            INNER JOIN huawei_nbi_gsm."CELLBIND2BTS" t6 on t6."neid" = t3.name AND t6."CELLID" = t1."CELLID"
-            INNER JOIN huawei_nbi_gsm."BTS" t7 on t7."neid" = t3.name AND t7."BTSID" = t6."BTSID"
+            INNER JOIN huawei_cm_2g."CELLBIND2BTS" t6 on t6."neid" = t3.name AND t6."CELLID" = t1."CELLID"
+            INNER JOIN huawei_cm_2g."BTS" t7 on t7."neid" = t3.name AND t7."BTSID" = t6."BTSID"
             INNER JOIN live_network.sites t4 on t4."name" = t7."BTSNAME"
                 AND t4.vendor_pk = 2 
                 AND t4.tech_pk = 1
@@ -159,7 +159,6 @@ class HuaweiCM(object):
                 AND t5.vendor_pk = 2
             WHERE
             t5."name" IS NULL
-            AND trim(t1.module_type) = 'Radio'
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
