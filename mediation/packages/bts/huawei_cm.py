@@ -230,7 +230,6 @@ class HuaweiCM(object):
                          INNER JOIN huawei_cm_2g."CELLBIND2BTS" t7 on t7."CELLID" = t1."CELLID" AND t6.neid = t1.neid
                          WHERE 
                          t5."name" ='{0}'
-                        -- AND trim(t1.module_type) = 'Radio'
                          ;
                      """.format(site_name)
 
@@ -271,13 +270,13 @@ class HuaweiCM(object):
                 t1."varDateTime" AS date_modified,
                 0 AS modified_by,
                 0 AS added_by
-                from hua_cm_2g."G2GNCELL" t1
+                from huawei_cm_2g."G2GNCELL" t1
                 -- svr side
-                INNER JOIN hua_cm_2g."GCELL" t2 ON t2.neid = t1.neid AND t2."CELLID" = t1."SRC2GNCELLID"
+                INNER JOIN huawei_cm_2g."GCELL" t2 ON t2.neid = t1.neid AND t2."CELLID" = t1."SRC2GNCELLID"
                 INNER JOIN live_network.cells t3 ON t3.name = t2."CELLNAME" AND t3.vendor_pk = 2 AND t3.tech_pk = 1
                 INNER JOIN live_network.sites t4 ON t4.pk = t3.site_pk AND t4.vendor_pk = 2 AND t4.tech_pk = 1
                 -- nbr side
-                INNER JOIN hua_cm_2g."GCELL" t5 on  t5.neid = t1.neid AND t5."CELLID" = t1."NBR2GNCELLID" 
+                INNER JOIN huawei_cm_2g."GCELL" t5 on  t5.neid = t1.neid AND t5."CELLID" = t1."NBR2GNCELLID" 
                 INNER JOIN live_network.cells t6 ON t6.name = t5."CELLNAME" AND t6.vendor_pk = 2 AND t6.tech_pk = 1
                 INNER JOIN live_network.sites t7 ON t7.pk = t6.site_pk AND t7.vendor_pk = 2 AND t7.tech_pk = 1
                 WHERE
@@ -324,11 +323,11 @@ class HuaweiCM(object):
                  0, -- system
                  0
                  FROM 
-                 hua_cm_2g."G2GNCELL" t1
-                 INNER JOIN hua_cm_2g."GCELL" t2 ON 
+                 huawei_cm_2g."G2GNCELL" t1
+                 INNER JOIN huawei_cm_2g."GCELL" t2 ON 
                      t2.neid = t1.neid 
                      AND t1."SRC2GNCELLID" = t2."CELLID"
-                 LEFT JOIN hua_cm_2g."GEXT2GCELL" t3 ON 
+                 LEFT JOIN huawei_cm_2g."GEXT2GCELL" t3 ON 
                      t3.neid  = t1.neid
                      AND t3."EXT2GCELLID" = t1."NBR2GNCELLID"
                  INNER JOIN live_network.cells t4 ON 
@@ -395,10 +394,10 @@ class HuaweiCM(object):
                 0
                 FROM 
                 hua_cm_2g."G2GNCELL" t1
-                INNER JOIN hua_cm_2g."GCELL" t2 ON 
+                INNER JOIN huawei_cm_2g."GCELL" t2 ON 
                     t2.neid = t1.neid 
                     AND t1."SRC2GNCELLID" = t2."CELLID"
-                LEFT JOIN hua_cm_2g."GEXT2GCELL" t3 ON 
+                LEFT JOIN huawei_cm_2g."GEXT2GCELL" t3 ON 
                     t3.neid  = t1.neid
                     AND t3."EXT2GCELLID" = t1."NBR2GNCELLID"
                 INNER JOIN live_network.cells t4 ON 
