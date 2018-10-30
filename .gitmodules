@@ -1,12 +1,12 @@
-[submodule "bts-ce-api"]
-	path = bts-ce-api
-	url = https://github.com/bodastage/bts-ce-api
-[submodule "bts-ce-database"]
-	path = bts-ce-database
-	url = https://github.com/bodastage/bts-ce-database.git
-[submodule "bts-ce-web"]
-	path = bts-ce-web
-	url = https://github.com/bodastage/bts-ce-web.git
-[submodule "bts-ce-docs"]
-	path = bts-ce-docs
-	url = https://github.com/bodastage/bts-ce-docs.git
+[submodule "bts-ee-api"]
+	path = bts-ee-api
+	url = https://gitlab.com/bts-ee/bts-ee-api
+[submodule "bts-ee-database"]
+	path = bts-ee-database
+	url = https://gitlab.com/bts-ee/bts-ee-database.git
+[submodule "bts-ee-web"]
+	path = bts-ee-web
+	url = https://gitlab.com/bts-ee/bts-ee-web.git
+[submodule "bts-ee-docs"]
+	path = bts-ee-docs
+	url = https://gitlab.com/bts-ee/bts-ee-docs.git

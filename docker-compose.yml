@@ -28,15 +28,20 @@ services:
         container_name: "bts-msgbroker"
         command: bash -c "rabbitmq-server; rabbitmq-plugins enable rabbitmq_web_stomp"
     bts-api:
-        image: bodastage/bts-ce-api
+        image: registry.gitlab.com/bts-ee/bts-ee-api
         ports:
           - 8181:8181
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
+          - BTS_DB_HOST=localhost
+          - BTS_DB_NAME=bts
+          - BTS_DB_USER=bodastage
+          - BTS_DB_PASS=password 
+          - BTS_DB_PORT=5432
         volumes:
-          - ./bts-ce-api:/app
-          - ./bts-ce-database:/migrations
+          - ./bts-ee-api:/app
+          - ./bts-ee-database:/migrations
         depends_on: 
             - bts-database
             - bts-msgbroker
@@ -50,15 +55,14 @@ services:
         ports:
           - "80:80"
         volumes:
-#          - ./web:/usr/share/nginx/html
-          - ./bts-ce-web/dist:/usr/share/nginx/html
+          - ./bts-ee-web/dist:/usr/share/nginx/html
         network_mode: "bridge"
         container_name: "bts-web"
         depends_on: 
             - bts-msgbroker
             - bts-api
     bts-mediation:
-        image: bodastage/bts-ce-mediation
+        image: registry.gitlab.com/bts-ee/bts-ee-mediation
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
@@ -81,8 +85,8 @@ services:
         container_name: "bts-mediation"
         links:
             - "bts-database:database"
-#    bts-cache:
-#        image: redis:latest
-#        ports:
-#          - "6380:6380"
-#        network_mode: "bridge"
+    bts-cache:
+        image: redis:latest
+        ports:
+          - "6380:6380"
+        network_mode: "bridge"
