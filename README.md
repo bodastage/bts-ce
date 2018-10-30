@@ -22,11 +22,11 @@ Boda Telecom Suite Enterprise Edition - A telecommunication network management p
 * Unzip the downloaded files
 * Launch the **command prompt**
 * From the commad prompt, change to unzipped BTS-EE folder
-  ```batch 
+  ```
   > cd  /path/to/bts-ee-<version>
   ```
 * Run setup command and follow any instructions given
-  ```batch 
+  ```
   > bts setup
   ```
 * Open web broswer and paste the URL http://localhost:8888
@@ -48,7 +48,7 @@ Boda Telecom Suite Enterprise Edition - A telecommunication network management p
 
 ## Resources
 
-* [Online Documentation](http://docs.bodastage.org)
+* [Online Documentation](http://docs.bodastage.com)
 
 ## Copyright / License
 

@@ -28,7 +28,7 @@ eval "$(docker-machine env default)" 2>/dev/null
 
 function show_help(){
 
-echo "Boda Telecom Suite CE - Management Utility"
+echo "Boda Telecom Suite EE - Management Utility"
 echo "-----------------------------------------------------"
 echo "bts version                        -- Application version"
 echo "bts setup                          -- Setup application, create and start services"
@@ -48,7 +48,7 @@ echo ""
 # echo "bts manage upgrage -- Upgrade"
 # echo "bts manage list modules -- List installed modules"
 echo "-----------------------------------------------------"
-echo "Boda Telecom Suite - Community Edition"
+echo "Boda Telecom Suite - Enterprise Edition"
 echo "Copyright 2017-2018. Bodastage Solutions. http://www.bodastage.com"
 
 }
