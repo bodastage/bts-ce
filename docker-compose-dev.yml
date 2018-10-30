@@ -51,9 +51,11 @@ services:
         container_name: "bts-api"
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
     bts-web:
-        image: registry.gitlab.com/bts-ee/bts-ee-web
+        image: nginx:latest
         ports:
           - "80:80"
+        volumes:
+          - ./bts-ee-web/build:/usr/share/nginx/html
         network_mode: "bridge"
         container_name: "bts-web"
         depends_on: 
