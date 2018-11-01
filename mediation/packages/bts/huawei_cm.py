@@ -1355,7 +1355,7 @@ class HuaweiCM(object):
                 (pk, date_added, date_modified, added_by, modified_by,bch_power,cell_id,cell_pk,lac,latitude, longitude, 
                 maximum_transmission_power, "name", cpich_power, primary_sch_power, scrambling_code, rac, sac, 
                 secondary_sch_power, site_pk, tech_pk, vendor_pk, uarfcn_dl,uarfcn_ul, ura_list, azimuth, cell_range, 
-                height, site_sector_carrier, mcc,mnc,ura,localcellid)
+                height, site_sector_carrier, mcc,mnc,ura,localcellid, ci)
                 SELECT 
                 NEXTVAL('live_network.seq_umts_cells_data_pk'),
                 t1."varDateTime" AS date_added, 
@@ -1389,11 +1389,11 @@ class HuaweiCM(object):
                 null AS cell_range, -- cellrange,
                 null AS height, -- height
                 null AS site_sector_carrier,
-                t7."MCC" AS mcc,
-                t7."MNC" AS mnc,
+                t7."MCC"::integer AS mcc,
+                t7."MNC"::integer AS mnc,
                 t8."URAID" AS ura ,
-                t1."LOCELL" AS localcellid,
-                t1."CELLID" AS ci
+                t1."LOCELL"::integer AS localcellid,
+                t1."CELLID"::integer AS ci
                 FROM 
                 huawei_cm_3g."UCELL" t1
                 INNER JOIN live_network.cells t3 on t3."name" = t1."CELLNAME" and t3.vendor_pk = 2 and t3.tech_pk = 2
