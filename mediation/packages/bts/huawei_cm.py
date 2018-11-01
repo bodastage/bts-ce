@@ -393,7 +393,7 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_2g."G2GNCELL" t1
+                huawei_cm_2g."G2GNCELL" t1
                 INNER JOIN huawei_cm_2g."GCELL" t2 ON 
                     t2.neid = t1.neid 
                     AND t1."SRC2GNCELLID" = t2."CELLID"
@@ -472,11 +472,11 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_3g."UINTRAFREQNCELL" t1
-                INNER JOIN hua_cm_3g."UCELL" t2 on 
+                huawei_cm_3g."UINTRAFREQNCELL" t1
+                INNER JOIN huawei_cm_3g."UCELL" t2 on 
                     t2.neid  = t1.neid 
                     AND t1."CELLID" = t2."CELLID"
-                INNER JOIN hua_cm_3g."UCELL" t3 on 
+                INNER JOIN huawei_cm_3g."UCELL" t3 on 
                     t3.neid = t1.neid
                     AND t3."CELLID" = t1."NCELLID"
                 INNER JOIN live_network.cells t4 ON 
@@ -536,11 +536,11 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_3g."UINTRAFREQNCELL" t1
-                INNER JOIN hua_cm_3g."UCELL" t2 on 
+                huawei_cm_3g."UINTRAFREQNCELL" t1
+                INNER JOIN huawei_cm_3g."UCELL" t2 on 
                     t2.neid  = t1.neid 
                     AND t1."CELLID" = t2."CELLID"
-                INNER JOIN hua_cm_3g."UEXT3GCELL" t3 on 
+                INNER JOIN huawei_cm_3g."UEXT3GCELL" t3 on 
                     t3.neid = t1.neid
                     AND t3."CELLID" = t1."NCELLID"
                 INNER JOIN live_network.cells t4 ON 
@@ -600,11 +600,11 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_3g."UINTERFREQNCELL" t1
-                INNER JOIN hua_cm_3g."UCELL" t2 on 
+                huawei_cm_3g."UINTERFREQNCELL" t1
+                INNER JOIN huawei_cm_3g."UCELL" t2 on 
                     t2.neid  = t1.neid 
                     AND t1."CELLID" = t2."CELLID"
-                INNER JOIN hua_cm_3g."UCELL" t3 on 
+                INNER JOIN huawei_cm_3g."UCELL" t3 on 
                     t3.neid = t1.neid
                     AND t3."CELLID" = t1."NCELLID"
                 INNER JOIN live_network.cells t4 ON 
@@ -664,11 +664,11 @@ class HuaweiCM(object):
                     0, -- system
                     0
                     FROM 
-                    hua_cm_3g."UINTERFREQNCELL" t1
-                    INNER JOIN hua_cm_3g."UCELL" t2 on 
+                    huawei_cm_3g."UINTERFREQNCELL" t1
+                    INNER JOIN huawei_cm_3g."UCELL" t2 on 
                         t2.neid  = t1.neid 
                         AND t1."CELLID" = t2."CELLID"
-                    INNER JOIN hua_cm_3g."UEXT3GCELL" t3 on 
+                    INNER JOIN huawei_cm_3g."UEXT3GCELL" t3 on 
                         t3.neid = t1.neid
                         AND t3."CELLID" = t1."NCELLID"
                     INNER JOIN live_network.cells t4 ON 
@@ -730,11 +730,11 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_3g."UINTERFREQNCELL" t1
-                INNER JOIN hua_cm_3g."UCELL" t2 on 
+                huawei_cm_3g."UINTERFREQNCELL" t1
+                INNER JOIN huawei_cm_3g."UCELL" t2 on 
                     t2.neid  = t1.neid 
                     AND t1."CELLID" = t2."CELLID"
-                INNER JOIN hua_cm_3g."UCELL" t3 on 
+                INNER JOIN huawei_cm_3g."UCELL" t3 on 
                     t3.neid = t1.neid
                     AND t3."CELLID" = t1."NCELLID"
                 INNER JOIN live_network.cells t4 ON 
@@ -744,7 +744,7 @@ class HuaweiCM(object):
                     t5.pk = t4.site_pk 
                     AND t5.vendor_pk = 2 AND t5.tech_pk = 2
                 -- -----------
-                LEFT JOIN hua_cm_3g."UEXT3GCELL" t8 on 
+                LEFT JOIN huawei_cm_3g."UEXT3GCELL" t8 on 
                     t8.neid = t1.neid
                     AND t8."CELLID" = t1."NCELLID"
                 LEFT JOIN live_network.cells t6 ON 
@@ -796,8 +796,8 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_3g."UINTERFREQNCELL" t1
-                INNER JOIN hua_cm_3g."UCELL" t2 on 
+                huawei_cm_3g."UINTERFREQNCELL" t1
+                INNER JOIN huawei_cm_3g."UCELL" t2 on 
                     t2.neid  = t1.neid 
                     AND t1."CELLID" = t2."CELLID"
                 INNER JOIN live_network.cells t4 ON 
@@ -807,7 +807,7 @@ class HuaweiCM(object):
                     t5.pk = t4.site_pk 
                     AND t5.vendor_pk = 2 AND t5.tech_pk = 2
                 -- ---------
-                LEFT JOIN hua_cm_3g."UEXT3GCELL" t8 on 
+                LEFT JOIN huawei_cm_3g."UEXT3GCELL" t8 on 
                     t8.neid = t1.neid
                     AND t8."CELLID" = t1."NCELLID"
                 LEFT JOIN live_network.cells t6 ON 
@@ -865,8 +865,8 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_2g.g3gncell t1
-                INNER JOIN hua_cm_2g."GCELL" t2 on 
+                huawei_cm_2g.g3gncell t1
+                INNER JOIN huawei_cm_2g."GCELL" t2 on 
                     t2.neid  = t1.neid 
                     AND t1."SRC3GNCELLID" = t2."CELLID"
                 INNER JOIN live_network.cells t4 ON 
@@ -879,7 +879,7 @@ class HuaweiCM(object):
                     AND t5.tech_pk = 1
                     AND t5.pk = '{0}'
                 -- nbr-----------
-                LEFT JOIN hua_cm_2g."GEXT3GCELL" t8 on 
+                LEFT JOIN huawei_cm_2g."GEXT3GCELL" t8 on 
                     t8.neid = t1.neid
                     AND t1."NBR3GNCELLID" = t8."EXT3GCELLID"
                 -- Vendor=Ericsson and Technology = UMTS
@@ -930,8 +930,8 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_3g.u2gncell t1
-                INNER JOIN hua_cm_3g."UCELL" t2 on 
+                huawei_cm_3g.u2gncell t1
+                INNER JOIN huawei_cm_3g."UCELL" t2 on 
                     t2.neid  = t1.neid 
                     AND t1."CELLID" = t2."CELLID"
                 INNER JOIN live_network.cells t4 ON 
@@ -941,7 +941,7 @@ class HuaweiCM(object):
                     t5.pk = t4.site_pk 
                     AND t5.vendor_pk = 2 AND t5.tech_pk = 2
                 -- nbr-----------
-                LEFT JOIN hua_cm_3g."UEXT2GCELL" t8 on 
+                LEFT JOIN huawei_cm_3g."UEXT2GCELL" t8 on 
                     t8.neid = t1.neid
                     AND t1."GSMCELLINDEX" = t8."GSMCELLINDEX"
                 LEFT JOIN live_network.cells t6 ON 
@@ -993,8 +993,8 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_4g."GERANNCELL" t1
-                INNER JOIN hua_cm_4g."CELL" t2 on 
+                huawei_cm_4g."GERANNCELL" t1
+                INNER JOIN huawei_cm_4g."CELL" t2 on 
                     t2.neid  = t1.neid 
                     AND t1."LOCALCELLID" = t2."CELLID"
                 INNER JOIN live_network.cells t4 ON 
@@ -1004,7 +1004,7 @@ class HuaweiCM(object):
                     t5.pk = t4.site_pk 
                     AND t5.vendor_pk = 2 AND t5.tech_pk = 3
                 -- ---------
-                LEFT JOIN hua_cm_4g."GERANEXTERNALCELL" t8 on 
+                LEFT JOIN huawei_cm_4g."GERANEXTERNALCELL" t8 on 
                     t8.neid = t1.neid
                     AND t8."GERANCELLID" = t1."GERANCELLID"
                 LEFT JOIN live_network.cells t6 ON 
@@ -1053,8 +1053,8 @@ class HuaweiCM(object):
                  0, -- system
                  0
                  FROM 
-                 hua_cm_4g.utranncell t1
-                 INNER JOIN hua_cm_4g."CELL" t2 on 
+                 huawei_cm_4g.utranncell t1
+                 INNER JOIN huawei_cm_4g."CELL" t2 on 
                      t2.neid  = t1.neid 
                      AND t1."LOCALCELLID" = t2."CELLID"
                  INNER JOIN live_network.cells t4 ON 
@@ -1064,7 +1064,7 @@ class HuaweiCM(object):
                      t5.pk = t4.site_pk 
                      AND t5.vendor_pk = 2 AND t5.tech_pk = 3
                  -- ---------
-                 LEFT JOIN hua_cm_4g."UTRANEXTERNALCELL" t8 on 
+                 LEFT JOIN huawei_cm_4g."UTRANEXTERNALCELL" t8 on 
                      t8.neid = t1.neid
                      AND t8."CELLID" = t1."CELLID"
                  LEFT JOIN live_network.cells t6 ON 
@@ -1113,8 +1113,8 @@ class HuaweiCM(object):
                  0, -- system
                  0
                  FROM 
-                 hua_cm_4g."EUTRANINTRAFREQNCELL" t1
-                 INNER JOIN hua_cm_4g."CELL" t2 on 
+                 huawei_cm_4g."EUTRANINTRAFREQNCELL" t1
+                 INNER JOIN huawei_cm_4g."CELL" t2 on 
                      t2.neid  = t1.neid 
                      AND t1."LOCALCELLID" = t2."CELLID"
                  INNER JOIN live_network.cells t4 ON 
@@ -1124,7 +1124,7 @@ class HuaweiCM(object):
                      t5.pk = t4.site_pk 
                      AND t5.vendor_pk = 2 AND t5.tech_pk = 3
                  -- ---------
-                 LEFT JOIN hua_cm_4g."EUTRANEXTERNALCELL" t8 on 
+                 LEFT JOIN huawei_cm_4g."EUTRANEXTERNALCELL" t8 on 
                      t8.neid = t1.neid
                      AND t8."CELLID" = t1."CELLID"
                  LEFT JOIN live_network.cells t6 ON 
@@ -1205,11 +1205,11 @@ class HuaweiCM(object):
                 0, -- system
                 0
                 FROM 
-                hua_cm_4g."EUTRANINTRAFREQNCELL" t1
-                INNER JOIN hua_cm_3g."UCELL" t2 on 
+                huawei_cm_4g."EUTRANINTRAFREQNCELL" t1
+                INNER JOIN huawei_cm_3g."UCELL" t2 on 
                     t2.neid  = t1.neid 
                     AND t1."CELLID" = t2."CELLID"
-                INNER JOIN hua_cm_3g."UCELL" t3 on 
+                INNER JOIN huawei_cm_3g."UCELL" t3 on 
                     t3.neid = t1.neid
                     AND t3."CELLID" = t1."NCELLID"
                 INNER JOIN live_network.cells t4 ON 
@@ -1219,7 +1219,7 @@ class HuaweiCM(object):
                     t5.pk = t4.site_pk 
                     AND t5.vendor_pk = 2 AND t5.tech_pk = 2
                 -- -----------
-                LEFT JOIN hua_cm_3g."UEXT3GCELL" t8 on 
+                LEFT JOIN huawei_cm_3g."UEXT3GCELL" t8 on 
                     t8.neid = t1.neid
                     AND t8."CELLID" = t1."NCELLID"
                 LEFT JOIN live_network.cells t6 ON 
@@ -1311,7 +1311,7 @@ class HuaweiCM(object):
                  2, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
                  t1."CELLNAME" AS name,
                  t4.pk -- site primary key
-                 FROM hua_cm_3g."UCELL" t1
+                 FROM huawei_cm_3g."UCELL" t1
                  INNER JOIN live_network.nodes t3 on t3."name" = t1."neid" 
                          AND t3.vendor_pk = 2
                          AND t3.tech_pk = 2
@@ -1395,13 +1395,13 @@ class HuaweiCM(object):
                 t1."LOCELL" AS localcellid,
                 t1."CELLID" AS ci
                 FROM 
-                hua_cm_3g.ucell t1
+                huawei_cm_3g."UCELL" t1
                 INNER JOIN live_network.cells t3 on t3."name" = t1."CELLNAME" and t3.vendor_pk = 2 and t3.tech_pk = 2
-                INNER JOIN hua_cm_3g."UPCPICH" t4 on t4."neid" = t1.neid AND  t4."CELLID" = t1."CELLID" 
-                INNER JOIN hua_cm_3g."UBCH" t5 on t5.neid = t1.neid AND t5."CELLID" = t1."CELLID"
-                INNER JOIN hua_cm_3g."UPSCH" upsch t6 on t6.neid = t1.neid ANd t6."CELLID" = t1."CELLID"
-                INNER JOIN hua_cm_3g."UCNOPERATOR" t7 on t7.neid = t1.neid
-                INNER JOIN hua_cm_3g."UCELLURA" t8 on t8.neid = t1.neid AND t8."CELLID" = t1."CELLID"
+                INNER JOIN huawei_cm_3g."UPCPICH" t4 on t4."neid" = t1.neid AND  t4."CELLID" = t1."CELLID" 
+                INNER JOIN huawei_cm_3g."UBCH" t5 on t5.neid = t1.neid AND t5."CELLID" = t1."CELLID"
+                INNER JOIN huawei_cm_3g."UPSCH" t6 on t6.neid = t1.neid ANd t6."CELLID" = t1."CELLID"
+                INNER JOIN huawei_cm_3g."UCNOPERATOR" t7 on t7.neid = t1.neid
+                INNER JOIN huawei_cm_3g."UCELLURA" t8 on t8.neid = t1.neid AND t8."CELLID" = t1."CELLID"
                 WHERE t1."NODEBNAME" = '{0}';
             """.format(site_name)
 
