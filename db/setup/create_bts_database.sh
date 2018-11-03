@@ -17,6 +17,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
 
 	-- CREATE EXTENSION tablefunc;
 
+EOSQL
+
+# Create functions in bodastage schema
+psql -v ON_ERROR_STOP=1 --username "bodastage" --password "password" --dbname "bts"  <<-'EOSQL'
 
    -- Hex to integer
     CREATE OR REPLACE FUNCTION hex_to_int(hexval varchar) RETURNS integer AS $$
@@ -40,6 +44,3 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
     $$
     LANGUAGE 'plpgsql' IMMUTABLE STRICT;
 EOSQL
-
-# cd /migrations
-# alembic upgrade head
