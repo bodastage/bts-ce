@@ -1780,24 +1780,25 @@ class HuaweiCM(object):
             (pk, name, cell_pk, node_pk, mcc, mnc, pci, dl_earfcn, ci, tac, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('live_network.seq_gsm_external_cells_pk') AS pk,
-            t1."CELLNAME" AS "name",
+            t1."LTECELLNAME" AS "name",
             t3.pk AS cell_pk,
-            t2.pk AS node_pk,
+            t5.pk AS node_pk,
             t1."MCC"::integer AS mcc,
             t1."MNC"::integer AS mnc,
-            t1."PHYCELLID"::integer AS pci,
-            t1."DLEARFCN"::integer AS dl_earfcn,
-            t1."CELLID"::integer AS ci,
+            t1."CELLPHYID"::integer AS pci,
+            t1."LTEARFCN"::integer AS dl_earfcn,
+            t1."LTECELLINDEX"::integer AS ci,
             t1."TAC"::integer AS tac,
             0 AS modified_by,
             0 AS added_by,
             now()::timestamp AS date_added,
             now()::timestamp AS date_modified
             FROM
-            huawei_cm_3g."EUTRANEXTERNALCELL" t1
-            LEFT JOIN live_network.cells t3 on t3."name" = t1."CELLNAME"
-            INNER JOIN live_network.sites t2 ON t2.pk = t3.site_pk
-            LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."CELLNAME" 
+            huawei_cm_3g."ULTECELL" t1
+            LEFT JOIN live_network.cells t3 on t3."name" = t1."LTECELLNAME"
+            LEFT JOIN live_network.sites t2 ON t2.pk = t3.site_pk
+            LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."LTECELLNAME" 
+            LEFT JOIN live_network.nodes t5 ON t5."name" = t1."neid"
             WHERE 
             t4.pk IS NULL
         """
