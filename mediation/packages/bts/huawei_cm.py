@@ -1668,11 +1668,12 @@ class HuaweiCM(object):
 
         sql = """
         INSERT INTO live_network.umts_external_cells
-        (pk, name, cell_pk, lac, rac, ci, psc, uarfcn_dl, uarfcn_ul, modified_by, added_by, date_added, date_modified)
+        (pk, name, cell_pk, node_pk, lac, rac, ci, psc, uarfcn_dl, uarfcn_ul, modified_by, added_by, date_added, date_modified)
         SELECT 
         NEXTVAL('live_network.seq_umts_external_cells_pk') AS pk,
         t1."CELLNAME" AS "name",
         t3.pk AS cell_pk,
+        t2.pk AS node_pk,
         t1."LAC"::integer AS lac,
         t1."RAC"::integer AS rac,
         t1."CELLID"::integer AS ci,
@@ -1771,9 +1772,39 @@ class HuaweiCM(object):
         session.close()
 
     def extract_live_network_4g_externals_on_3g(self):
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        sql = """
+            INSERT INTO live_network.lte_external_cells
+            (pk, name, cell_pk, node_pk, mcc, mnc, pci, dl_earfcn, ci, tac, modified_by, added_by, date_added, date_modified)
+            SELECT 
+            NEXTVAL('live_network.seq_gsm_external_cells_pk') AS pk,
+            t1."CELLNAME" AS "name",
+            t3.pk AS cell_pk,
+            t2.pk AS node_pk,
+            t1."MCC"::integer AS mcc,
+            t1."MNC"::integer AS mnc,
+            t1."PHYCELLID"::integer AS pci,
+            t1."DLEARFCN"::integer AS dl_earfcn,
+            t1."CELLID"::integer AS ci,
+            t1."TAC"::integer AS tac,
+            0 AS modified_by,
+            0 AS added_by,
+            now()::timestamp AS date_added,
+            now()::timestamp AS date_modified
+            FROM
+            huawei_cm_3g."EUTRANEXTERNALCELL" t1
+            LEFT JOIN live_network.cells t3 on t3."name" = t1."CELLNAME"
+            INNER JOIN live_network.sites t2 ON t2.pk = t3.site_pk
+            LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."CELLNAME" 
+            WHERE 
+            t4.pk IS NULL
         """
-        @todo: Can't find the MO name for this"""
-        pass
+
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
 
     def extract_live_network_4g_externals_on_4g(self):
         Session = sessionmaker(bind=self.db_engine)
