@@ -34,7 +34,7 @@ services:
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
-          - BTS_DB_HOST=192.168.99.100
+          - BTS_DB_HOST=database
           - BTS_DB_NAME=bts
           - BTS_DB_USER=bodastage
           - BTS_DB_PASS=password 
@@ -94,3 +94,17 @@ services:
           - "6380:6380"
         network_mode: "bridge"
         container_name: "bts-ee-cache"
+    bts-ftp:
+        image: stilliard/pure-ftpd:hardened
+        restart: always
+        environment:
+          - PUBLICHOST=localhost
+          - ADDED_FLAGS="-d -d"
+        ports:
+          - "21:21"
+          - "30000-30009:30000-30009"
+        volumes:
+           - /home/bodastage/bts-ee/mediation/data:/home/ftpusers/bodastage
+        network_mode: "bridge"
+        container_name: "bts-ee-ftp"
+        command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]
