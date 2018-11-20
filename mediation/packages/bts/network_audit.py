@@ -102,7 +102,7 @@ class NetworkAudit(object):
         """
         GSM externals where the external cell parameters don't match the internal cell parameters
         """
-        Session = sessionmaker(bind=self.db_engine)
+        Session = sessionmaker(bind=self.engine)
         session = Session()
 
         sql = """
@@ -178,7 +178,7 @@ class NetworkAudit(object):
         session.close()
 
     def generate_incosistent_umts_externals(self):
-        Session = sessionmaker(bind=self.db_engine)
+        Session = sessionmaker(bind=self.engine)
         session = Session()
 
         sql = """
@@ -257,7 +257,7 @@ class NetworkAudit(object):
         """
         Generate incosistent LTE external cells
         """
-        Session = sessionmaker(bind=self.db_engine)
+        Session = sessionmaker(bind=self.engine)
         session = Session()
 
         sql = """
@@ -331,7 +331,7 @@ class NetworkAudit(object):
         Generate missing opposite relations. For examle, if a relation from A to B exists and from B to A
         doesn't, then B to A is reported as a mmising one way relation
         """
-        Session = sessionmaker(bind=self.db_engine)
+        Session = sessionmaker(bind=self.engine)
         session = Session()
 
         sql = """
@@ -387,7 +387,7 @@ class NetworkAudit(object):
         """
         Generate missing cosite relation
         """
-        Session = sessionmaker(bind=self.db_engine)
+        Session = sessionmaker(bind=self.engine)
         session = Session()
 
         sql = """

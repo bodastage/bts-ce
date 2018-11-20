@@ -34,11 +34,11 @@ def run_network_audits(parent_dag_name, child_dag_name, start_date, schedule_int
     branch_network_audits_task = DummyOperator( task_id='branch_network_audits', dag=dag)
     join_network_audits_task = DummyOperator(task_id='join_network_audits', dag=dag)
 
-    def base_line_audits(self):
+    def base_line_audits():
         """Run network baseline audits"""
         pass
 
-    def inconsistent_gsm_externals(self):
+    def inconsistent_gsm_externals():
         """
         Generate GSM external inconsistencies
         """
@@ -59,7 +59,7 @@ def run_network_audits(parent_dag_name, child_dag_name, start_date, schedule_int
         network_audit = NetworkAudit()
         network_audit.generate_incosistent_lte_externals()
 
-    def generate_missing_one_way_relations(self):
+    def generate_missing_one_way_relations():
         network_audit = NetworkAudit()
         network_audit.generate_incosistent_lte_externals()
 
