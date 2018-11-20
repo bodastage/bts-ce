@@ -2,6 +2,7 @@ import psycopg2
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
+import os
 
 
 class NetworkAudit(object):
@@ -9,8 +10,15 @@ class NetworkAudit(object):
     def __init__(self):
         ''' Constructor for this class. '''
 
-        # engine = create_engine('postgresql://bodastage:password@database/bts')
-        self.engine = create_engine('postgresql://bodastage:password@192.168.99.100/bts')
+        sqlalchemy_db_uri = 'postgresql://{0}:{1}@{2}:{3}/{4}'.format(
+            os.getenv("BTS_DB_USER", "bodastage"),
+            os.getenv("BTS_DB_PASS", "password"),
+            os.getenv("BTS_DB_HOST", "database"),
+            os.getenv("BTS_DB_PORT", "5432"),
+            os.getenv("BTS_DB_NAME", "bts"),
+        )
+
+        self.engine = create_engine(sqlalchemy_db_uri)
 
     def parameter_baseline_ericsson_umts(self):
         """Compute baseline parameter discrepancies for Ericsson 3G"""
