@@ -424,6 +424,9 @@ class EricssonCM(object):
 
         session.close()
 
+    def extract_live_network_2g_externals_on_4g(self):
+        pass
+
     def extract_live_network_externals_on_2g(self):
         """Extract live network externals defined on Ericsson 2G"""
         self.extract_live_network_2g_externals_on_2g()
