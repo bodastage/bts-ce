@@ -99,7 +99,7 @@ services:
         restart: always
         environment:
           - PUBLICHOST=localhost
-          - ADDED_FLAGS="-d -d"
+          - ADDED_FLAGS=-d -d
           - FTP_USER_NAME=bodastage
           - FTP_USER_PASS=Password@7
           - FTP_USER_HOME=/home/ftpusers/bodastage
