@@ -100,6 +100,9 @@ services:
         environment:
           - PUBLICHOST=localhost
           - ADDED_FLAGS="-d -d"
+          - FTP_USER_NAME=bodastage
+          - FTP_USER_PASS=Password@7
+          - FTP_USER_HOME=/home/ftpusers/bodastage
         ports:
           - "21:21"
           - "30000-30009:30000-30009"
@@ -107,4 +110,4 @@ services:
            - /home/bodastage/bts-ee/mediation/data:/home/ftpusers/bodastage
         network_mode: "bridge"
         container_name: "bts-ee-ftp"
-        command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]
+    #    command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]
