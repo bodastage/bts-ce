@@ -250,12 +250,12 @@ class NetworkAudit(object):
             WHERE 
             t1."ext_cellname" IN (
             SELECT "name" FROM live_network.umts_external_cells t2 
-                WHERE  t2.mnc  = t1.mnc
-                AND t2.mcc = t1.mcc
-                AND t2.uarfcn_dl = t1.uarfcn_dl
-                AND t2.rac = t1.rac
-                AND t2.psc = t1.scrambling_code
-                AND t2.lac = t1.lac
+                WHERE  t2.mnc  = t1.ext_mnc
+                AND t2.mcc = t1.ext_mcc
+                AND t2.uarfcn_dl = t1.ext_dl_uarfcn
+                AND t2.rac = t1.ext_rac
+                AND t2.psc = t1.ext_psc
+                AND t2.lac = t1.ext_lac
             )
         """
         self.engine.execute(sql)
