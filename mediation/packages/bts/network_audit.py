@@ -203,18 +203,18 @@ class NetworkAudit(object):
             -- externals values
             t1.mnc as ext_mnc,
             t1.mcc as ext_mcc,
-            t1.bcc as ext_dl_uarfcn, 
-            t1.ncc as ext_rac,
-            t1.bcch as ext_lac,
-            t1.lac as ext_psc,
+            t1.uarfcn_dl as ext_dl_uarfcn, 
+            t1.rac as ext_rac,
+            t1.lac as ext_lac,
+            t1.psc as ext_psc,
             
             -- internal values
             t2.mnc as int_mnc,
             t2.mcc as int_mcc,
-            t2.bcc as int_dl_uarfcn,
-            t2.ncc as int_rac,
-            t2.bcch as int_lac,
-            t2.lac as int_psc,
+            t2.uarfcn_dl as int_dl_uarfcn,
+            t2.rac as int_rac,
+            t2.lac as int_lac,
+            t2.scrambling_code as int_psc,
             datediff( 'day', COALESCE(t4.date_added, t1.date_added)::DATE, COALESCE(t4.date_modified, t1.date_added)::DATE ) as age,
             COALESCE(t4.date_added, now()::date) as date_added,
             COALESCE(t4.date_modified, now()::date) as date_modified , 
@@ -236,8 +236,8 @@ class NetworkAudit(object):
             OR t1.mcc != t2.mcc
             OR t1.rac != t2.rac
             OR t1.lac != t2.lac
-            OR t1.dl_uarfcn::integer != t2.dl_uarfcn::integer
-            OR t1.psc != t2.psc
+            OR t1.uarfcn_dl::integer != t2.uarfcn_dl::integer
+            OR t1.psc != t2.scrambling_code
 
         """
 
@@ -252,9 +252,9 @@ class NetworkAudit(object):
             SELECT "name" FROM live_network.umts_external_cells t2 
                 WHERE  t2.mnc  = t1.mnc
                 AND t2.mcc = t1.mcc
-                AND t2.dl_uarfcn = t1.dl_uarfcn
+                AND t2.uarfcn_dl = t1.uarfcn_dl
                 AND t2.rac = t1.rac
-                AND t2.psc = t1.psc
+                AND t2.psc = t1.scrambling_code
                 AND t2.lac = t1.lac
             )
         """
