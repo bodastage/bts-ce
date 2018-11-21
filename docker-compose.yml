@@ -72,7 +72,7 @@ services:
             - AIRFLOW__CORE__EXECUTOR=LocalExecutor
             - LOAD_EX=n
             - EXECUTOR=Local
-            - BTS_DB_HOST=192.168.99.100
+            - BTS_DB_HOST=database
             - BTS_DB_NAME=bts
             - BTS_DB_USER=bodastage
             - BTS_DB_PASS=password
