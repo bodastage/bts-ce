@@ -343,51 +343,83 @@ class NetworkAudit(object):
         session = Session()
 
         sql = """
-        INSERT INTO network_audit.missing_one_way_relations
-        (pk, svrvendor, svrtech, svrnode, svrsite, svrcell, nbrvendor, nbrtech, nbrnode, nbrsite, nbrcell, age, 
-        date_added, date_modified, added_by, modified_by)
-        SELECT
-        NEXTVAL('network_audit.seq_missing_one_way_relations_pk') AS pk, 
-         t3.name AS svrvendor,
-         t4.name AS svrtech,
-         t5.name AS svrnode,
-         t6.name AS svrsite,
-         t7.name AS svrcell,
-         t8.name AS nbrvendor,
-         t9.name AS nbrtech,
-         t10.name AS nbrnode,
-         t11.name AS nbrsite,
-         t12.name AS nbrcell,
-        DATEDIFF( 'day', COALESCE(t13.date_added, t1.date_added)::DATE, COALESCE(t1.date_added, t1.date_added)::DATE ) AS age,
-        COALESCE(t13.date_added, t1.date_added::date) AS date_added,
-        COALESCE(t13.date_modified, t1.date_added::date) AS date_modified ,
-        0 AS added_by,
-        0 AS modified_by
-        FROM live_network.relations t1 
-        LEFT JOIN live_network.relations t2 
-            ON t1.svrcell_pk = t2.nbrcell_pk
-        -- SERVING SIDE
-        INNER JOIN vendors t3 ON t3.pk = t1.svrvendor_pk
-        INNER JOIN technologies t4 on t4.pk = t1.svrtech_pk
-        INNER JOIN live_network.nodes t5 on t5.pk = t1.svrnode_pk
-        INNER JOIN live_network.sites t6 ON t6.pk = t1.svrsite_pk
-        INNER JOIN live_network.cells t7 ON t7.pk = t1.svrcell_pk 
-        -- 
-        INNER JOIN vendors t8 ON t8.pk = t1.nbrvendor_pk
-        INNER JOIN technologies t9 on t9.pk = t1.nbrtech_pk
-        INNER JOIN live_network.nodes t10 on t10.pk = t1.nbrnode_pk
-        INNER JOIN live_network.sites t11 ON t11.pk = t1.nbrsite_pk
-        INNER JOIN live_network.cells t12 ON t12.pk = t1.nbrcell_pk 
-        LEFT JOIN network_audit.missing_one_way_relations t13 
-            ON t13.svrcell = t7.name 
-        WHERE t2.nbrcell_pk is NULL
+            INSERT INTO network_audit.missing_one_way_relations
+            (svrvendor, svrtech, svrnode, svrsite, svrcell, nbrvendor, nbrtech, nbrsite, nbrcell, age, modified_by, added_by, date_added, date_modified)
+            select 
+            'Huawei' as svrvendor,
+            'UMTS' as svrtech,
+            t12.name as svrnode,
+            t11.name as svrsite,
+            t01.name as svrcell, 
+            
+            'Huawei' as nbrvendor,
+            'UMTS' as nbrtech,
+            -- t22.name as nbrnode,
+            t21.name as nbrsite,
+            t02.name as nbrcell,
+            
+            --
+            0 AS age,
+            0 as modified_by,
+            0 as added_by,
+            now()::timestamp as date_added,
+            now()::timestamp as date_modified
+            from live_network.relations t1
+            INNER JOIN live_network.cells t01 on t01.pk = t1.svrcell_pk
+            INNER JOIN live_network.sites t11 on t11.pk = t1.svrsite_pk
+            INNER JOIN live_network.nodes t12 on t12.pk = t1.svrnode_pk
+            -- 
+            INNER JOIN live_network.cells t02 on t02.pk = t1.nbrcell_pk
+            INNER JOIN live_network.sites t21 on t21.pk = t1.nbrsite_pk
+            INNER JOIN live_network.nodes t22 on t22.pk = t1.nbrnode_pk
+            where 
+            (t1.nbrcell_pk, t1.svrcell_pk)
+            NOT IN (
+                SELECT svrcell_pk, nbrcell_pk from live_network.relations
+            )
+            ON CONFLICT ON CONSTRAINT unique_missing_one_way_relations
+            DO
+            UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.missing_one_way_relations.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
+                       date_modified = network_audit.missing_one_way_relations.date_modified
         """
-
-        # @todo: Add update query based on ON CONFLICT phrase
 
         self.engine.execute(sql)
 
-        # @TODO: Add delete query
+        # Delete old
+        sql = """
+            DELETE FROM 
+            network_audit.missing_one_way_relations t1
+            WHERE 
+            (svrvendor, svrtech, svrnode, svrsite, svrcell, nbrvendor, nbrtech, nbrsite, nbrcell)
+            NOT IN  (
+                select 
+                'Huawei' as svrvendor,
+                'UMTS' as svrtech,
+                t12.name as svrnode,
+                t11.name as svrsite,
+                t01.name as svrcell, 
+
+                'Huawei' as nbrvendor,
+                'UMTS' as nbrtech,
+                -- t22.name as nbrnode,
+                t21.name as nbrsite,
+                t02.name as nbrcell
+                from live_network.relations t1
+                INNER JOIN live_network.cells t01 on t01.pk = t1.svrcell_pk
+                INNER JOIN live_network.sites t11 on t11.pk = t1.svrsite_pk
+                INNER JOIN live_network.nodes t12 on t12.pk = t1.svrnode_pk
+                -- 
+                INNER JOIN live_network.cells t02 on t02.pk = t1.nbrcell_pk
+                INNER JOIN live_network.sites t21 on t21.pk = t1.nbrsite_pk
+                INNER JOIN live_network.nodes t22 on t22.pk = t1.nbrnode_pk
+                where 
+                (t1.nbrcell_pk, t1.svrcell_pk)
+                NOT IN (
+                SELECT svrcell_pk, nbrcell_pk from live_network.relations
+                )
+            )
+        """
+        self.engine.execute(sql)
         session.close()
 
 
