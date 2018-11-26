@@ -11,7 +11,7 @@ services:
         ports:
             - "5432:5432"
         network_mode: "bridge"
-        container_name: "bts-database"
+        container_name: "bts-ee-database"
         command: ["postgres","-c","max_locks_per_transaction=1024"]
     bts-msgbroker:
         image: rabbitmq:3.7.4-management
@@ -25,7 +25,7 @@ services:
             - "61613:61613"
             - "15670:15670"
         network_mode: "bridge"
-        container_name: "bts-msgbroker"
+        container_name: "bts-ee-msgbroker"
         command: bash -c "rabbitmq-server; rabbitmq-plugins enable rabbitmq_web_stomp"
     bts-api:
         image: registry.gitlab.com/bts-ee/bts-ee-api
@@ -34,31 +34,29 @@ services:
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
-          - BTS_DB_HOST=localhost
+          - BTS_DB_HOST=database
           - BTS_DB_NAME=bts
           - BTS_DB_USER=bodastage
-          - BTS_DB_PASS=password 
+          - BTS_DB_PASS=password
           - BTS_DB_PORT=5432
         volumes:
           - ./bts-ee-api:/app
           - ./bts-ee-database:/migrations
-        depends_on: 
+        depends_on:
             - bts-database
             - bts-msgbroker
         links:
           - "bts-database:database"
         network_mode: "bridge"
-        container_name: "bts-api"
+        container_name: "bts-ee-api"
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
     bts-web:
-        image: nginx:latest
+        image: registry.gitlab.com/bts-ee/bts-ee-web
         ports:
           - "80:80"
-        volumes:
-          - ./bts-ee-web/build:/usr/share/nginx/html
         network_mode: "bridge"
-        container_name: "bts-web"
-        depends_on: 
+        container_name: "bts-ee-web"
+        depends_on:
             - bts-msgbroker
             - bts-api
     bts-mediation:
@@ -74,15 +72,20 @@ services:
             - AIRFLOW__CORE__EXECUTOR=LocalExecutor
             - LOAD_EX=n
             - EXECUTOR=Local
+            - BTS_DB_HOST=database
+            - BTS_DB_NAME=bts
+            - BTS_DB_USER=bodastage
+            - BTS_DB_PASS=password
+            - BTS_DB_PORT=5432
         volumes:
            - ./mediation/dags:/usr/local/airflow/dags
            - ./mediation:/mediation
         command: webserver
-        depends_on: 
+        depends_on:
            - bts-database
            - bts-msgbroker
         network_mode: "bridge"
-        container_name: "bts-mediation"
+        container_name: "bts-ee-mediation"
         links:
             - "bts-database:database"
     bts-cache:
@@ -90,3 +93,21 @@ services:
         ports:
           - "6380:6380"
         network_mode: "bridge"
+        container_name: "bts-ee-cache"
+    bts-ftp:
+        image: stilliard/pure-ftpd:hardened
+        restart: always
+        environment:
+          - PUBLICHOST=localhost
+          - ADDED_FLAGS=-d -d
+          - FTP_USER_NAME=bodastage
+          - FTP_USER_PASS=Password@7
+          - FTP_USER_HOME=/home/ftpusers/bodastage
+        ports:
+          - "21:21"
+          - "30000-30009:30000-30009"
+        volumes:
+           - /home/bodastage/bts-ee/mediation/data:/home/ftpusers/bodastage
+        network_mode: "bridge"
+        container_name: "bts-ee-ftp"
+    #    command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]

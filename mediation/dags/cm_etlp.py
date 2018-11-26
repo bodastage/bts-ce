@@ -61,7 +61,7 @@ args = {
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    'retry_delay': timedelta(minutes=5)
 }
 
 
@@ -71,7 +71,7 @@ dag = DAG(
     schedule_interval=schedule_interval,
     start_date=datetime(2017, 1, 1),
     max_active_runs = 1,
-    concurrency = 1,
+    # concurrency = 1,
     catchup = False,
     dagrun_timeout=timedelta(minutes=24*60)) # dag runs out after 1 day of running
 

@@ -1,0 +1,183 @@
+version: "3"
+services:
+    redis:
+        image: 'redis:3.2.7'
+        ports:
+          - "6379:6379"
+#        network_mode: "bridge"
+        container_name: "redis"
+    bts-database:
+        image: postgres:10.1
+        restart: always
+        environment:
+          - POSTGRES_PASSWORD=password
+          - POSTGRES_HOST=database
+        volumes:
+            - ./db/setup:/docker-entrypoint-initdb.d
+        ports:
+            - "5432:5432"
+#        network_mode: "bridge"
+        container_name: "bts-database"
+        command: ["postgres","-c","max_locks_per_transaction=1024"]
+    bts-msgbroker:
+        image: rabbitmq:3.7.4-management
+        restart: always
+        ports:
+            - "4369:4369"
+            - "5671:5671"
+            - "5672:5672"
+            - "15672:15672"
+            - "15674:15674"
+            - "61613:61613"
+            - "15670:15670"
+#        network_mode: "bridge"
+        container_name: "bts-msgbroker"
+        command: bash -c "rabbitmq-server; rabbitmq-plugins enable rabbitmq_web_stomp"
+    bts-api:
+        image: registry.gitlab.com/bts-ee/bts-ee-api
+        ports:
+          - 8181:8181
+        restart: always
+        environment:
+          - POSTGRES_PASSWORD=password
+          - BTS_DB_HOST=database
+          - BTS_DB_NAME=bts
+          - BTS_DB_USER=bodastage
+          - BTS_DB_PASS=password 
+          - BTS_DB_PORT=5432
+        volumes:
+          - ./bts-ee-api:/app
+          - ./bts-ee-database:/migrations
+        depends_on: 
+            - bts-database
+            - bts-msgbroker
+        links:
+          - "bts-database:database"
+#        network_mode: "bridge"
+        container_name: "bts-api"
+        command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
+    bts-web:
+        image: registry.gitlab.com/bts-ee/bts-ee-web
+        ports:
+          - "80:80"
+        container_name: "bts-ee-web"
+        depends_on: 
+            - bts-msgbroker
+            - bts-api
+    bts-airflow-webserver:
+        image: registry.gitlab.com/bts-ee/bts-ee-mediation
+        restart: always
+        environment:
+          - POSTGRES_PASSWORD=password
+          - POSTGRES_HOST=database
+        ports:
+          - "8080:8080"
+        environment:
+            - POSTGRES_HOST=database
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgres+psycopg2://airflow:airflow@database:5432/airflow
+            - AIRFLOW__CELERY__RESULT_BACKEND=postgres+psycopg2://airflow:airflow@database:5432/airflow
+            #- AIRFLOW__CORE__EXECUTOR=Celery
+            - LOAD_EX=n
+            - EXECUTOR=Celery
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - BTS_DB_HOST=database
+            - BTS_DB_NAME=bts
+            - BTS_DB_USER=bodastage
+            - BTS_DB_PASS=password
+            - BTS_DB_PORT=5432
+            - REDIS_HOST=redis
+        volumes:
+           - ./mediation/dags:/usr/local/airflow/dags
+           - ./mediation:/mediation
+        command: webserver
+        depends_on: 
+           - bts-database
+           - redis
+        container_name: "bts-airflow-webserver"
+        links:
+            - "bts-database:database"
+            - redis
+    bts-airflow-flower:
+        image: registry.gitlab.com/bts-ee/bts-ee-mediation
+        restart: always
+        depends_on:
+            - bts-database
+            - redis
+        environment:
+            - AIRFLOW__CELERY__RESULT_BACKEND=postgres+psycopg2://airflow:airflow@database:5432/airflow
+            - EXECUTOR=Celery
+            - REDIS_HOST=redis
+            - POSTGRES_HOST=database
+            # - REDIS_PASSWORD=redispass
+        ports:
+            - "5555:5555"
+        command: flower
+        container_name: "bts-airflow-flower"
+        links:
+            - "bts-database:database"
+            - redis
+    bts-airflow-scheduler:
+        image: registry.gitlab.com/bts-ee/bts-ee-mediation
+        restart: always
+        depends_on:
+            - bts-airflow-webserver
+            - redis
+        volumes:
+           - ./mediation/dags:/usr/local/airflow/dags
+           - ./mediation:/mediation
+            # Uncomment to include custom plugins
+            # - ./plugins:/usr/local/airflow/plugins
+        environment:
+            - AIRFLOW__CELERY__RESULT_BACKEND=postgres+psycopg2://airflow:airflow@database:5432/airflow
+            - LOAD_EX=n
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Celery
+            - POSTGRES_HOST=database
+            #- REDIS_HOST=redis
+        command: scheduler
+        container_name: "bts-airflow-scheduler"
+        links:
+            - redis
+            - "bts-database:database"
+    bts-airflow-worker:
+        image: registry.gitlab.com/bts-ee/bts-ee-mediation
+        restart: always
+        depends_on:
+            - bts-airflow-scheduler
+            - redis
+        volumes:
+           - ./mediation/dags:/usr/local/airflow/dags
+           - ./mediation:/mediation
+            # Uncomment to include custom plugins
+            # - ./plugins:/usr/local/airflow/plugins
+        environment:
+            - AIRFLOW__CELERY__RESULT_BACKEND=postgres+psycopg2://airflow:airflow@database:5432/airflow
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Celery
+            # - POSTGRES_USER=airflow
+            # - POSTGRES_PASSWORD=airflow
+            # - POSTGRES_DB=airflow
+            # - REDIS_PASSWORD=redispass
+            - POSTGRES_HOST=database
+            - REDIS_HOST=redis
+        command: worker
+#        container_name: "bts-airflow-worker"
+        links:
+            - "bts-database:database"
+            - redis
+
+    bts-ftp:
+        image: stilliard/pure-ftpd:hardened
+        restart: always
+        environment:
+          - PUBLICHOST=localhost
+          - ADDED_FLAGS=-d -d
+          - FTP_USER_NAME=bodastage
+          - FTP_USER_PASS=Password@7
+          - FTP_USER_HOME=/home/ftpusers/bodastage
+        ports:
+          - "21:21"
+          - "30000-30009:30000-30009"
+        volumes:
+           - /home/bodastage/bts-ee/mediation/data:/home/ftpusers/bodastage
+        container_name: "bts-ftp"

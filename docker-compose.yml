@@ -37,12 +37,12 @@ services:
           - BTS_DB_HOST=database
           - BTS_DB_NAME=bts
           - BTS_DB_USER=bodastage
-          - BTS_DB_PASS=password 
+          - BTS_DB_PASS=password
           - BTS_DB_PORT=5432
         volumes:
           - ./bts-ee-api:/app
           - ./bts-ee-database:/migrations
-        depends_on: 
+        depends_on:
             - bts-database
             - bts-msgbroker
         links:
@@ -56,7 +56,7 @@ services:
           - "80:80"
         network_mode: "bridge"
         container_name: "bts-ee-web"
-        depends_on: 
+        depends_on:
             - bts-msgbroker
             - bts-api
     bts-mediation:
@@ -81,7 +81,7 @@ services:
            - ./mediation/dags:/usr/local/airflow/dags
            - ./mediation:/mediation
         command: webserver
-        depends_on: 
+        depends_on:
            - bts-database
            - bts-msgbroker
         network_mode: "bridge"
