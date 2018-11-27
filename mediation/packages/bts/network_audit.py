@@ -116,29 +116,29 @@ class NetworkAudit(object):
         sql = """
             INSERT INTO 
             network_audit.incosistent_2g_externals
-            (nodename, ext_vendor, int_vendor, ext_cellname, ext_mnc, ext_mcc, ext_bcc, ext_ncc, ext_bcch, ext_lac,
+            (nodename, ext_vendor, int_vendor, int_cellname, ext_mnc, ext_mcc, ext_bcc, ext_ncc, ext_bcch, ext_lac,
             int_mnc, int_mcc, int_bcc, int_ncc, int_bcch, int_lac, age, date_added, date_modified, added_by, modified_by)
             SELECT 
             t5."name" as nodename,
             t6."name" as ext_vendor,
             t7."name" as int_vendor,
             
-            t1."name" as ext_cellname,
+            t1."name" as int_cellname,
             -- externals values
-            t1.mnc as ext_mnc,
-            t1.mcc as ext_mcc,
-            t1.bcc as ext_bcc, 
-            t1.ncc as ext_ncc,
-            t1.bcch as ext_bcch,
-            t1.lac as ext_lac,
+            t1.mnc::integer as ext_mnc,
+            t1.mcc::integer as ext_mcc,
+            t1.bcc::integer as ext_bcc, 
+            t1.ncc::integer as ext_ncc,
+            t1.bcch::integer as ext_bcch,
+            t1.lac::integer as ext_lac,
             
             -- internal values
-            t2.mnc as int_mnc,
-            t2.mcc as int_mcc,
-            t2.bcc as int_bcc,
-            t2.ncc as int_ncc,
-            t2.bcch as int_bcch,
-            t2.lac as inter_lac,
+            t2.mnc::integer as int_mnc,
+            t2.mcc::integer as int_mcc,
+            t2.bcc::integer as int_bcc,
+            t2.ncc::integer as int_ncc,
+            t2.bcch::integer as int_bcch,
+            t2.lac::integer as inter_lac,
             datediff( 'day', COALESCE(t4.date_added, t1.date_added)::DATE, COALESCE(t4.date_modified, t1.date_added)::DATE ) as age,
             COALESCE(t4.date_added, NOW()::DATE) as date_added,
             COALESCE(t4.date_modified, NOW()::DATE) as date_modified , 
@@ -154,7 +154,7 @@ class NetworkAudit(object):
                 ON t3.pk = t1.cell_pk
             INNER JOIN vendors t7 on t7.pk = t3.vendor_pk
             LEFT JOIN network_audit.incosistent_2g_externals t4 
-                ON t4.ext_cellname = t1."name"
+                ON t4.int_cellname = t1."name"
             WHERE 
             t1.mnc != t2.mnc
             OR t1.mcc != t2.mcc
@@ -162,24 +162,37 @@ class NetworkAudit(object):
             OR t1.ncc != t2.ncc
             OR t1.bcch::integer != t2.bcch::integer
             OR t1.lac != t2.lac
-
+            ON CONFLICT ON CONSTRAINT unique_incosistent_2g_externals
+            DO
+            UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.incosistent_2g_externals.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
+                       date_modified = network_audit.incosistent_2g_externals.date_modified
         """
 
         self.engine.execute(sql)
 
         # Delete inconsistencies that nolonger exist in external 2G cells
         sql = """
-            DELETE FROM 
-            network_audit.incosistent_2g_externals t1
-            WHERE 
-            t1."ext_cellname" IN (
-            SELECT "name" FROM live_network.gsm_external_cells t2 
-                WHERE  t2.mnc  = t1.mnc
-                AND t2.mcc = t1.mcc
-                AND t2.bcc = t1.bcc
-                AND t2.ncc = t1.ncc
-                AND t2.bcch::integer = t1.bcch::integer
-                AND t2.lac = t1.lac
+            DELETE FROM network_audit.incosistent_2g_externals t1
+            WHERE t1."int_cellname" IN (
+                SELECT t1.name
+                FROM 
+                live_network.gsm_external_cells t1
+                INNER JOIN live_network.gsm_cells_data t2
+                    ON t2.cell_pk = t1.cell_pk
+                INNER JOIN live_network.nodes t5 on t5.pk = t1.node_pk
+                INNER JOIN vendors t6 ON t6.pk = t5.vendor_pk
+                INNER JOIN live_network.cells t3 
+                    ON t3.pk = t1.cell_pk
+                INNER JOIN vendors t7 on t7.pk = t3.vendor_pk
+                LEFT JOIN network_audit.incosistent_2g_externals t4 
+                    ON t4.int_cellname = t1."name"
+                WHERE 
+                t1.mnc = t2.mnc
+                OR t1.mcc = t2.mcc
+                OR t1.bcc = t2.bcc
+                OR t1.ncc = t2.ncc
+                OR t1.bcch::integer = t2.bcch::integer
+                OR t1.lac = t2.lac
             )
         """
         self.engine.execute(sql)
@@ -238,24 +251,37 @@ class NetworkAudit(object):
             OR t1.lac != t2.lac
             OR t1.uarfcn_dl::integer != t2.uarfcn_dl::integer
             OR t1.psc != t2.scrambling_code
-
+            ON CONFLICT ON CONSTRAINT unique_incosistent_3g_externals
+            DO
+            UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.incosistent_3g_externals.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
+                       date_modified = network_audit.incosistent_3g_externals.date_modified
         """
 
         self.engine.execute(sql)
 
         # Delete inconsistencies that nolonger exist in external 2G cells
         sql = """
-            DELETE FROM 
-            network_audit.incosistent_3g_externals t1
-            WHERE 
-            t1."ext_cellname" IN (
-            SELECT "name" FROM live_network.umts_external_cells t2 
-                WHERE  t2.mnc  = t1.ext_mnc
-                AND t2.mcc = t1.ext_mcc
-                AND t2.uarfcn_dl = t1.ext_dl_uarfcn
-                AND t2.rac = t1.ext_rac
-                AND t2.psc = t1.ext_psc
-                AND t2.lac = t1.ext_lac
+            DELETE FROM network_audit.incosistent_3g_externals t1
+            WHERE t1."ext_cellname" IN (
+                SELECT t1.name
+                FROM 
+                live_network.umts_external_cells t1
+                INNER JOIN live_network.umts_cells_data t2
+                    ON t2.cell_pk = t1.cell_pk
+                INNER JOIN live_network.nodes t5 on t5.pk = t1.node_pk
+                INNER JOIN vendors t6 ON t6.pk = t5.vendor_pk
+                INNER JOIN live_network.cells t3 
+                    ON t3.pk = t1.cell_pk
+                INNER JOIN vendors t7 on t7.pk = t3.vendor_pk
+                LEFT JOIN network_audit.incosistent_3g_externals t4 
+                    ON t4.ext_cellname = t1."name"
+                WHERE 
+                        t1.mnc = t2.mnc
+                        OR t1.mcc = t2.mcc
+                        OR t1.rac = t2.rac
+                        OR t1.lac = t2.lac
+                        OR t1.uarfcn_dl::integer = t2.uarfcn_dl::integer
+                        OR t1.psc = t2.scrambling_code
             )
         """
         self.engine.execute(sql)
@@ -269,12 +295,12 @@ class NetworkAudit(object):
         session = Session()
 
         sql = """
-             INSERT INTO 
+            INSERT INTO 
             network_audit.incosistent_4g_externals
-            (pk, nodename, ext_vendor, int_vendor, ext_cellname, ext_mnc, ext_mcc, ext_dl_earfcn, ext_pci
+            (pk, nodename, ext_vendor, int_vendor, ext_cellname, ext_mnc, ext_mcc, ext_dl_earfcn, ext_pci,
             int_mnc, int_mcc, int_dl_earfcn, int_pci, age, date_added, date_modified, added_by, modified_by)
             SELECT 
-            NEXTVAL('seq_incosistent_4g_externals_pk') as pk,
+            NEXTVAL('network_audit.seq_incosistent_4g_externals_pk') as pk,
             t5."name" as nodename,
             t6."name" as ext_vendor,
             t7."name" as int_vendor,
@@ -283,14 +309,14 @@ class NetworkAudit(object):
             -- externals values
             t1.mnc as ext_mnc,
             t1.mcc as ext_mcc,
-            t1.bcc as ext_dl_uarfcn, 
-            t1.ncc as ext_pci,
+            t1.dl_earfcn as ext_dl_earfcn, 
+            t1.pci as ext_pci,
             
             -- internal values
             t2.mnc as int_mnc,
             t2.mcc as int_mcc,
-            t2.bcc as int_dl_uarfcn,
-            t2.ncc as int_pci,
+            t2.dl_earfcn as int_dl_earfcn,
+            t2.PCI as int_pci,
             datediff( 'day', COALESCE(t4.date_added, t1.date_added)::DATE, COALESCE(t4.date_modified, t1.date_added)::DATE ) as age,
             COALESCE(t4.date_added, now()::date) as date_added,
             COALESCE(t4.date_modified, now()::date) as date_modified , 
@@ -298,7 +324,7 @@ class NetworkAudit(object):
             0 as modified_by
             FROM 
             live_network.lte_external_cells t1
-            INNER JOIN live_network.umts_cells_data t2
+            INNER JOIN live_network.lte_cells_data t2
                 ON t2.cell_pk = t1.cell_pk
             INNER JOIN live_network.nodes t5 on t5.pk = t1.node_pk
             INNER JOIN vendors t6 ON t6.pk = t5.vendor_pk
@@ -310,9 +336,12 @@ class NetworkAudit(object):
             WHERE 
             t1.mnc != t2.mnc
             OR t1.mcc != t2.mcc
-            OR t1.rac != t2.rac
             OR t1.pci != t2.pci
             OR t1.dl_earfcn != t2.dl_earfcn
+            ON CONFLICT ON CONSTRAINT unique_incosistent_4g_externals
+            DO
+            UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.incosistent_4g_externals.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
+                       date_modified = network_audit.incosistent_4g_externals.date_modified
 
         """
 
@@ -320,15 +349,25 @@ class NetworkAudit(object):
 
         # Delete inconsistencies that nolonger exist in external 2G cells
         sql = """
-            DELETE FROM 
-            network_audit.incosistent_4g_externals t1
-            WHERE 
-            t1."ext_cellname" IN (
-            SELECT "name" FROM live_network.lte_external_cells t2 
-                WHERE  t2.mnc  = t1.mnc
-                AND t2.mcc = t1.mcc
-                AND t2.dl_earfcn = t1.dl_earfcn
-                AND t2.pci = t1.pci
+            DELETE FROM network_audit.incosistent_4g_externals t1
+            WHERE t1."ext_cellname" IN (
+                SELECT t1.name
+                FROM 
+                live_network.lte_external_cells t1
+                INNER JOIN live_network.lte_cells_data t2
+                    ON t2.cell_pk = t1.cell_pk
+                INNER JOIN live_network.nodes t5 on t5.pk = t1.node_pk
+                INNER JOIN vendors t6 ON t6.pk = t5.vendor_pk
+                INNER JOIN live_network.cells t3 
+                    ON t3.pk = t1.cell_pk
+                INNER JOIN vendors t7 on t7.pk = t3.vendor_pk
+                LEFT JOIN network_audit.incosistent_3g_externals t4 
+                    ON t4.ext_cellname = t1."name"
+                WHERE 
+                t1.mnc = t2.mnc
+                OR t1.mcc = t2.mcc
+                OR t1.pci = t2.pci
+                OR t1.dl_earfcn = t2.dl_earfcn
             )
         """
         self.engine.execute(sql)
@@ -346,14 +385,14 @@ class NetworkAudit(object):
             INSERT INTO network_audit.missing_one_way_relations
             (svrvendor, svrtech, svrnode, svrsite, svrcell, nbrvendor, nbrtech, nbrsite, nbrcell, age, modified_by, added_by, date_added, date_modified)
             select 
-            'Huawei' as svrvendor,
-            'UMTS' as svrtech,
+            t14.name as svrvendor,
+            t13.name as svrtech,
             t12.name as svrnode,
             t11.name as svrsite,
             t01.name as svrcell, 
             
-            'Huawei' as nbrvendor,
-            'UMTS' as nbrtech,
+            t24.name as nbrvendor,
+            t23.name as nbrtech,
             -- t22.name as nbrnode,
             t21.name as nbrsite,
             t02.name as nbrcell,
@@ -368,10 +407,14 @@ class NetworkAudit(object):
             INNER JOIN live_network.cells t01 on t01.pk = t1.svrcell_pk
             INNER JOIN live_network.sites t11 on t11.pk = t1.svrsite_pk
             INNER JOIN live_network.nodes t12 on t12.pk = t1.svrnode_pk
+            INNER JOIN technologies t13 on t13.pk = t12.tech_pk
+            INNER JOIN vendors t14 on t14.pk = t12.vendor_pk
             -- 
             INNER JOIN live_network.cells t02 on t02.pk = t1.nbrcell_pk
             INNER JOIN live_network.sites t21 on t21.pk = t1.nbrsite_pk
             INNER JOIN live_network.nodes t22 on t22.pk = t1.nbrnode_pk
+            INNER JOIN technologies t23 on t23.pk = t22.tech_pk
+            INNER JOIN vendors t24 on t24.pk = t22.vendor_pk
             where 
             (t1.nbrcell_pk, t1.svrcell_pk)
             NOT IN (
@@ -393,14 +436,14 @@ class NetworkAudit(object):
             (svrvendor, svrtech, svrnode, svrsite, svrcell, nbrvendor, nbrtech, nbrsite, nbrcell)
             NOT IN  (
                 select 
-                'Huawei' as svrvendor,
-                'UMTS' as svrtech,
+                t14.name as svrvendor,
+                t13.name as svrtech,
                 t12.name as svrnode,
                 t11.name as svrsite,
                 t01.name as svrcell, 
 
-                'Huawei' as nbrvendor,
-                'UMTS' as nbrtech,
+                t24.name as nbrvendor,
+                t23.name as nbrtech,
                 -- t22.name as nbrnode,
                 t21.name as nbrsite,
                 t02.name as nbrcell
@@ -408,10 +451,14 @@ class NetworkAudit(object):
                 INNER JOIN live_network.cells t01 on t01.pk = t1.svrcell_pk
                 INNER JOIN live_network.sites t11 on t11.pk = t1.svrsite_pk
                 INNER JOIN live_network.nodes t12 on t12.pk = t1.svrnode_pk
+                INNER JOIN technologies t13 on t13.pk = t12.tech_pk
+                INNER JOIN vendors t14 on t14.pk = t12.vendor_pk
                 -- 
                 INNER JOIN live_network.cells t02 on t02.pk = t1.nbrcell_pk
                 INNER JOIN live_network.sites t21 on t21.pk = t1.nbrsite_pk
                 INNER JOIN live_network.nodes t22 on t22.pk = t1.nbrnode_pk
+                INNER JOIN technologies t23 on t23.pk = t22.tech_pk
+                INNER JOIN vendors t24 on t24.pk = t22.vendor_pk
                 where 
                 (t1.nbrcell_pk, t1.svrcell_pk)
                 NOT IN (
@@ -432,7 +479,7 @@ class NetworkAudit(object):
 
         sql = """
             INSERT INTO network_audit.missing_cosite_relations
-            (pk, svrvendor, svrtech, svrsite, svrcell, nbrvendor, nbrtech, nbrnode, nbrsite, nbrcell,
+            (pk, svrvendor, svrtech, svrnode, svrsite, svrcell, nbrvendor, nbrtech, nbrnode, nbrsite, nbrcell,
             age, date_added, date_modified)
             SELECT
             NEXTVAL('network_audit.seq_missing_cosite_relations_pk') AS pk,
@@ -476,6 +523,57 @@ class NetworkAudit(object):
             -- AND t1.pk = 1
             AND t2.pk != t3.pk
             AND t4.pk IS NULL
+            ON CONFLICT ON CONSTRAINT unique_missing_cosite_relations
+            DO
+            UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.missing_cosite_relations.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
+                       date_modified = network_audit.missing_cosite_relations.date_modified
         """
         self.engine.execute(sql)
+
+        # Delete old
+        sql = """
+             DELETE FROM 
+            network_audit.missing_cosite_relations t1
+            WHERE 
+            (svrvendor, svrtech, svrnode, svrsite, svrcell, nbrvendor, nbrtech, nbrsite, nbrcell)
+            NOT IN  (
+                select 
+                t5.name as svrvendor,
+                t6.name as svrtech,
+                t7.name as svrnode,
+                t1.name as svrsite,
+                t2.name as svrcell, 
+
+                t8.name as nbrvendor,
+                t9.name as nbrtech,
+                -- t22.name as nbrnode,
+                t1.name as nbrsite,
+                t1.name as nbrcell
+                from             
+                live_network.sites t1
+                INNER JOIN live_network.cells t2 on t2.site_pk = t1.pk 
+                INNER JOIN live_network.cells t3 on t3.site_pk = t1.pk
+                LEFT JOIN live_network.relations t4 
+                    ON t4.svrsite_pk = t1.pk 
+                    AND t4.nbrsite_pk = t1.pk 
+                    AND t2.pk = t4.svrcell_pk
+                    AND t3.pk = t4.nbrcell_pk
+                -- 
+                INNER JOIN vendors t5 ON t5.pk = t2.vendor_pk
+                INNER JOIN technologies t6 ON t6.pk = t2.tech_pk
+                INNER JOIN live_network.nodes t7 on t7.pk = t1.node_pk
+                -- 
+                INNER JOIN vendors t8 ON t8.pk = t3.vendor_pk
+                INNER JOIN technologies t9 ON t9.pk = t3.tech_pk
+                -- 
+                LEFT JOIN network_audit.missing_cosite_relations t10 on t10.svrcell = t2.name AND t10.nbrcell = t3.name
+                WHERE 
+                t2.site_pk = t3.site_pk
+                -- AND t1.pk = 1
+                AND t2.pk != t3.pk
+                AND t4.pk IS NOT NULL
+            )
+        """
+        self.engine.execute(sql)
+
         session.close()
