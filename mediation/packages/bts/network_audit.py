@@ -577,3 +577,9 @@ class NetworkAudit(object):
         self.engine.execute(sql)
 
         session.close()
+
+    def generate_redundant_externals(self):
+        """
+        Generate external definitions that exist in the live network but there are no matching internal cells
+        :return:
+        """

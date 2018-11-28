@@ -34,9 +34,8 @@ def run_huawei_3g_parser(parent_dag_name, child_dag_name, start_date, schedule_i
         # if  'huawei_mml'
         return 'run_huawei_3g_mml_parser'
 
-    t23 = BranchPythonOperator(
+    t23 = DummyOperator(
         task_id='branch_huawei_3g_parser',
-        python_callable=get_cm_file_format,
         dag=dag)
 
     t29 = BashOperator(

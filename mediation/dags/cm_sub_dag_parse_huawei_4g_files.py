@@ -33,9 +33,8 @@ def run_huawei_4g_parser(parent_dag_name, child_dag_name, start_date, schedule_i
     def pre_clean_up():
         pass
 
-    t23 = BranchPythonOperator(
+    t23 = DummyOperator(
         task_id='branch_huawei_4g_parser',
-        python_callable=pre_clean_up,
         dag=dag)
 
     t29 = BashOperator(
