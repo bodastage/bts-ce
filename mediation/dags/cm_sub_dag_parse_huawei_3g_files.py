@@ -58,9 +58,15 @@ def run_huawei_3g_parser(parent_dag_name, child_dag_name, start_date, schedule_i
         dag=dag,
     )
 
+    t_strip_neversion_from_mo = BashOperator(
+        task_id='strip_neversion_from_umts_mo',
+        bash_command='sed -i -r " s/_(BSC6900GSM|BSC6900UMTS|BSC6900GU|BSC6910GSM|BSC6910UMTS|BSC6910GU)//ig; s/_(BTS3900|PICOBTS3900|BTS3911B|PICOBTS3911B|MICROBTS3900|MICROBTS3911B)//ig;" /mediation/data/cm/huawei/raw/gexport_wcdma/*',
+        dag=dag)
+
     dag.set_dependency('branch_huawei_3g_parser', 'run_huawei_3g_mml_parser')
     dag.set_dependency('branch_huawei_3g_parser', 'run_huawei_3g_xml_nbi_parser')
-    dag.set_dependency('branch_huawei_3g_parser', 'run_huawei_3g_xml_gexport_parser')
+    dag.set_dependency('branch_huawei_3g_parser', 'strip_neversion_from_umts_mo')
+    dag.set_dependency('strip_neversion_from_umts_mo', 'run_huawei_3g_xml_gexport_parser')
 
     dag.set_dependency('run_huawei_3g_mml_parser', 'join_huawei_3g_parser')
     dag.set_dependency('run_huawei_3g_xml_nbi_parser', 'join_huawei_3g_parser')
