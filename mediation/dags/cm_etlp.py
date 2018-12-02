@@ -414,9 +414,18 @@ t23 = BranchPythonOperator(
     python_callable=is_ericsson_supported,
     dag=dag)
 
+def start_cm_etlp():
+    """Do house keeping before dag starts
+    1. Insert load into cm_loads table
+    2. update is_current_load flag to currently running dag/load
+    """
+    process_cm_data.register_cm_load()
 
-# Dummy start task
-t24 = DummyOperator(task_id='start_cm_etlp', dag=dag)
+
+t_start_cm_etlp = PythonOperator(
+    task_id='start_cm_etlp',
+    python_callable=start_cm_etlp,
+    dag=dag)
 
 t25 = BranchPythonOperator(
     task_id='is_huawei_supported',
