@@ -3089,6 +3089,12 @@ class ProcessCMData(object):
     def register_cm_load(self):
         """Add cm load entry into the cm_loads table"""
 
+        # Set clearly any leftover RUNNING flags to FAILED
+        update_current_load = """
+            UPDATE cm_loads SET load_status = 'FAILED' WHERE load_status = 'RUNNING'
+        """
+        self.db_engine.execute(text(update_current_load).execution_options(autocommit=True))
+
         # Insert new load
         insert_query = """
             INSERT INTO cm_loads
@@ -3113,6 +3119,6 @@ class ProcessCMData(object):
             raise Exception('Unknown CM load status')
 
         sql = """
-            UPDATE cm_loads SET WHERE load_status = '{}' WHERE load_status = 'RUNNING'
+            UPDATE cm_loads SET load_status = '{}' WHERE load_status = 'RUNNING'
         """.format(status)
         self.db_engine.execute(text(sql).execution_options(autocommit=True))

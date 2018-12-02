@@ -443,6 +443,17 @@ t27 = BranchPythonOperator(
     python_callable=is_nokia_supported,
     dag=dag)
 
+def end_cm_etlp():
+    """Do house keeping at the end of the  dag
+        - mark the dag/load as completed
+    """
+    process_cm_data.mark_cm_load_as_completed('SUCCESS')
+
+t_end_cm_etlp = PythonOperator(
+    task_id='end_cm_etlp',
+    python_callable=end_cm_etlp,
+    dag=dag)
+
 
 # End Extaction Transformation Load Process
 t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)
