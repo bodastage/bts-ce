@@ -3085,3 +3085,34 @@ class ProcessCMData(object):
                 [ $? -eq 0 ] && mv "$f" /mediation/data/cm/huawei/raw/cfgsyn
             done 
         """)
+
+    def register_cm_load(self):
+        """Add cm load entry into the cm_loads table"""
+
+        # Insert new load
+        insert_query = """
+            INSERT INTO cm_loads
+            VALUES 
+            (nextval('seq_cm_loads_pk'), 'RUNNING', true, now()::timestamp, now()::timestamp )
+        """
+        self.db_engine.execute(text(insert_query).execution_options(autocommit=True))
+
+        # Set previous current load to false
+        update_current_load = """
+            UPDATE cm_loads SET is_current_load = false WHERE is_current_load = true AND load_status != 'RUNNING'
+        """
+        self.db_engine.execute(text(update_current_load).execution_options(autocommit=True))
+
+    def mark_cm_load_as_completed(self, status):
+        """ Mark the CM load as completed with cm_load status  SUCCESS or FAILED
+
+        :param status:  SUCCESS | FAILED
+        :return:
+        """
+        if status not in ['SUCCESS','FAILED']:
+            raise Exception('Unknown CM load status')
+
+        sql = """
+            UPDATE cm_loads SET WHERE load_status = '{}' WHERE load_status = 'RUNNING'
+        """.format(status)
+        self.db_engine.execute(text(sql).execution_options(autocommit=True))
