@@ -51,13 +51,20 @@ def import_huawei_2g_parsed_csv(parent_dag_name, child_dag_name, start_date, sch
     dag=dag,
     )
 
+    t_run_huawei_gexport_gsm_insert_queries = BashOperator(
+        task_id='run_huawei_gexport_gsm_insert_queries',
+        bash_command='python /mediation/bin/run_cm_load_insert_queries.py huawei_gexport_gsm',
+        dag=dag)
+
+
     dag.set_dependency('branch_huawei_2g_importer', 'import_huawei_2g_mml_data')
     dag.set_dependency('branch_huawei_2g_importer', 'import_huawei_2g_nbi_data')
     dag.set_dependency('branch_huawei_2g_importer', 'import_huawei_2g_gexport_data')
+    dag.set_dependency('import_huawei_2g_gexport_data', 'run_huawei_gexport_gsm_insert_queries')
 
     dag.set_dependency('import_huawei_2g_mml_data', 'join_huawei_2g_importer')
     dag.set_dependency('import_huawei_2g_nbi_data', 'join_huawei_2g_importer')
-    dag.set_dependency('import_huawei_2g_gexport_data', 'join_huawei_2g_importer')
+    dag.set_dependency('run_huawei_gexport_gsm_insert_queries', 'join_huawei_2g_importer')
 
 
     return dag
