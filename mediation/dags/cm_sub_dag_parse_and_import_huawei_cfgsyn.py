@@ -7,7 +7,6 @@ from airflow.operators.python_operator import BranchPythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.subdag_operator import SubDagOperator
 from cm_sub_dag_parse_huawei_4g_files import run_huawei_4g_parser
-from cm_sub_dag_import_huawei_4g_files import import_huawei_4g_parsed_csv
 
 sys.path.append('/mediation/packages');
 
