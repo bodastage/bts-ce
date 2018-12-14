@@ -22,18 +22,20 @@ class HuaweiCM(object):
             (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
             SELECT 
             NEXTVAL('live_network.seq_nodes_pk'),
-            t1."varDateTime" AS date_added, 
-            t1."varDateTime" AS date_modified, 
+            t1."DATETIME" AS date_added, 
+            t1."DATETIME" AS date_modified, 
             'BSC' AS node_type,
-            t1."neid" AS "name" , 
+            t1."SYSOBJECTID" AS "name" , 
             2 AS vendor_pk, -- 1=Ericsson, 2=Huawei
             1 AS tech_pk , -- 1=gsm, 2-umts,3=lte
             0 AS added_by,
             0 AS modified_by
-            FROM huawei_cm_2g."BSCBASIC" t1
-            LEFT OUTER  JOIN live_network.nodes t2 ON t1."neid" = t2."name"
+            FROM huawei_cm_2g."SYS" t1
+            INNER JOIN cm_loads t3 on t3.pk = t1."LOADID"
+            LEFT OUTER  JOIN live_network.nodes t2 ON t1."SYSOBJECTID" = t2."name"
             WHERE 
             t2."name" IS NULL
+            AND t3.is_current_load = true
          """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -50,18 +52,20 @@ class HuaweiCM(object):
              (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
              SELECT 
              NEXTVAL('live_network.seq_nodes_pk'),
-             "varDateTime" AS date_added, 
-             "varDateTime" AS date_modified, 
+             "DATETIME" AS date_added, 
+             "DATETIME" AS date_modified, 
              'RNC' AS node_type,
-             "neid" AS "name" , 
+             t1."SYSOBJECTID" AS "name" , 
              2 AS vendor_pk, -- 1=Ericsson, 2=Huawei, 3-ZTE
              2 AS tech_pk , -- 1=gsm, 2-umts,3=lte
              0 AS added_by,
              0 AS modified_by
-             FROM huawei_cm_3g."URNCBASIC" t1
-             LEFT OUTER  JOIN live_network.nodes t2 ON t1."neid" = t2."name"
+             FROM huawei_cm_3g."SYS" t1
+             INNER JOIN cm_loads t3 on t3.pk = t1."LOADID"
+             LEFT OUTER  JOIN live_network.nodes t2 ON t1."SYSOBJECTID" = t2."name"
              WHERE 
              t2."name" IS NULL
+             AND t3.is_current_load = true
          """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -106,21 +110,24 @@ class HuaweiCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT DISTINCT
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" AS date_added, 
-            t1."varDateTime" AS date_modified, 
+            t1."DATETIME" AS date_added, 
+            t1."DATETIME" AS date_modified, 
             0 AS added_by,
             0 AS modified_by,
             1 AS tech_pk, -- tech 3 -lte, 2 -umts, 1-gms
             2 AS vendor_pk, -- 1- Ericsson, 2 - Huawei, 3 - zte, 4-nokika, etc...
             t1."BTSNAME",
-            t2.pk -- node primary key
+            t3.pk as node_pk -- node primary key
             from huawei_cm_2g."BTS" t1
-            INNER join live_network.nodes t2 on t2."name" = t1."neid" 
-                AND t2.vendor_pk = 2 and t2.tech_pk = 1
-            LEFT JOIN live_network.sites t3 on t3."name" = t1."BTSNAME" 
-               AND t2.vendor_pk = 2 and t2.tech_pk = 1
+            INNER JOIN cm_loads t5 on t5.pk = t1."LOADID"
+            INNER JOIN  huawei_cm_2g."SYS" t2 ON t2."FILENAME" = t1."FILENAME" AND t2."LOADID" = t1."LOADID"
+            INNER join live_network.nodes t3 on t3."name" = t2."SYSOBJECTID" 
+                AND t3.vendor_pk = 2 and t3.tech_pk = 1
+            LEFT JOIN live_network.sites t4 on t4."name" = t1."BTSNAME" 
+               AND t4.vendor_pk = 2 and t4.tech_pk = 1
             WHERE 
             t3."name" IS NULL
+            AND t5.is_current_load = true
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -136,8 +143,8 @@ class HuaweiCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT DISTINCT
             nextval('live_network.seq_cells_pk'),
-            t1."varDateTime" AS date_added, 
-            t1."varDateTime" AS date_modified, 
+            t1."DATETIME" AS date_added, 
+            t1."DATETIME" AS date_modified, 
             0 AS added_by,
             0 AS modified_by,
             1, -- tech 3 -lte, 2 -umts, 1-gms
@@ -145,11 +152,15 @@ class HuaweiCM(object):
             t1."CELLNAME" AS name,
             t4.pk -- site primary key
             FROM huawei_cm_2g."GCELL" t1
-            INNER JOIN live_network.nodes t3 on t3."name" = t1."neid" 
+            -- LOAD
+            INNER JOIN cm_loads t8 on t8.pk = t1."LOADID"
+            -- NE/SYS
+            INNER JOIN huawei_cm_2g."SYS" t9 ON t9."FILENAME" = t1."FILENAME" AND t9."LOADID" = t1."LOADID"
+            INNER JOIN live_network.nodes t3 on t3."name" = t9."SYSOBJECTID" 
                     AND t3.vendor_pk = 2
                     AND t3.tech_pk = 1
-            INNER JOIN huawei_cm_2g."CELLBIND2BTS" t6 on t6."neid" = t3.name AND t6."CELLID" = t1."CELLID"
-            INNER JOIN huawei_cm_2g."BTS" t7 on t7."neid" = t3.name AND t7."BTSID" = t6."BTSID"
+            INNER JOIN huawei_cm_2g."CELLBIND2BTS" t6 ON t6."FILENAME" = t1."FILENAME" AND t6."CELLID" = t1."CELLID" AND t6."LOADID" = t1."LOADID"
+            INNER JOIN huawei_cm_2g."BTS" t7 on t7."FILENAME" = t1."FILENAME" AND t7."BTSID" = t6."BTSID" AND t7."LOADID" = t1."LOADID"
             INNER JOIN live_network.sites t4 on t4."name" = t7."BTSNAME"
                 AND t4.vendor_pk = 2 
                 AND t4.tech_pk = 1
@@ -159,6 +170,7 @@ class HuaweiCM(object):
                 AND t5.vendor_pk = 2
             WHERE
             t5."name" IS NULL
+            AND t8.is_current_load = true
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -193,7 +205,7 @@ class HuaweiCM(object):
                          (pk, name, cell_pk, ci, bcc, ncc, bsic, bcch, lac, latitude, longitude, cgi, azimuth, height, 
                          mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, mcc, mnc, modified_by, added_by, date_added, date_modified)
                          SELECT 
-                         NEXTVAL('live_network.seq_gsm_cells_data_pk'),
+                         NEXTVAL('live_network.seq_gsm_cells_data_pk') as pk,
                          t1."CELLNAME" AS name,
                          t2.pk AS cell_pk,
                          t1."CI"::integer AS ci,
@@ -203,7 +215,7 @@ class HuaweiCM(object):
                          t4."FREQ"::integer AS bcch,
                          t1."LAC"::integer AS lac,
                          t6."LATIINT"::float AS latitude,
-                         t6."LONGIINT"::float,
+                         t6."LONGIINT"::float as longitude ,
                          CONCAT( TRIM(t1."MCC"),'-', TRIM(t1."MNC"),'-',TRIM(t1."LAC"),'-',TRIM(t1."CI")) AS cgi,
                          t6."ANTAANGLE"::integer AS azimuth,
                          t6."ALTITUDE"::integer AS height,
@@ -215,21 +227,23 @@ class HuaweiCM(object):
                          null AS hsn,
                          null AS hopping_type,
                          null AS tch_carriers,
-                         t1."MCC"::integer,
-                         t1."MNC"::integer,
-                         0 AS modified_by,
+                         t1."MCC"::integer as mcc,
+                         t1."MNC"::integer as mnc,
+                       0 AS modified_by,
                          0 AS added_by,
-                         t1."varDateTime" AS date_added,
-                         t1."varDateTime" AS date_modified            
+                         t1."DATETIME" AS date_added,
+                         t1."DATETIME" AS date_modified            
                          FROM huawei_cm_2g."GCELL" t1             
+                         INNER JOIN cm_loads t8 on t8.pk = t1."LOADID"
                          INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 1
-                         INNER JOIN huawei_cm_2g."GCELLBASICPARA" t3 on t3."CELLID" = t1."CELLID" AND t3.neid = t1.neid 
-                         INNER JOIN huawei_cm_2g."GTRX" t4 on t4."neid" = t1.neid AND t4."CELLID" = t1."CELLID"
+                         INNER JOIN huawei_cm_2g."GCELLBASICPARA" t3 on t3."FILENAME" = t1."FILENAME" AND t3."LOADID" = t1."LOADID"
+                         INNER JOIN huawei_cm_2g."GTRX" t4 on t4."FILENAME" = t1."FILENAME" AND t4."CELLID" = t1."CELLID" AND t4."LOADID" = t1."LOADID"
                          INNER JOIN live_network.sites t5 on t5.pk = t2.site_pk
-                         INNER JOIN huawei_cm_2g."GCELLLCS" t6 on t6.neid = t1.neid AND t6."CELLID" = t1."CELLID"
-                         INNER JOIN huawei_cm_2g."CELLBIND2BTS" t7 on t7."CELLID" = t1."CELLID" AND t6.neid = t1.neid
-                         WHERE 
-                         t5."name" ='{0}'
+                         INNER JOIN huawei_cm_2g."GCELLLCS" t6 on t6."FILENAME" = t1."FILENAME" AND t6."CELLID" = t1."CELLID" AND t6."LOADID" = t1."LOADID"
+                         INNER JOIN huawei_cm_2g."CELLBIND2BTS" t7 on t7."CELLID" = t1."CELLID" AND t6."FILENAME" = t1."FILENAME" AND t7."LOADID" = t1."LOADID"
+                          WHERE 
+                          t5."name" ='{0}'
+                          AND t8.is_current_load = true
                          ;
                      """.format(site_name)
 
@@ -266,21 +280,24 @@ class HuaweiCM(object):
                 t6.tech_pk AS nbrtech_pk,
                 t6.vendor_pk AS nbrvendor_pk,
                 t6.pk AS nbrcell_pk,
-                t1."varDateTime" AS date_added,
-                t1."varDateTime" AS date_modified,
+                t1."DATETIME" AS date_added,
+                t1."DATETIME" AS date_modified,
                 0 AS modified_by,
                 0 AS added_by
                 from huawei_cm_2g."G2GNCELL" t1
+                --LOAD
+                INNER JOIN cm_loads t8 on t8.pk = t1."LOADID"
                 -- svr side
-                INNER JOIN huawei_cm_2g."GCELL" t2 ON t2.neid = t1.neid AND t2."CELLID" = t1."SRC2GNCELLID"
+                INNER JOIN huawei_cm_2g."GCELL" t2 ON t2."FILENAME" = t1."FILENAME" AND t2."CELLID" = t1."SRC2GNCELLID" AND t2."LOADID" = t1."LOADID"
                 INNER JOIN live_network.cells t3 ON t3.name = t2."CELLNAME" AND t3.vendor_pk = 2 AND t3.tech_pk = 1
                 INNER JOIN live_network.sites t4 ON t4.pk = t3.site_pk AND t4.vendor_pk = 2 AND t4.tech_pk = 1
                 -- nbr side
-                INNER JOIN huawei_cm_2g."GCELL" t5 on  t5.neid = t1.neid AND t5."CELLID" = t1."NBR2GNCELLID" 
+                INNER JOIN huawei_cm_2g."GCELL" t5 on  t5."FILENAME" = t1."FILENAME" AND t5."CELLID" = t1."NBR2GNCELLID" 
                 INNER JOIN live_network.cells t6 ON t6.name = t5."CELLNAME" AND t6.vendor_pk = 2 AND t6.tech_pk = 1
                 INNER JOIN live_network.sites t7 ON t7.pk = t6.site_pk AND t7.vendor_pk = 2 AND t7.tech_pk = 1
                 WHERE
                  t3.site_pk = '{0}'
+                 AND t8.is_current_load = true
             """.format(site_pk)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -318,17 +335,22 @@ class HuaweiCM(object):
                  t6.tech_pk AS nbrtech_pk,
                  t6.vendor_pk AS nbrvendor_pk,
                  t6.pk AS nbrcell_pk,
-                 t1."varDateTime" ,
-                 t1."varDateTime" ,
+                 t1."DATETIME" ,
+                 t1."DATETIME" ,
                  0, -- system
                  0
                  FROM 
                  huawei_cm_2g."G2GNCELL" t1
+                --LOAD
+                INNER JOIN cm_loads t8 on t8.pk = t1."LOADID"
+                -- 
                  INNER JOIN huawei_cm_2g."GCELL" t2 ON 
-                     t2.neid = t1.neid 
+                     t2."FILENAME" = t1."FILENAME" 
+                     AND t2."LOADID" = t1."LOADID"
                      AND t1."SRC2GNCELLID" = t2."CELLID"
                  LEFT JOIN huawei_cm_2g."GEXT2GCELL" t3 ON 
-                     t3.neid  = t1.neid
+                     t3."FILENAME"  = t1."FILENAME"
+                     AND t3."LOADID" = t1."LOADID"
                      AND t3."EXT2GCELLID" = t1."NBR2GNCELLID"
                  INNER JOIN live_network.cells t4 ON 
                      t4.name = t2."CELLNAME" 
@@ -342,8 +364,9 @@ class HuaweiCM(object):
                      t6.name = t3."EXT2GCELLNAME"
                  LEFT JOIN live_network.sites t7 ON 
                      t7.pk = t6.site_pk 
-                 WHERE 
-                     t4.site_pk = '{0}'
+                  WHERE 
+                      t4.site_pk = '{0}'
+                  AND t8.is_current_load = true
              """.format(site_pk)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -371,11 +394,11 @@ class HuaweiCM(object):
                 INSERT INTO live_network.relations 
                 (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
                 SELECT 
-                NEXTVAL('live_network.seq_relations_pk'),
+                NEXTVAL('live_network.seq_relations_pk') as pk,
                 -- serving side
-                t1.neid AS svrnode,
-                t2."CELLNAME" AS svrcell,
-                t3."EXT2GCELLNAME" AS nbrcell,
+--                 t10."SYSOBJECTID" AS svrnode,
+--                 t2."CELLNAME" AS svrcell,
+--                 t3."EXT2GCELLNAME" AS nbrcell,
                 -- serving side
                 t5.node_pk AS svrnode_pk,
                 t4.site_pk AS svrsite_pk,
@@ -388,17 +411,24 @@ class HuaweiCM(object):
                 t6.tech_pk AS nbrtech_pk,
                 t6.vendor_pk AS nbrvendor_pk,
                 t6.pk AS svrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
-                0, -- system
-                0
+                t1."DATETIME" AS date_added ,
+                t1."DATETIME" AS date_modified,
+                0 as added_by, 
+                0 AS modified_by
                 FROM 
                 huawei_cm_2g."G2GNCELL" t1
+                --LOAD
+                INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
+                -- SYS/NE
+                INNER JOIN huawei_cm_2g."SYS" t10 ON t10."FILENAME" = t1."FILENAME" 
+                	AND t10."LOADID" = t1."LOADID"
                 INNER JOIN huawei_cm_2g."GCELL" t2 ON 
-                    t2.neid = t1.neid 
+                    t2."FILENAME" = t1."FILENAME" 
+                    AND t2."LOADID" = t1."LOADID"
                     AND t1."SRC2GNCELLID" = t2."CELLID"
                 LEFT JOIN huawei_cm_2g."GEXT2GCELL" t3 ON 
-                    t3.neid  = t1.neid
+                    t3."FILENAME"  = t1."FILENAME"
+                    AND t3."LOADID" = t1."LOADID"
                     AND t3."EXT2GCELLID" = t1."NBR2GNCELLID"
                 INNER JOIN live_network.cells t4 ON 
                     t4.name = t2."CELLNAME" 
@@ -416,6 +446,7 @@ class HuaweiCM(object):
                     t8."CI" = t3."EXT2GCELLID"
                 WHERE 
                     t4.site_pk = '{0}'
+                    AND t9.is_current_load = true
             """.format(site_pk)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -454,7 +485,7 @@ class HuaweiCM(object):
                 INSERT INTO live_network.relations 
                 (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
                 SELECT 
-                NEXTVAL('live_network.seq_relations_pk'),
+                NEXTVAL('live_network.seq_relations_pk') as pk,
                 -- serving side
                 t5.node_pk AS svrnode_pk,
                 t4.site_pk AS svrsite_pk,
@@ -467,17 +498,22 @@ class HuaweiCM(object):
                 t6.tech_pk AS nbrtech_pk,
                 t6.vendor_pk AS nbrvendor_pk,
                 t6.pk AS nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" AS date_added,
+                t1."DATETIME" AS date_modified,
                 0, -- system
                 0
                 FROM 
                 huawei_cm_3g."UINTRAFREQNCELL" t1
+                --LOAD
+                INNER JOIN cm_loads t8 on t8.pk = t1."LOADID"
+                
                 INNER JOIN huawei_cm_3g."UCELL" t2 on 
-                    t2.neid  = t1.neid 
+                    t2."FILENAME"  = t1."FILENAME" 
+                    AND t2."LOADID" = t1."LOADID"
                     AND t1."CELLID" = t2."CELLID"
                 INNER JOIN huawei_cm_3g."UCELL" t3 on 
-                    t3.neid = t1.neid
+                    t3."FILENAME" = t1."FILENAME"
+                    AND t3."LOADID" = t1."LOADID"
                     AND t3."CELLID" = t1."NCELLID"
                 INNER JOIN live_network.cells t4 ON 
                     t4.name = t2."CELLNAME" 
@@ -493,6 +529,7 @@ class HuaweiCM(object):
                     AND t7.vendor_pk = 2 AND t7.tech_pk = 2
                 WHERE 
                  t4.site_pk = '{0}'
+                    AND t8.is_current_load = true
             """.format(site_pk)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -518,7 +555,7 @@ class HuaweiCM(object):
                 INSERT INTO live_network.relations 
                 (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
                 SELECT 
-                NEXTVAL('live_network.seq_relations_pk'),
+                NEXTVAL('live_network.seq_relations_pk') AS pk,
                 -- serving side
                 t5.node_pk AS svrnode_pk,
                 t4.site_pk AS svrsite_pk,
@@ -531,17 +568,22 @@ class HuaweiCM(object):
                 t6.tech_pk AS nbrtech_pk,
                 t6.vendor_pk AS nbrvendor_pk,
                 t6.pk AS nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
                 huawei_cm_3g."UINTRAFREQNCELL" t1
+                --LOAD
+                INNER JOIN cm_loads t8 on t8.pk = t1."LOADID"
+                
                 INNER JOIN huawei_cm_3g."UCELL" t2 on 
-                    t2.neid  = t1.neid 
+                    t2."FILENAME"  = t1."FILENAME" 
+                    AND t2."LOADID" = t1."LOADID"
                     AND t1."CELLID" = t2."CELLID"
                 INNER JOIN huawei_cm_3g."UEXT3GCELL" t3 on 
-                    t3.neid = t1.neid
+                    t3."FILENAME" = t1."FILENAME"
+                    AND t3."LOADID" = t1."LOADID"
                     AND t3."CELLID" = t1."NCELLID"
                 INNER JOIN live_network.cells t4 ON 
                     t4.name = t2."CELLNAME" 
@@ -557,6 +599,7 @@ class HuaweiCM(object):
                     AND t7.vendor_pk = 2 AND t7.tech_pk = 2
                 WHERE 
                  t4.site_pk = '{0}'
+                 AND t8.is_current_load = true
             """.format(site_pk)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -595,17 +638,21 @@ class HuaweiCM(object):
                 t6.tech_pk AS nbrtech_pk,
                 t6.vendor_pk AS nbrvendor_pk,
                 t6.pk AS nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
-                0, -- system
-                0
+                t1."DATETIME" ,
+                t1."DATETIME" ,
+                0 AS added_by, -- system
+                0 AS modified_by
                 FROM 
                 huawei_cm_3g."UINTERFREQNCELL" t1
+                --LOAD
+                INNER JOIN cm_loads t8 on t8.pk = t1."LOADID"
                 INNER JOIN huawei_cm_3g."UCELL" t2 on 
-                    t2.neid  = t1.neid 
+                    t2."FILENAME"  = t1."FILENAME"
+                    AND t2."LOADID" = t1."LOADID"
                     AND t1."CELLID" = t2."CELLID"
                 INNER JOIN huawei_cm_3g."UCELL" t3 on 
-                    t3.neid = t1.neid
+                    t3."FILENAME" = t1."FILENAME"
+                    AND t3."LOADID" = t1."LOADID"
                     AND t3."CELLID" = t1."NCELLID"
                 INNER JOIN live_network.cells t4 ON 
                     t4.name = t2."CELLNAME" 
@@ -621,6 +668,7 @@ class HuaweiCM(object):
                     AND t7.vendor_pk = 2 AND t7.tech_pk = 2
                 WHERE 
                  t4.site_pk = '{0}'
+                 AND t8.is_current_load = true
             """.format(site_pk)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
