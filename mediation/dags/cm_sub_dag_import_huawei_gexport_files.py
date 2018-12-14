@@ -13,7 +13,7 @@ from airflow.operators.dummy_operator import DummyOperator
 # bts_utils = Utils();
 
 
-def import_huawei_4g_parsed_csv(parent_dag_name, child_dag_name, start_date, schedule_interval):
+def import_huawei_gexport_parsed_csv(parent_dag_name, child_dag_name, start_date, schedule_interval):
     """
     Parse huawei 2g cm files.
 
