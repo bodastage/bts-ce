@@ -26,6 +26,23 @@ def parse_and_import_huawei_gexport(parent_dag_name, child_dag_name, start_date,
         start_date=start_date,
     )
 
+    task_clean_mo_names = BashOperator(
+        task_id='clean_gexport_mo_names',
+        bash_command=r"""
+sed -i -r "
+s/_(BSC6900GSM|BSC6900UMTS|BSC6900GU|BSC6910GSM|BSC6910UMTS|BSC6910GU)//ig;
+s/_(BTS3900|PICOBTS3900|BTS3911B|PICOBTS3911B|MICROBTS3900|MICROBTS3911B)//ig;
+s/BSC(6910|6900)(UMTS|GSM)Function/FUNCTION/ig;
+s/BSC(6910|6900)Equipment/EQUIPMENT/ig;
+s/<class name=\"(.*)\"/<class name=\"\U\1\"/ig;
+s/<class name=\"(.*)_MSCSERVER/<class name=\"\1/ig;
+s/<class name=\"(.*)_ENODEB\"/<class name=\"\1\"/ig;
+s/<class name=\"(.*)3900/<class name=\"\1/ig;
+" /mediation/data/cm/huawei/raw/gexport/*
+        """,
+        dag=dag
+    )
+
     parse_huawei_gexport_cm_files = BashOperator(
       task_id='parse_huawei_gexport_cm_files',
       bash_command='java -jar /mediation/bin/boda-huaweicmobjectparser.jar /mediation/data/cm/huawei/raw/gexport /mediation/data/cm/huawei/parsed/gexport /mediation/conf/cm/huawei_gexport_parser.cfg',
@@ -51,7 +68,7 @@ def parse_and_import_huawei_gexport(parent_dag_name, child_dag_name, start_date,
         python_callable=clear_huawei_gexport_cm_tables,
         dag=dag)
 
-
+    dag.set_dependency('clean_gexport_mo_names', 'parse_huawei_gexport_cm_files')
     dag.set_dependency('parse_huawei_gexport_cm_files', 'clear_huawei_gexport_cm_tables')
     dag.set_dependency('clear_huawei_gexport_cm_tables', 'import_huawei_gexport_parsed_csv')
     dag.set_dependency('import_huawei_gexport_parsed_csv', 'run_huawei_gexport_insert_queries')

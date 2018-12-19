@@ -2906,6 +2906,11 @@ class ProcessCMData(object):
             done 
         """)
 
+        #Huawei Radio Network Data Templates xmls
+        os.system("""
+            mv /mediation/data/cm/huawei/in/*.xlsm /mediation/data/cm/huawei/raw/rnp 
+        """)
+
         # Gexport
         os.system("""
             OIFS="$IFS"
