@@ -36,6 +36,7 @@ from cm_sub_dag_parse_and_import_huawei_cfgsyn import parse_and_import_huawei_cf
 from cm_sub_dag_parse_and_import_zte_2g import parse_and_import_zte_2g
 from cm_sub_dag_parse_and_import_zte_3g import parse_and_import_zte_3g
 from cm_sub_dag_parse_and_import_zte_4g import parse_and_import_zte_4g
+from cm_sub_dag_parse_and_import_huawei_rnp import parse_and_import_huawei_rnp
 from airflow.utils.trigger_rule import TriggerRule
 from cm_sub_dag_extract_externals import extract_network_externals
 from cm_sub_dag_run_network_audits import run_network_audits
@@ -104,6 +105,14 @@ sub_dag_parse_and_import_eri_2g_cm_files = SubDagOperator(
   dag=dag,
 )
 
+sub_dag_parse_and_import_huawei_rnp_cm_files = SubDagOperator(
+  subdag=parse_and_import_huawei_rnp('cm_etlp', 'parse_and_import_huawei_rnp', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_and_import_huawei_rnp',
+  dag=dag,
+)
+
+
 sub_dag_parse_and_import_huawei_gexport_cm_files = SubDagOperator(
   subdag=parse_and_import_huawei_gexport('cm_etlp', 'parse_and_import_huawei_gexport', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
@@ -112,7 +121,7 @@ sub_dag_parse_and_import_huawei_gexport_cm_files = SubDagOperator(
 )
 
 sub_dag_parse_and_import_huawei_mml_cm_files = SubDagOperator(
-  subdag=parse_and_import_huawei_gexport('cm_etlp', 'parse_and_import_huawei_mml', start_date=dag.start_date,
+  subdag=parse_and_import_huawei_mml('cm_etlp', 'parse_and_import_huawei_mml', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_and_import_huawei_mml',
   dag=dag,
@@ -901,6 +910,9 @@ dag.set_dependency('extract_huawei_4g4g_nbrs','huawei_cm_done')
 
 dag.set_dependency('extract_huawei_4g_cells','cell_extraction_done')
 
+# Huawei Radio Network Planning Template Data
+dag.set_dependency('process_huawei_cm','parse_and_import_huawei_rnp')
+dag.set_dependency('parse_and_import_huawei_rnp','huawei_parsing_done')
 
 # Huawei cfgsyn
 dag.set_dependency('process_huawei_cm','parse_and_import_huawei_cfgsyn')
