@@ -23,8 +23,21 @@
 
 cur_dir=$(realpath $(dirname $0))
 
+uname_val="$(uname -s)"
+case "${uname_val}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${uname_val}"
+esac
 
-eval "$(docker-machine env default)" 2>/dev/null
+# if [[ "$uname_val" == "MinGw" ]] || [[ "$uname_val" == "Mac" ]]; then
+
+which docker-machine 1>/tmp/null 2>&1
+if [[ $? -eq 0 ]]; then
+    eval "$(docker-machine env default)" 2>/dev/null
+fi
 
 function show_help(){
 
@@ -59,7 +72,7 @@ function run_setup(){
 	curl -fsSL get.docker.com -o get-docker.sh
 	chmod +x get-docker.sh 
 	$cur_dir/get-docker.sh
-	
+
 	if [[ $? -eq 0 ]]
 	then 
 	    $cur_dir/bts.sh create
@@ -69,7 +82,7 @@ function run_setup(){
 function show_version(){
 	 version=$(cat $cur_dir/VERSION 2>/dev/null)
 	 echo "Version: $version"
-	 echo "Boda Telecom Suite - Community Edition"
+	 echo "Boda Telecom Suite - Enterprise Edition"
 	 echo "Copyright 2017-2018. Bodastage Solutions. http://www.bodastage.com"
 }
 
