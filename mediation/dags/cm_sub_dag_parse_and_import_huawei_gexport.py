@@ -38,7 +38,7 @@ s/<class name=\"(.*)\"/<class name=\"\U\1\"/ig;
 s/<class name=\"(.*)_MSCSERVER/<class name=\"\1/ig;
 s/<class name=\"(.*)_ENODEB\"/<class name=\"\1\"/ig;
 s/<class name=\"(.*)3900/<class name=\"\1/ig;
-" /mediation/data/cm/huawei/raw/gexport/* || true
+" /mediation/data/cm/huawei/raw/gexport/*.xml || true
         """,
         dag=dag
     )
