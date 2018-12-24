@@ -33,9 +33,7 @@ from cm_sub_dag_parse_and_import_huawei_gexport import parse_and_import_huawei_g
 from cm_sub_dag_parse_and_import_huawei_mml import parse_and_import_huawei_mml
 from cm_sub_dag_parse_and_import_huawei_nbi import parse_and_import_huawei_nbi
 from cm_sub_dag_parse_and_import_huawei_cfgsyn import parse_and_import_huawei_cfgsyn
-from cm_sub_dag_parse_and_import_zte_2g import parse_and_import_zte_2g
-from cm_sub_dag_parse_and_import_zte_3g import parse_and_import_zte_3g
-from cm_sub_dag_parse_and_import_zte_4g import parse_and_import_zte_4g
+from cm_sub_dag_parse_and_import_zte_bulkcm import parse_and_import_zte_bulkcm
 from cm_sub_dag_parse_and_import_huawei_rnp import parse_and_import_huawei_rnp
 from airflow.utils.trigger_rule import TriggerRule
 from cm_sub_dag_extract_externals import extract_network_externals
@@ -141,24 +139,12 @@ sub_dag_parse_and_import_huawei_cfgsyn_cm_files = SubDagOperator(
   dag=dag,
 )
 
-sub_dag_parse_and_import_zte_2g_cm_files = SubDagOperator(
-  subdag=parse_and_import_zte_2g('cm_etlp', 'parse_and_import_zte_2g', start_date=dag.start_date,
-                 schedule_interval=dag.schedule_interval),
-  task_id='parse_and_import_zte_2g',
-  dag=dag,
-)
 
-sub_dag_parse_and_import_zte_3g_cm_files = SubDagOperator(
-  subdag=parse_and_import_zte_3g('cm_etlp', 'parse_and_import_zte_3g', start_date=dag.start_date,
-                 schedule_interval=dag.schedule_interval),
-  task_id='parse_and_import_zte_3g',
-  dag=dag,
-)
 
-sub_dag_parse_and_import_zte_4g_cm_files = SubDagOperator(
-  subdag=parse_and_import_zte_4g('cm_etlp', 'parse_and_import_zte_4g', start_date=dag.start_date,
+sub_dag_parse_and_import_zte_cm_files = SubDagOperator(
+  subdag=parse_and_import_zte_bulkcm('cm_etlp', 'parse_and_import_zte_bulkcm', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
-  task_id='parse_and_import_zte_4g',
+  task_id='parse_and_import_zte_bulkcm',
   dag=dag,
 )
 
@@ -921,12 +907,9 @@ dag.set_dependency('parse_and_import_huawei_cfgsyn','huawei_parsing_done')
 # ZTE
 # ##############################################
 dag.set_dependency('start_cm_etlp','process_zte')
-dag.set_dependency('process_zte','parse_and_import_zte_2g')
-dag.set_dependency('process_zte','parse_and_import_zte_3g')
-dag.set_dependency('process_zte','parse_and_import_zte_4g')
-dag.set_dependency('parse_and_import_zte_2g','zte_parsing_done')
-dag.set_dependency('parse_and_import_zte_3g','zte_parsing_done')
-dag.set_dependency('parse_and_import_zte_4g','zte_parsing_done')
+dag.set_dependency('process_zte','parse_and_import_zte_bulkcm')
+dag.set_dependency('parse_and_import_zte_bulkcm','zte_parsing_done')
+
 dag.set_dependency('zte_parsing_done','join_zte_supported')
 dag.set_dependency('join_zte_supported','end_cm_etlp')
 # Nokia
