@@ -48,8 +48,6 @@ process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'))
 huawei_cm = HuaweiCM()
 ericsson_cm = EricssonCM()
 
-
-
 schedule_interval = "@daily" # # bts_utils.get_setting('cm_dag_schedule_interval')
 
 args = {
