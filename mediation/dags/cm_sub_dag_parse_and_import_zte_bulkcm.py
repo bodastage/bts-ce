@@ -28,12 +28,12 @@ def parse_and_import_zte_bulkcm(parent_dag_name, child_dag_name, start_date, sch
 
     parse_zte_bulkcm_cm_files = BashOperator(
       task_id='parse_zte_bulkcm_cm_files',
-      bash_command='java -jar /mediation/bin/boda-bulkcmparser.jar /mediation/data/cm/zte/raw/bulkcm /mediation/data/cm/zte/parsed/bulkcm /mediation/conf/cm/zte_bulkcm_parser.cfg/mediation/conf/cm/zte_bulkcm_parser.cfg',
+      bash_command='java -jar /mediation/bin/boda-bulkcmparser.jar -i /mediation/data/cm/zte/raw/bulkcm -o /mediation/data/cm/zte/parsed/bulkcm -c /mediation/conf/cm/zte_bulkcm_parser.cfg',
       dag=dag)
 
     import_mml_csv = BashOperator(
         task_id='import_zte_bulkcm_parsed_csv',
-        bash_command='python /mediation/bin/load_cm_data_into_db.py zte_bulkcm /mediation/data/cm/huawei/parsed/bulkcm',
+        bash_command='python /mediation/bin/load_cm_data_into_db.py zte_bulkcm /mediation/data/cm/zte/parsed/bulkcm',
         dag=dag)
 
     t_run_zte_bulkcm_insert_queries = BashOperator(

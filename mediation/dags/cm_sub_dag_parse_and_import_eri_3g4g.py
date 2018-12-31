@@ -34,7 +34,7 @@ def parse_and_import_eri_3g4g(parent_dag_name, child_dag_name, start_date, sched
 
     t2 = BashOperator(
         task_id='run_ericsson_bulkcm_parser',
-        bash_command='java -jar /mediation/bin/boda-bulkcmparser.jar /mediation/data/cm/ericsson/raw/bulkcm /mediation/data/cm/ericsson/parsed/bulkcm /mediation/conf/cm/ericsson_bulkcm_parser.cfg',
+        bash_command='java -jar /mediation/bin/boda-bulkcmparser.jar -i /mediation/data/cm/ericsson/raw/bulkcm -o /mediation/data/cm/ericsson/parsed/bulkcm -c /mediation/conf/cm/ericsson_bulkcm_parser.cfg',
         dag=dag)
 
     # Truncate ericsson 3g4g cm tables
