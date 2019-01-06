@@ -62,7 +62,7 @@ echo ""
 # echo "bts manage list modules -- List installed modules"
 echo "-----------------------------------------------------"
 echo "Boda Telecom Suite - Enterprise Edition"
-echo "Copyright 2017-2018. Bodastage Solutions. http://www.bodastage.com"
+echo "Copyright 2017-2019. Bodastage Solutions. http://www.bodastage.com"
 
 }
 

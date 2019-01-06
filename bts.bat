@@ -113,7 +113,7 @@ If "%~1"=="version" (
 	Set /p Release=<VERSION 
     Echo Version:%Release%
 	Echo Boda Telecom Suite - Community Edition
-	Echo Copyright 2017-2018. Bodastage Solutions. http://www.bodastage.com
+	Echo Copyright 2017-2019. Bodastage Solutions. http://www.bodastage.com
 )
 
 

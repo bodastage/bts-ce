@@ -53,7 +53,7 @@ services:
     bts-web:
         image: registry.gitlab.com/bts-ce/bts-ce-web
         ports:
-          - "80:80"
+          - "8888:80"
         network_mode: "bridge"
         container_name: "bts-ce-web"
         depends_on:
