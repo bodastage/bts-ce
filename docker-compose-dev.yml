@@ -11,7 +11,7 @@ services:
         ports:
             - "5432:5432"
         network_mode: "bridge"
-        container_name: "bts-ee-database"
+        container_name: "bts-ce-database"
         command: ["postgres","-c","max_locks_per_transaction=1024"]
     bts-msgbroker:
         image: rabbitmq:3.7.4-management
@@ -25,10 +25,10 @@ services:
             - "61613:61613"
             - "15670:15670"
         network_mode: "bridge"
-        container_name: "bts-ee-msgbroker"
+        container_name: "bts-ce-msgbroker"
         command: bash -c "rabbitmq-server; rabbitmq-plugins enable rabbitmq_web_stomp"
     bts-api:
-        image: registry.gitlab.com/bts-ee/bts-ee-api
+        image: registry.gitlab.com/bts-ce/bts-ce-api
         ports:
           - 8181:8181
         restart: always
@@ -40,27 +40,27 @@ services:
           - BTS_DB_PASS=password
           - BTS_DB_PORT=5432
         volumes:
-          - ./bts-ee-api:/app
-          - ./bts-ee-database:/migrations
+          - ./bts-ce-api:/app
+          - ./bts-ce-database:/migrations
         depends_on:
             - bts-database
             - bts-msgbroker
         links:
           - "bts-database:database"
         network_mode: "bridge"
-        container_name: "bts-ee-api"
+        container_name: "bts-ce-api"
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
     bts-web:
-        image: registry.gitlab.com/bts-ee/bts-ee-web
+        image: registry.gitlab.com/bts-ce/bts-ce-web
         ports:
           - "80:80"
         network_mode: "bridge"
-        container_name: "bts-ee-web"
+        container_name: "bts-ce-web"
         depends_on:
             - bts-msgbroker
             - bts-api
     bts-mediation:
-        image: registry.gitlab.com/bts-ee/bts-ee-mediation
+        image: registry.gitlab.com/bts-ce/bts-ce-mediation
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
@@ -85,7 +85,7 @@ services:
            - bts-database
            - bts-msgbroker
         network_mode: "bridge"
-        container_name: "bts-ee-mediation"
+        container_name: "bts-ce-mediation"
         links:
             - "bts-database:database"
     bts-cache:
@@ -93,7 +93,7 @@ services:
         ports:
           - "6380:6380"
         network_mode: "bridge"
-        container_name: "bts-ee-cache"
+        container_name: "bts-ce-cache"
     bts-ftp:
         image: stilliard/pure-ftpd:hardened
         restart: always
@@ -107,7 +107,7 @@ services:
           - "21:21"
           - "30000-30009:30000-30009"
         volumes:
-           - /home/bodastage/bts-ee/mediation/data:/home/ftpusers/bodastage
+           - /home/bodastage/bts-ce/mediation/data:/home/ftpusers/bodastage
         network_mode: "bridge"
-        container_name: "bts-ee-ftp"
+        container_name: "bts-ce-ftp"
     #    command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]

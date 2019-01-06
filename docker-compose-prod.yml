@@ -34,7 +34,7 @@ services:
         container_name: "bts-msgbroker"
         command: bash -c "rabbitmq-server; rabbitmq-plugins enable rabbitmq_web_stomp"
     bts-api:
-        image: registry.gitlab.com/bts-ee/bts-ee-api
+        image: registry.gitlab.com/bts-ce/bts-ce-api
         ports:
           - 8181:8181
         restart: always
@@ -46,8 +46,8 @@ services:
           - BTS_DB_PASS=password 
           - BTS_DB_PORT=5432
         volumes:
-          - ./bts-ee-api:/app
-          - ./bts-ee-database:/migrations
+          - ./bts-ce-api:/app
+          - ./bts-ce-database:/migrations
         depends_on: 
             - bts-database
             - bts-msgbroker
@@ -57,15 +57,15 @@ services:
         container_name: "bts-api"
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
     bts-web:
-        image: registry.gitlab.com/bts-ee/bts-ee-web
+        image: registry.gitlab.com/bts-ce/bts-ce-web
         ports:
           - "80:80"
-        container_name: "bts-ee-web"
+        container_name: "bts-ce-web"
         depends_on: 
             - bts-msgbroker
             - bts-api
     bts-airflow-webserver:
-        image: registry.gitlab.com/bts-ee/bts-ee-mediation
+        image: registry.gitlab.com/bts-ce/bts-ce-mediation
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
@@ -98,7 +98,7 @@ services:
             - "bts-database:database"
             - redis
     bts-airflow-flower:
-        image: registry.gitlab.com/bts-ee/bts-ee-mediation
+        image: registry.gitlab.com/bts-ce/bts-ce-mediation
         restart: always
         depends_on:
             - bts-database
@@ -117,7 +117,7 @@ services:
             - "bts-database:database"
             - redis
     bts-airflow-scheduler:
-        image: registry.gitlab.com/bts-ee/bts-ee-mediation
+        image: registry.gitlab.com/bts-ce/bts-ce-mediation
         restart: always
         depends_on:
             - bts-airflow-webserver
@@ -140,7 +140,7 @@ services:
             - redis
             - "bts-database:database"
     bts-airflow-worker:
-        image: registry.gitlab.com/bts-ee/bts-ee-mediation
+        image: registry.gitlab.com/bts-ce/bts-ce-mediation
         restart: always
         depends_on:
             - bts-airflow-scheduler
@@ -179,5 +179,5 @@ services:
           - "21:21"
           - "30000-30009:30000-30009"
         volumes:
-           - /home/bodastage/bts-ee/mediation/data:/home/ftpusers/bodastage
+           - /home/bodastage/bts-ce/mediation/data:/home/ftpusers/bodastage
         container_name: "bts-ftp"
