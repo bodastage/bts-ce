@@ -201,7 +201,7 @@ do
 	 exec)
 		if [[ $2 != "" ]]
 		then
-			docker-compose stop $*
+			docker-compose $*
 			exit 0
 		fi
 		

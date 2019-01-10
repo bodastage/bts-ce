@@ -45,7 +45,7 @@ s/<class name=\"(.*)3900/<class name=\"\1/ig;
 
     parse_huawei_gexport_cm_files = BashOperator(
       task_id='parse_huawei_gexport_cm_files',
-      bash_command='java -jar /mediation/bin/boda-huaweicmobjectparser.jar /mediation/data/cm/huawei/raw/gexport /mediation/data/cm/huawei/parsed/gexport /mediation/conf/cm/huawei_gexport_parser.cfg',
+      bash_command='java -jar /mediation/bin/boda-huaweicmobjectparser.jar -i /mediation/data/cm/huawei/raw/gexport -o /mediation/data/cm/huawei/parsed/gexport -c /mediation/conf/cm/huawei_gexport_parser.cfg',
       dag=dag)
 
     import_nbi_csv = BashOperator(
