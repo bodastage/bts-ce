@@ -4,26 +4,27 @@ from sqlalchemy.sql import text
 import os
 import subprocess
 
+
 class ProcessCMData(object):
     """ Process network configuration data"""
 
-    def __init__(self, dbname = None, dbuser = None, dbpass = None, dbhost = None):
+    def __init__(self, dbname=None, dbuser=None, dbpass=None, dbhost=None):
         ''' Constructor for this class. '''
 
-        self._dbhost=dbhost
-        self._dbname=dbname
-        self._dbuser=dbuser
-        self._dbpass=dbpass
+        self._dbhost = dbhost
+        self._dbname = dbname
+        self._dbuser = dbuser
+        self._dbpass = dbpass
 
-        if dbname is None: self._dbname="bts"
-        if dbuser is None: self._dbuser="bodastage"
-        if dbpass is None: self._dbpass="password"
-        if dbhost is None: self._dbhost="locahost"
+        if dbname is None: self._dbname = "bts"
+        if dbuser is None: self._dbuser = "bodastage"
+        if dbpass is None: self._dbpass = "password"
+        if dbhost is None: self._dbhost = "locahost"
 
         # self.db_engine = create_engine('postgresql://{0}:{1}@{2}/{3}'.format(self._dbuser, self._dbpass, self._dbhost, self._dbname))
         self.db_engine = create_engine('postgresql://bodastage:password@database/bts')
 
-    def extract_rncs(self, vendor= None):
+    def extract_rncs(self, vendor=None):
         """Extract RNCs from provided vendors or else get from all vendors"""
 
         if vendor == None or vendor == 'ericsson':
@@ -39,24 +40,26 @@ class ProcessCMData(object):
             (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
             SELECT 
             NEXTVAL('live_network.seq_nodes_pk'),
-            "varDateTime" as date_added, 
-            "varDateTime" as date_modified, 
+            "DATETIME" as date_added, 
+            "DATETIME" as date_modified, 
             'RNC' as node_type,
             "MeContext_id" as "name" , 
             1 as vendor_pk, -- 1=Ericsson, 2=Huawei
             2 as tech_pk , -- 1=gsm, 2-umts,3=lte
             0 as added_by,
             0 as modified_by
-            FROM ericsson_bulkcm."RncFunction" t1
+            FROM ericsson_cm."RncFunction" t1
+            INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
             LEFT OUTER  JOIN live_network.nodes t2 ON t1."MeContext_id" = t2."name"
             WHERE 
             t2."name" IS NULL
+            AND 
+            t9.is_current_load = true
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
-
 
     def extract_ericsson_bscs(self):
         """Extract BSCs from Ericsson CM data(ericsson_cm_2g."BSC")"""
@@ -348,8 +351,6 @@ class ProcessCMData(object):
 
         session.close()
 
-
-
     def extract_ericsson_enodebs(self):
         """Extract Ericsson ENodebs"""
         Session = sessionmaker(bind=self.db_engine)
@@ -360,23 +361,25 @@ class ProcessCMData(object):
             (pk, date_added,date_modified, tech_pk, vendor_pk, "name", added_by, modified_by)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            "varDateTime" as date_added, 
-            "varDateTime" as date_modified, 
+            "DATETIME" as date_added, 
+            "DATETIME" as date_modified, 
             3 as tech_pk , -- 1=gsm, 2-umts,3=lte,
             1 as vendor_pk, -- 1=Ericsson, 2=Huawei
             "MeContext_id",
             0 as added_by,
             0 as modified_by
-            FROM ericsson_cm_4g."ENodeBFunction" t1
+            FROM ericsson_cm."ENodeBFunction" t1
+            INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
             LEFT OUTER  JOIN live_network.sites t2 ON t1."MeContext_id" = t2."name"
             WHERE 
             t2."name" IS NULL
+            AND 
+            t9.is_current_load = true
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
-
 
     def extract_ericsson_3g_sites(self):
         """Extract Ericsson NodeBs"""
@@ -388,22 +391,25 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             2, -- tech 3 -lte, 2 -umts, 1-gms
             1, -- 1- Ericsson, 2 - Huawei,
             t1."MeContext_id",
             t2.pk -- node primary key
-            from ericsson_bulkcm."NodeBFunction" t1
+            from ericsson_cm."NodeBFunction" t1
+            INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
             INNER join live_network.nodes t2 on t2."name" = t1."SubNetwork_2_id" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 2
             LEFT JOIN live_network.sites t3 on t3."name" = t1."MeContext_id" 
                AND t2.vendor_pk = 1 and t2.tech_pk = 2
             WHERE 
             t3."name" IS NULL
-            
+            AND 
+            t9.is_current_load = true
+
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -462,42 +468,43 @@ class ProcessCMData(object):
         sites_len = len(sites)
         while i < sites_len:
             # Handle iterations at the end of the site list
-            end = i+5;
-            if sites_len < i+5:
+            end = i + 5;
+            if sites_len < i + 5:
                 end = sites_len
 
             placeholder_range = 5
             if end == sites_len:
-                placeholder_range = end-i
+                placeholder_range = end - i
 
-            site_list = list( map( lambda x:x[1], sites[i:end]) )
+            site_list = list(map(lambda x: x[1], sites[i:end]))
             # placeholders = map( lambda x: ':p'+x , range(5)) # [:p0,...,:p4]
 
             placeholders = []
             site_list_placeholders = {}
             for r in range(placeholder_range):
-                placeholders.append(':p'+ str(r))
-                site_list_placeholders['p'+ str(r)] = site_list[r]
+                placeholders.append(':p' + str(r))
+                site_list_placeholders['p' + str(r)] = site_list[r]
 
             # print(site_list_placeholders)
             # print(site_list)
 
-            i = i+5
+            i = i + 5
             sql = """
                 INSERT INTO live_network.cells
                 (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
                 SELECT 
                 nextval('live_network.seq_cells_pk'),
-                t1."varDateTime" as date_added, 
-                t1."varDateTime" as date_modified, 
+                t1."DATETIME" as date_added, 
+                t1."DATETIME" as date_modified, 
                 0 as added_by,
                 0 as modified_by,
                 2, -- tech 3 -lte, 2 -umts, 1-gms
                 1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
                 t1."UtranCell_id",
                 t4.pk -- site primary key
-                FROM ericsson_cm_3g."UtranCell" t1
-                INNER JOIN ericsson_cm_3g."NodeBFunction" t2 on t2."nodeBFunctionIubLink" = t1."utranCellIubLink"
+                FROM ericsson_cm."UtranCell" t1
+                INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
+                INNER JOIN ericsson_cm."NodeBFunction" t2 on t2."nodeBFunctionIubLink" = t1."utranCellIubLink" AND t2."LOADID" = t1."LOADID"
                 INNER JOIN live_network.nodes t3 on t3."name" = t1."MeContext_id" 
                         AND t3.vendor_pk = 1
                         AND t3.tech_pk = 2
@@ -510,10 +517,12 @@ class ProcessCMData(object):
                     AND t5.vendor_pk = 1
                 WHERE 
                 t5."name" IS NULL
+                AND 
+                t9.is_current_load = true
                 AND t4."name" IN ({})
-            """.format( ', '.join(placeholders) )
+            """.format(', '.join(placeholders))
 
-            self.db_engine.execute(text(sql).execution_options(autocommit=True),**site_list_placeholders)
+            self.db_engine.execute(text(sql).execution_options(autocommit=True), **site_list_placeholders)
 
         session.close()
 
@@ -564,50 +573,53 @@ class ProcessCMData(object):
         i = 0
         sites_len = len(sites)
         while i < sites_len:
-            end = i+5;
-            if sites_len < i+5:
+            end = i + 5;
+            if sites_len < i + 5:
                 end = sites_len
 
             placeholder_range = 5
             if end == sites_len:
-                placeholder_range = end-i
+                placeholder_range = end - i
 
-            site_list = list( map( lambda x:x[1], sites[i:end]) )
+            site_list = list(map(lambda x: x[1], sites[i:end]))
             # placeholders = map( lambda x: ':p'+x , range(5)) # [:p0,...,:p4]
             placeholders = []
             site_list_placeholders = {}
             for r in range(placeholder_range):
-                placeholders.append(':p'+ str(r))
-                site_list_placeholders['p'+ str(r)] = site_list[r]
+                placeholders.append(':p' + str(r))
+                site_list_placeholders['p' + str(r)] = site_list[r]
 
             # print(site_list_placeholders)
             # print(site_list)
 
-            i = i+5
+            i = i + 5
             sql = """
             INSERT INTO live_network.cells
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             NEXTVAL('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             3, -- tech 3 -lte, 2 -umts, 1-gms
             1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             CASE WHEN t1."userLabel" IS NULL THEN t1."vsDataEUtranCellFDD_id" ELSE t1."userLabel" END AS "name",
             t2.pk -- site primary key
-            FROM ericsson_cm_3g."EUtranCellFDD" t1
+            FROM ericsson_cm."EUtranCellFDD" t1
+            INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
             INNER JOIN live_network.sites t2 on t2."name" = t1."MeContext_id" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 3 
             LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
                 AND t2.vendor_pk = 1 and t2.tech_pk = 3 
             WHERE
-                t3."name" IS NULL
-                AND t2."name" IN ({})
-            """.format( ', '.join(placeholders) )
+            t3."name" IS NULL
+            AND 
+            t9.is_current_load = true
+            AND t2."name" IN ({})
+            """.format(', '.join(placeholders))
 
-            self.db_engine.execute(text(sql).execution_options(autocommit=True),**site_list_placeholders)
+            self.db_engine.execute(text(sql).execution_options(autocommit=True), **site_list_placeholders)
 
         session.close()
 
@@ -670,11 +682,14 @@ class ProcessCMData(object):
                         t2.vendor_pk as vendor_pk,
                         0 as modified_by, 
                         0 as added_by, 
-                        t1."varDateTime" as date_added, 
-                        t1."varDateTime" as date_modified
-                        FROM ericsson_cm_3g."EUtranCellFDD" t1
+                        t1."DATETIME" as date_added, 
+                        t1."DATETIME" as date_modified
+                        FROM ericsson_cm."EUtranCellFDD" t1
+                        INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
                         INNER JOIN live_network.cells t2 on t2."name" = t1."vsDataEUtranCellFDD_id"
-                        WHERE t1."MeContext_id" = '{0}';
+                        WHERE t1."MeContext_id" = '{0}'
+                        AND 
+                        t9.is_current_load = true
                     """.format(site_name)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -698,7 +713,7 @@ class ProcessCMData(object):
         result = self.db_engine.execute(site_sql)
 
         for row in result:
-            (site_pk,site_name)=row
+            (site_pk, site_name) = row
 
             # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk,site_name))
 
@@ -710,8 +725,8 @@ class ProcessCMData(object):
                 height, site_sector_carrier, mcc,mnc,ura,localcellid)
                 SELECT 
                 NEXTVAL('live_network.seq_umts_cells_data_pk'),
-                t1."varDateTime" as date_added, 
-                t1."varDateTime" as date_modified, 
+                t1."DATETIME" as date_added, 
+                t1."DATETIME" as date_modified, 
                 0 as added_by,
                 0 as modified_by,
                 t1."bchPower"::integer,
@@ -744,21 +759,24 @@ class ProcessCMData(object):
                 t1."uraList" as ura ,
                 t1."localCellId"::integer as localcellid
                 FROM 
-                ericsson_cm_3g."UtranCell" t1
-                INNER JOIN ericsson_cm_3g."RbsLocalCell" t2 on t2."localCellId" = t1."cId" and t2."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                ericsson_cm."UtranCell" t1
+                INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
+                INNER JOIN ericsson_cm."RbsLocalCell" t2 on t2."localCellId" = t1."cId" and t2."SubNetwork_2_id" = t1."SubNetwork_2_id" 
                     -- and t2."MeContext_id" = t1."MeContext_id"
                 INNER JOIN live_network.cells t3 on t3."name" = t1."UtranCell_id"
-                INNER JOIN ericsson_bulkcm."vsDataUtranCell" t4 on t4."UtranCell_id" = t1."UtranCell_id" and t4."SubNetwork_2_id" = t1."SubNetwork_2_id" 
-                INNER JOIN ericsson_bulkcm."vsDataCarrier" t5 on  t5."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                INNER JOIN ericsson_cm."UtranCell" t4 on t4."UtranCell_id" = t1."UtranCell_id" and t4."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                INNER JOIN ericsson_cm."Carrier" t5 on  t5."SubNetwork_2_id" = t1."SubNetwork_2_id" 
                     and t5."MeContext_id" = t2."MeContext_id"
                     and concat('S',TRIM(t5."vsDataSector_id"),'C', TRIM(t5."vsDataCarrier_id")) = t2."vsDataRbsLocalCell_id" 
-                INNER JOIN ericsson_bulkcm."vsDataSector" t6 on t6."SubNetwork_2_id" = t1."SubNetwork_2_id"
+                INNER JOIN ericsson_cm."Sector" t6 on t6."SubNetwork_2_id" = t1."SubNetwork_2_id"
                     and t6."MeContext_id" = t5."MeContext_id"
                     and t6."vsDataSector_id" = t5."vsDataSector_id"
-                INNER JOIN ericsson_cm_3g."RncFunction" t7 on  t7."SubNetwork_2_id" = t1."SubNetwork_2_id" 
+                INNER JOIN ericsson_cm."RncFunction" t7 on  t7."SubNetwork_2_id" = t1."SubNetwork_2_id" 
                     AND t6."MeContext_id" = t5."MeContext_id"
                     AND t7."RncFunction_id" = t1."RncFunction_id" 
-                WHERE t6."MeContext_id" = '{0}';
+                WHERE t6."MeContext_id" = '{0}'
+                t9.is_current_load = true
+                ;
             """.format(site_name)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -786,7 +804,7 @@ class ProcessCMData(object):
         metadata = MetaData()
         Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
         for site in session.query(Site).filter_by(vendor_pk=1).filter_by(tech_pk=1).yield_per(5):
-            (site_pk, site_name) = (site[0],site[1])
+            (site_pk, site_name) = (site[0], site[1])
 
             # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
@@ -835,10 +853,10 @@ class ProcessCMData(object):
         session.close()
 
     def extract_ericsson_3g3g_nbrs(self):
-       """"Extract Ericsson 3G 3G nbrs"""
-       self.extract_ericsson_3g3g_nbrs_with_ericsson()
-       self.extract_ericsson_3g3g_nbrs_with_other_vendors()
-       
+        """"Extract Ericsson 3G 3G nbrs"""
+        self.extract_ericsson_3g3g_nbrs_with_ericsson()
+        self.extract_ericsson_3g3g_nbrs_with_other_vendors()
+
     def extract_ericsson_3g3g_nbrs_with_ericsson(self):
         """Extract Ericsson UMTS-UMTS neighbour relations"""
         Session = sessionmaker(bind=self.db_engine)
@@ -920,14 +938,15 @@ class ProcessCMData(object):
                 t6.vendor_pk as nbrvendor_pk ,
                 t6.pk as nbrcell_pk,
                 -- meta fields 
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
-                FROM ericsson_cm_3g."UtranRelation" t1 
-                INNER JOIN ericsson_cm_3g."UtranCell" t2 ON t1."adjacentCell" = concat('SubNetwork=ONRM_ROOT_MO_R,SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
+                FROM ericsson_cm."UtranRelation" t1 
+                INNER JOIN cm_loads t91 on t91.pk = t1."LOADID"
+                INNER JOIN ericsson_cm."UtranCell" t2 ON t1."adjacentCell" = concat('SubNetwork=ONRM_ROOT_MO_R,SubNetwork=',trim(t2."SubNetwork_2_id"),',MeContext=',trim(t2."MeContext_id"),',ManagedElement=',trim(t2."ManagedElement_id"),',RncFunction=',trim(t2."RncFunction_id"),',UtranCell=',trim(t2."UtranCell_id"))
                 -- -- serving side
-                INNER JOIN ericsson_cm_3g."UtranCell" t10 ON 
+                INNER JOIN ericsson_cm."UtranCell" t10 ON 
                     t10."UtranCell_id" = t1."UtranCell_id" 
                     AND TRIM(t10."SubNetwork_2_id") = TRIM(t1."SubNetwork_2_id") 
                     AND TRIM(t10."MeContext_id") = TRIM(t1."MeContext_id")
@@ -945,6 +964,8 @@ class ProcessCMData(object):
                 WHERE 
                     t9.pk IS NULL
                     AND t4."name" = :svr_site
+                    AND 
+                    t91.is_current_load = true
             """
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True), svr_site=site[1])
@@ -958,7 +979,6 @@ class ProcessCMData(object):
     def extract_ericsson_4g4g_nbrs(self):
         """Extract Ericsson LTE-LTE neighbour relations"""
         pass
-
 
     def extract_ericsson_2g2g_nbrs(self):
         """Extract Ericsson 2G-2G neighbour relations"""
@@ -1068,7 +1088,6 @@ class ProcessCMData(object):
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
-
     def extract_huawei_2g_cells(self):
         """Extract Huawesi GSM Cells"""
         Session = sessionmaker(bind=self.db_engine)
@@ -1109,7 +1128,6 @@ class ProcessCMData(object):
 
         session.close()
 
-
     def extract_huawei_2g_cell_params(self):
         """Extract Ericsson LTE cell parameters"""
         """Extract Huawei GSM cell parameters"""
@@ -1132,7 +1150,7 @@ class ProcessCMData(object):
         metadata = MetaData()
         Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
         for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=1).yield_per(5):
-            (site_pk, site_name) = (site[0],site[1])
+            (site_pk, site_name) = (site[0], site[1])
 
             # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
@@ -1224,21 +1242,24 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             2, -- tech 3 -lte, 2 -umts, 1-gms
             1, -- 1- Ericsson, 2 - Huawei,
             t1."MeContext_id",
             t2.pk -- node primary key
-            from ericsson_cm_3g."NodeBFunction" t1
+            from ericsson_cm."NodeBFunction" t1
+            INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
             INNER join live_network.nodes t2 on t2."name" = t1."SubNetwork_2_id" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 2
             LEFT JOIN live_network.sites t3 on t3."name" = t1."MeContext_id" 
                AND t2.vendor_pk = 1 and t2.tech_pk = 2
             WHERE 
             t3."name" IS NULL
+            AND 
+            t9.is_current_load = true
 
         """
 
@@ -1271,7 +1292,7 @@ class ProcessCMData(object):
                AND t2.vendor_pk = 2 and t2.tech_pk = 2
             WHERE 
             t3."name" IS NULL
-            
+
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -1346,7 +1367,6 @@ class ProcessCMData(object):
 
         session.close()
 
-
     def extract_huawei_3g_cell_params(self):
         """Extract Huawei UMTS cell parameters"""
 
@@ -1364,7 +1384,7 @@ class ProcessCMData(object):
         result = self.db_engine.execute(site_sql)
 
         for row in result:
-            (site_pk,site_name)=row
+            (site_pk, site_name) = row
 
             # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk,site_name))
 
@@ -1427,7 +1447,6 @@ class ProcessCMData(object):
 
         session.close()
 
-
     def extract_huawei_enodebs(self):
         """Extract Ericsson ENodebs"""
         Session = sessionmaker(bind=self.db_engine)
@@ -1454,7 +1473,6 @@ class ProcessCMData(object):
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
-
 
     def extract_huawei_4g_cells(self):
         """Extract Huawei LTE Cells
@@ -1488,7 +1506,6 @@ class ProcessCMData(object):
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
-
 
     def extract_huawei_4g_cell_params(self):
         """Extract Ericsson LTE cell parameters"""
@@ -1564,7 +1581,6 @@ class ProcessCMData(object):
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
-
 
     def extract_huawei_2g2g_nbrs(self):
         """Extract Huawei 2G2G nbr relations"""
@@ -1898,7 +1914,6 @@ class ProcessCMData(object):
 
         session.close()
 
-
     def extract_huawei_3g3g_interfreq_nbrs_internal(self):
         """Extract Huawei 3g-3g interfreq relations on same RNC"""
         """
@@ -1964,21 +1979,21 @@ class ProcessCMData(object):
         session.close()
 
     def extract_huawei_3g3g_interfreq_nbrs_external(self):
-            """Extract Huawei 3g-3g interfreq relations on different RNCs"""
-            """
-            Extract  Huawei 3G- Huawei 3G neighbour relations on different RNCs and different frequencies
-            """
-            Session = sessionmaker(bind=self.db_engine)
-            session = Session()
+        """Extract Huawei 3g-3g interfreq relations on different RNCs"""
+        """
+        Extract  Huawei 3G- Huawei 3G neighbour relations on different RNCs and different frequencies
+        """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
 
-            metadata = MetaData()
-            Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
-            for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
-                (site_pk, site_name) = (site[0], site[1])
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
+            (site_pk, site_name) = (site[0], site[1])
 
-                # print("Extracting Huawei 3G- Huawei 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            # print("Extracting Huawei 3G- Huawei 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
-                sql = """
+            sql = """
                     INSERT INTO live_network.relations 
                     (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
                     SELECT 
@@ -2023,9 +2038,9 @@ class ProcessCMData(object):
                      t4.site_pk = '{0}'
                 """.format(site_pk)
 
-                self.db_engine.execute(text(sql).execution_options(autocommit=True))
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
-            session.close()
+        session.close()
 
     def extract_huawei_3g3g_intrafreq_nbrs_with_all_vendors(self):
         """ H// 3G - E// 3G nbrs with the same frequency"""
@@ -2615,8 +2630,6 @@ class ProcessCMData(object):
 
         session.close()
 
-
-
     def extract_huawei_4g4g_nbrs(self):
         self.extract_huawei_4g4g_intrafreq_nbrs()
         self.extract_huawei_4g4g_interfreq_nbrs()
@@ -2681,7 +2694,6 @@ class ProcessCMData(object):
 
         session.close()
 
-
     def extract_huawei_4g4g_interfreq_nbrs(self):
         pass
 
@@ -2719,7 +2731,7 @@ class ProcessCMData(object):
                 0 as modified_by,
                 0 as added_by
                 FROM 
-                ericsson_cnaiv2.utran_nrel t1
+                ericsson_cnaiv2."UTRAN_NREL" t1
                 INNER JOIN live_network.cells t2 ON t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
                 LEFT JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.tech_pk = 2
                 INNER JOIN live_network.sites t4 on t4.pk = t2.site_pk AND  t4.tech_pk = 1
@@ -2765,13 +2777,14 @@ class ProcessCMData(object):
                 t3.pk as svrcell_pk,
                 t3.tech_pk as svrtech_pk,
                 t3.vendor_pk as svrvendor_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM
-                ericsson_cm_3g."UtranCell" t1
-                INNER JOIN ericsson_cm_3g."GsmRelation" t2 ON 
+                ericsson_cm."UtranCell" t1
+                INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
+                INNER JOIN ericsson_cm."GsmRelation" t2 ON 
                     TRIM(t2."SubNetwork_2_id") = TRIM(t1."SubNetwork_2_id")
                     AND TRIM(t2."MeContext_id") = TRIM(t1."MeContext_id")
                     AND TRIM(t2."UtranCell_id") = TRIM(t2."UtranCell_id")
@@ -2787,6 +2800,8 @@ class ProcessCMData(object):
                 --	CONCAT('SubNework=',t3."SubNetwork_id",',ExternalGsmCell=',t3."UtranCell_id") = t2."adjacentCell"
                 WHERE 
                 t1."UtranCell_id" = '{0}'
+                AND 
+                t9.is_current_load = true
             """.format(cell_pk)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -2835,7 +2850,7 @@ class ProcessCMData(object):
                     AND t2."UtranCell_id" = '{0}'
                 INNER JOIN live_network.cells t5 ON t5.name = t2."UtranCell_id" AND t5.vendor_pk = 1 AND t5.tech_pk = 2
                 INNER JOIN live_network.sites t6 on t6.pk = t5.site_pk AND t6.vendor_pk = 1 AND t6.tech_pk = 2
-                
+
                 -- nbr side
                 LEFT JOIN live_network.cells t3 on 
                     t3.name = REPLACE(t2."adjacentCell", CONCAT('SubNetwork=',TRIM(t1."SubNetwork_id"),',ExternalUtranCell='),'')
@@ -2906,7 +2921,7 @@ class ProcessCMData(object):
             done 
         """)
 
-        #Huawei Radio Network Data Templates xmls
+        # Huawei Radio Network Data Templates xmls
         os.system("""
             mv /mediation/data/cm/huawei/in/*.xlsm /mediation/data/cm/huawei/raw/rnp 
         """)
@@ -3060,7 +3075,7 @@ class ProcessCMData(object):
         :param status:  SUCCESS | FAILED
         :return:
         """
-        if status not in ['SUCCESS','FAILED']:
+        if status not in ['SUCCESS', 'FAILED']:
             raise Exception('Unknown CM load status')
 
         sql = """

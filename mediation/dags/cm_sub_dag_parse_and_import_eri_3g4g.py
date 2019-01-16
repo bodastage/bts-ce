@@ -52,10 +52,17 @@ def parse_and_import_eri_3g4g(parent_dag_name, child_dag_name, start_date, sched
         bash_command='python /mediation/bin/load_cm_data_into_db.py ericsson_bulkcm /mediation/data/cm/ericsson/parsed/bulkcm ',
         dag=dag)
 
+    t_run_ericsson_bulkcm_insert_queries = BashOperator(
+        task_id='run_ericsson_bulkcm_insert_queries',
+        bash_command='python /mediation/bin/run_cm_load_insert_queries.py ericsson_bulkcm',
+        dag=dag)
+
+
     dag.set_dependency('check_if_ericsson_bulkcm_raw_files_exist', 'backup_ericsson_bulkcm_csv_files')
     dag.set_dependency('backup_ericsson_bulkcm_csv_files', 'run_ericsson_bulkcm_parser')
     dag.set_dependency('run_ericsson_bulkcm_parser', 'clear_ericsson_bulkcm_tables')
     dag.set_dependency('clear_ericsson_bulkcm_tables', 'import_ericsson_bulkcm_data')
+    dag.set_dependency('import_ericsson_bulkcm_data', 'run_ericsson_bulkcm_insert_queries')
 
     return dag
 
