@@ -135,6 +135,8 @@ class HuaweiCM(object):
             WHERE 
             t4."name" IS NULL
             AND t5.is_current_load = true
+            ON CONFLICT ON CONSTRAINT uq_site
+            DO NOTHING
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -1579,6 +1581,8 @@ class HuaweiCM(object):
             WHERE 
             t3."name" IS NULL
             AND t4.is_current_load = true
+            ON CONFLICT ON CONSTRAINT uq_site
+            DO NOTHING
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
