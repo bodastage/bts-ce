@@ -41,12 +41,13 @@ from cm_sub_dag_run_network_audits import run_network_audits
 
 sys.path.append('/mediation/packages')
 
-from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM
+from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM, ZTECM
 
 bts_utils = Utils()
 process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'))
 huawei_cm = HuaweiCM()
 ericsson_cm = EricssonCM()
+zte_cm = ZTECM()
 
 schedule_interval = "@daily" # # bts_utils.get_setting('cm_dag_schedule_interval')
 
@@ -704,6 +705,7 @@ t77 = PythonOperator(
 def extract_ericsson_4g3g_nbrs():
     process_cm_data.extract_ericsson_4g3g_nbrs()
 
+
 t78 = PythonOperator(
     task_id='extract_ericsson_4g3g_nbrs',
     python_callable=extract_ericsson_4g3g_nbrs,
@@ -738,6 +740,207 @@ join_zte_supported_task = DummyOperator(
     trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag
 )
+
+
+def extract_zte_bscs():
+    zte_cm.extract_zte_bscs()
+
+
+task_extract_zte_bscs = PythonOperator(
+    task_id='extract_zte_bscs',
+    python_callable=extract_zte_bscs,
+    dag=dag)
+
+
+def extract_zte_rncs():
+    zte_cm.extract_zte_rncs()
+
+
+task_extract_zte_rncs = PythonOperator(
+    task_id='extract_zte_rncs',
+    python_callable=extract_zte_rncs,
+    dag=dag)
+
+
+def extract_zte_enodes():
+    zte_cm.extract_zte_enodes()
+
+
+task_extract_zte_enodes = PythonOperator(
+    task_id='extract_zte_enodes',
+    python_callable=extract_zte_enodes,
+    dag=dag)
+
+
+def extract_zte_2g_sites():
+    zte_cm.extract_zte_2g_sites()
+
+
+task_extract_zte_2g_sites = PythonOperator(
+    task_id='extract_zte_2g_sites',
+    python_callable=extract_zte_2g_sites,
+    dag=dag)
+
+def extract_zte_2g_cells():
+    zte_cm.extract_zte_2g_cells()
+
+
+task_extract_zte_2g_cells = PythonOperator(
+    task_id='extract_zte_2g_cells',
+    python_callable=extract_zte_2g_cells,
+    dag=dag)
+
+
+def extract_zte_2g_cell_params():
+    zte_cm.extract_zte_2g_cell_params()
+
+
+task_extract_zte_2g_cell_params = PythonOperator(
+    task_id='extract_zte_2g_cell_params',
+    python_callable=extract_zte_2g_cell_params,
+    dag=dag)
+
+
+def extract_zte_3g_sites():
+    zte_cm.extract_zte_3g_sites()
+
+
+task_extract_zte_3g_sites = PythonOperator(
+    task_id='extract_zte_3g_sites',
+    python_callable=extract_zte_3g_sites,
+    dag=dag)
+
+def extract_zte_3g_cells():
+    zte_cm.extract_zte_3g_cells()
+
+
+task_extract_zte_3g_cells = PythonOperator(
+    task_id='extract_zte_3g_cells',
+    python_callable=extract_zte_3g_cells,
+    dag=dag)
+
+
+def extract_zte_3g_cell_params():
+    zte_cm.extract_zte_3g_cell_params()
+
+
+task_extract_zte_3g_cell_params = PythonOperator(
+    task_id='extract_zte_3g_cell_params',
+    python_callable=extract_zte_3g_cell_params,
+    dag=dag)
+
+
+def extract_zte_4g_cells():
+    zte_cm.extract_zte_4g_cells()
+
+
+task_extract_zte_4g_cells = PythonOperator(
+    task_id='extract_zte_4g_cells',
+    python_callable=extract_zte_4g_cells,
+    dag=dag)
+
+
+def extract_zte_4g_cell_params():
+    zte_cm.extract_zte_4g_cell_params()
+
+
+task_extract_zte_4g_cell_params = PythonOperator(
+    task_id='extract_zte_4g_cell_params',
+    python_callable=extract_zte_4g_cell_params,
+    dag=dag)
+
+
+def extract_zte_2g2g_nbrs():
+    zte_cm.extract_zte_2g2g_nbrs()
+
+
+task_extract_zte_2g2g_nbrs = PythonOperator(
+    task_id='extract_zte_2g2g_nbrs',
+    python_callable=extract_zte_2g2g_nbrs,
+    dag=dag)
+
+
+def extract_zte_2g3g_nbrs():
+    zte_cm.extract_zte_2g3g_nbrs()
+
+
+task_extract_zte_2g3g_nbrs = PythonOperator(
+    task_id='extract_zte_2g3g_nbrs',
+    python_callable=extract_zte_2g3g_nbrs,
+    dag=dag)
+
+
+def extract_zte_2g4g_nbrs():
+    zte_cm.extract_zte_2g4g_nbrs()
+
+
+task_extract_zte_2g4g_nbrs = PythonOperator(
+    task_id='extract_zte_2g4g_nbrs',
+    python_callable=extract_zte_2g4g_nbrs,
+    dag=dag)
+
+
+def extract_zte_3g2g_nbrs():
+    zte_cm.extract_zte_3g2g_nbrs()
+
+
+task_extract_zte_3g2g_nbrs = PythonOperator(
+    task_id='extract_zte_3g2g_nbrs',
+    python_callable=extract_zte_3g2g_nbrs,
+    dag=dag)
+
+
+def extract_zte_3g3g_nbrs():
+    zte_cm.extract_zte_3g3g_nbrs()
+
+
+task_extract_zte_3g3g_nbrs = PythonOperator(
+    task_id='extract_zte_3g3g_nbrs',
+    python_callable=extract_zte_3g3g_nbrs,
+    dag=dag)
+
+
+def extract_zte_3g4g_nbrs():
+    zte_cm.extract_zte_3g4g_nbrs()
+
+
+task_extract_zte_3g4g_nbrs = PythonOperator(
+    task_id='extract_zte_3g4g_nbrs',
+    python_callable=extract_zte_3g4g_nbrs,
+    dag=dag)
+
+
+def extract_zte_4g2g_nbrs():
+    zte_cm.extract_zte_4g2g_nbrs()
+
+
+task_extract_zte_4g2g_nbrs = PythonOperator(
+    task_id='extract_zte_4g2g_nbrs',
+    python_callable=extract_zte_4g2g_nbrs,
+    dag=dag)
+
+
+def extract_zte_4g3g_nbrs():
+    zte_cm.extract_zte_4g3g_nbrs()
+
+
+task_extract_zte_4g3g_nbrs = PythonOperator(
+    task_id='extract_zte_4g3g_nbrs',
+    python_callable=extract_zte_4g3g_nbrs,
+    dag=dag)
+
+
+def extract_zte_4g4g_nbrs():
+    zte_cm.extract_zte_4g4g_nbrs()
+
+
+task_extract_zte_4g4g_nbrs = PythonOperator(
+    task_id='extract_zte_4g4g_nbrs',
+    python_callable=extract_zte_4g4g_nbrs,
+    dag=dag)
+
+task_zte_cm_done = DummyOperator(task_id='zte_cm_done', dag=dag)
+
 
 join_nokia_supported_task = DummyOperator(
     task_id='join_nokia_supported',
@@ -908,7 +1111,50 @@ dag.set_dependency('start_cm_etlp','process_zte')
 dag.set_dependency('process_zte','parse_and_import_zte_bulkcm')
 dag.set_dependency('parse_and_import_zte_bulkcm','zte_parsing_done')
 
-dag.set_dependency('zte_parsing_done','join_zte_supported')
+dag.set_dependency('zte_parsing_done','extract_zte_bscs')
+dag.set_dependency('zte_parsing_done','extract_zte_rncs')
+dag.set_dependency('zte_parsing_done','extract_zte_enodes')
+
+dag.set_dependency('extract_zte_bscs','extract_zte_2g_sites')
+dag.set_dependency('extract_zte_2g_sites','extract_zte_2g_cells')
+dag.set_dependency('extract_zte_2g_cells','extract_zte_2g_cell_params')
+dag.set_dependency('extract_zte_2g_cell_params','zte_cm_done')
+
+dag.set_dependency('extract_zte_rncs','extract_zte_3g_sites')
+dag.set_dependency('extract_zte_3g_sites','extract_zte_3g_cells')
+dag.set_dependency('extract_zte_3g_cells','extract_zte_3g_cell_params')
+dag.set_dependency('extract_zte_3g_cell_params','zte_cm_done')
+
+dag.set_dependency('extract_zte_enodes','extract_zte_4g_cells')
+dag.set_dependency('extract_zte_4g_cells','extract_zte_4g_cell_params')
+dag.set_dependency('extract_zte_4g_cell_params','zte_cm_done')
+
+dag.set_dependency('extract_zte_2g_cells','extract_zte_2g2g_nbrs')
+dag.set_dependency('extract_zte_2g_cells','extract_zte_2g3g_nbrs')
+dag.set_dependency('extract_zte_2g_cells','extract_zte_2g4g_nbrs')
+
+dag.set_dependency('extract_zte_3g_cells','extract_zte_3g2g_nbrs')
+dag.set_dependency('extract_zte_3g_cells','extract_zte_3g3g_nbrs')
+dag.set_dependency('extract_zte_3g_cells','extract_zte_3g4g_nbrs')
+
+dag.set_dependency('extract_zte_4g_cells','extract_zte_4g2g_nbrs')
+dag.set_dependency('extract_zte_4g_cells','extract_zte_4g3g_nbrs')
+dag.set_dependency('extract_zte_4g_cells','extract_zte_4g4g_nbrs')
+
+dag.set_dependency('extract_zte_2g2g_nbrs','zte_cm_done')
+dag.set_dependency('extract_zte_2g3g_nbrs','zte_cm_done')
+dag.set_dependency('extract_zte_2g4g_nbrs','zte_cm_done')
+
+dag.set_dependency('extract_zte_3g2g_nbrs','zte_cm_done')
+dag.set_dependency('extract_zte_3g3g_nbrs','zte_cm_done')
+dag.set_dependency('extract_zte_3g4g_nbrs','zte_cm_done')
+
+
+dag.set_dependency('extract_zte_4g2g_nbrs','zte_cm_done')
+dag.set_dependency('extract_zte_4g3g_nbrs','zte_cm_done')
+dag.set_dependency('extract_zte_4g4g_nbrs','zte_cm_done')
+
+dag.set_dependency('zte_cm_done','join_zte_supported')
 dag.set_dependency('join_zte_supported','end_cm_etlp')
 # Nokia
 # ##############################################

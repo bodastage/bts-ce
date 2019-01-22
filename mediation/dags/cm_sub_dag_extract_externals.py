@@ -9,7 +9,7 @@ from airflow.operators.dummy_operator import DummyOperator
 
 sys.path.append('/mediation/packages');
 
-from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM
+from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM, ZTECM
 
 huawei_cm = HuaweiCM()
 ericsson_cm = EricssonCM()
@@ -54,12 +54,23 @@ def extract_network_externals(parent_dag_name, child_dag_name, start_date, sched
         python_callable=extract_external_definitions_on_huawei,
         dag=dag)
 
+    def extract_external_definitions_on_zte():
+        zte_cm.extract_live_network_externals_on_2g()
+        zte_cm.extract_live_network_externals_on_3g()
+        zte_cm.extract_live_network_externals_on_4g()
+
+    extract_external_definitions_on_zte_task = BranchPythonOperator(
+        task_id='extract_external_definitions_on_zte',
+        python_callable=extract_external_definitions_on_zte,
+        dag=dag)
 
     dag.set_dependency('branch_externals', 'extract_external_definitions_on_ericsson')
     dag.set_dependency('branch_externals', 'extract_external_definitions_on_huawei')
+    dag.set_dependency('branch_externals', 'extract_external_definitions_on_zte')
 
     dag.set_dependency('extract_external_definitions_on_ericsson', 'join_externals')
     dag.set_dependency('extract_external_definitions_on_huawei', 'join_externals')
+    dag.set_dependency('extract_external_definitions_on_zte', 'join_externals')
 
 
     return dag

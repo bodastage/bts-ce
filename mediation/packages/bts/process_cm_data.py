@@ -549,7 +549,7 @@ class ProcessCMData(object):
             FROM ericsson_cm_3g."EUtranCellFDD" t1
             INNER JOIN live_network.sites t2 on t2."name" = t1."MeContext_id" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 3 
-            LEFT JOIN live_network.cells t3 on t3."name" = CASE WHEN t1."userLabel" IS NULL THEN t1."vsDataEUtranCellFDD_id" ELSE t1."userLabel" END,
+            LEFT JOIN live_network.cells t3 on t3."name" = CASE WHEN t1."userLabel" IS NULL THEN t1."vsDataEUtranCellFDD_id" ELSE t1."userLabel" END
                 AND t2.vendor_pk = 1 and t2.tech_pk = 3 
             WHERE
                 t3."name" IS NULL
@@ -646,50 +646,50 @@ class ProcessCMData(object):
             # print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
-                        INSERT INTO live_network.lte_cells_data
-                        (pk, name, cell_pk, uarfcn_dl, uarfcn_ul, mcc, mnc, tac, pci, ecgi, rach_root_sequence, max_tx_power, latitude, longitude,
-                        height, dl_bandwidth, ul_bandwidth, ta, ta_mode, tx_elements, rx_elements, scheduler, azimuth, mechanical_tilt, electrical_tilt, cell_range,
-                        site_pk, tech_pk, vendor_pk, modified_by, added_by, date_added, date_modified)
-                        SELECT 
-                        NEXTVAL('live_network.seq_lte_cells_data_pk'),
-                        t1."vsDataEUtranCellFDD_id" as name,
-                        t2.pk as cell_pk,
-                        t1."earfcndl"::integer as uarfcn_dl,
-                        t1."earfcnul"::integer as uarfcn_ul,
-                        t1."mcc"::integer as mcc,
-                        t1."mnc"::integer as mc,
-                        t1."tac"::integer as tac,
-                        t1."physicalLayerCellIdGroup"::integer as pci,
-                        null as ecgi,
-                        t1."rachRootSequence" as rach_root_sequence,
-                        null as max_tx_power,
-                        (t1."latitude"::float/93206.76)*(-1::float)  as latitude,
-                        t1."longitude"::float/46603.38 as longitude,
-                        t1."altitude"::integer as height,
-                        t1."dlChannelBandwidth"::integer as dl_bandwidth,
-                        t1."ulChannelBandwidth"::integer as ul_bandwidth,
-                        null as ta,
-                        null as ta_mode,
-                        t1."numOfTxAntennas"::integer as tx_elements,
-                        t1."numOfRxAntennas"::integer as rx_elements,
-                        null as scheduler,
-                        null as azimuth,
-                        null as mechanical_tilt,
-                        null as electrical_tilt,
-                        t1."cellRange"::integer as cell_range,
-                        t2.site_pk as site_pk,
-                        t2.tech_pk as tech_pk,
-                        t2.vendor_pk as vendor_pk,
-                        0 as modified_by, 
-                        0 as added_by, 
-                        t1."DATETIME" as date_added, 
-                        t1."DATETIME" as date_modified
-                        FROM ericsson_cm."EUtranCellFDD" t1
-                        INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
-                        INNER JOIN live_network.cells t2 on t2."name" = t1."vsDataEUtranCellFDD_id"
-                        WHERE t1."MeContext_id" = '{0}'
-                        AND 
-                        t9.is_current_load = true
+                 INSERT INTO live_network.lte_cells_data
+                (pk, name, cell_pk, dl_earfcn, ul_earfcn, mcc, mnc, tac, pci, ecgi, rach_root_sequence, max_tx_power, latitude, longitude,
+                height, dl_bandwidth, ul_bandwidth, ta, ta_mode, tx_elements, rx_elements, scheduler, azimuth, mechanical_tilt, electrical_tilt, cell_range,
+                site_pk, tech_pk, vendor_pk, modified_by, added_by, date_added, date_modified)
+                SELECT 
+                NEXTVAL('live_network.seq_lte_cells_data_pk'),
+                t1."vsDataEUtranCellFDD_id" as name,
+                t2.pk as cell_pk,
+                t1."earfcnDl"::integer as uarfcn_dl,
+                t1."earfcnUl"::integer as uarfcn_ul,
+                null as mcc, -- t1."mcc"::integer as mcc,
+                null as mnc, -- t1."mnc"::integer as mc,
+                t1."tac"::integer as tac,
+                t1."pci"::integer as pci,
+                null as ecgi,
+                NULL as rach_root_sequence, -- t1."rootSequenceIndex" as rach_root_sequence,
+                null as max_tx_power,
+                (t1."latitude"::float/93206.76)*(-1::float)  as latitude,
+                t1."longitude"::float/46603.38 as longitude,
+                null as height, -- t1."altitude"::integer as height,
+                t1."bandWidthDl"::integer as dl_bandwidth,
+                t1."bandWidthUl"::integer as ul_bandwidth,
+                null as ta,
+                null as ta_mode,
+                null as tx_elements, -- t1."numOfTxAntennas"::integer as tx_elements,
+                null as rx_elements, -- t1."numOfRxAntennas"::integer as rx_elements,
+                null as scheduler,
+                null as azimuth,
+                null as mechanical_tilt,
+                null as electrical_tilt,
+                t1."cellRadius"::integer as cell_range,
+                t2.site_pk as site_pk,
+                t2.tech_pk as tech_pk,
+                t2.vendor_pk as vendor_pk,
+                0 as modified_by, 
+                0 as added_by, 
+                t1."DATETIME" as date_added, 
+                t1."DATETIME" as date_modified
+                FROM zte_cm."EUtranCellFDD" t1
+                INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
+                INNER JOIN live_network.cells t2 on t2."name" = t1."EUtranCellFDD_id"
+                WHERE t1."meContext_id" = '{0}'
+                AND 
+                t9.is_current_load = true
                     """.format(site_name)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -772,7 +772,7 @@ class ProcessCMData(object):
                     and t6."MeContext_id" = t5."MeContext_id"
                     and t6."vsDataSector_id" = t5."vsDataSector_id"
                 INNER JOIN ericsson_cm."RncFunction" t7 on  t7."SubNetwork_2_id" = t1."SubNetwork_2_id" 
-                    AND t6."MeContext_id" = t5."MeContext_id"
+                    AND t7."MeContext_id" = t5."MeContext_id"
                     AND t7."RncFunction_id" = t1."RncFunction_id" 
                 WHERE t6."MeContext_id" = '{0}'
                 t9.is_current_load = true
