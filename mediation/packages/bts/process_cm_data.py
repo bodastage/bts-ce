@@ -62,7 +62,7 @@ class ProcessCMData(object):
         session.close()
 
     def extract_ericsson_bscs(self):
-        """Extract BSCs from Ericsson CM data(ericsson_cm_2g."BSC")"""
+        """Extract BSCs from Ericsson CM data(ericsson_cm."BSC")"""
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
 
@@ -79,7 +79,7 @@ class ProcessCMData(object):
              1 as tech_pk , -- 1=gsm, 2-umts,3=lte
              0 as added_by,
              0 as modified_by
-             FROM ericsson_cm_2g."BSC" t1
+             FROM ericsson_cm."BSC" t1
              LEFT OUTER  JOIN live_network.nodes t2 ON t1."BSC_NAME" = t2."name"
              WHERE 
              t2."name" IS NULL
@@ -107,7 +107,7 @@ class ProcessCMData(object):
             1, -- 1- Ericsson, 2 - Huawei, 3 - zte, 4-nokika, etc...
             t1."SITE_NAME",
             t2.pk -- node primary key
-            from ericsson_cm_2g."SITE" t1
+            from ericsson_cm."SITE" t1
             INNER join live_network.nodes t2 on t2."name" = t1."BSC_NAME" 
                 AND t2.vendor_pk = 1 and t2.tech_pk = 1
             LEFT JOIN live_network.sites t3 on t3."name" = t1."SITE_NAME" 
@@ -139,7 +139,7 @@ class ProcessCMData(object):
             1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             t1."CELL_NAME",
             t4.pk -- site primary key
-            FROM ericsson_cm_2g."INTERNAL_CELL" t1
+            FROM ericsson_cm."INTERNAL_CELL" t1
             INNER JOIN live_network.nodes t3 on t3."name" = t1."BSC_NAME" 
                     AND t3.vendor_pk = 1
                     AND t3.tech_pk = 1
@@ -183,7 +183,7 @@ class ProcessCMData(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_2g."EXTERNAL_CELL" t1
+        ericsson_cm."EXTERNAL_CELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."BSC_NAME"
         LEFT JOIN live_network.cells t3 on t3."name" = t1."CELL_NAME"
         LEFT JOIN live_network.gsm_external_cells t4 on t4."name" = t1."CELL_NAME" 
@@ -221,7 +221,7 @@ class ProcessCMData(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_2g."EXTERNAL_CELL" t1
+        ericsson_cm."EXTERNAL_CELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."BSC_NAME"
         LEFT JOIN live_network.cells t3 on t3."name" = t1."CELL_NAME"
         LEFT JOIN live_network.umts_external_cells t4 on t4."name" = t1."CELL_NAME" 
@@ -841,7 +841,7 @@ class ProcessCMData(object):
                         0 as added_by,
                         t1."varDateTime" as date_added,
                         t1."varDateTime" as date_modified
-                        FROM ericsson_cm_2g."INTERNAL_CELL" t1
+                        FROM ericsson_cm."INTERNAL_CELL" t1
                         INNER JOIN live_network.cells t2 on t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
                         INNER JOIN live_network.sites t3 on t3."name" = LEFT(t1."CELL_NAME", LENGTH(t1."CELL_NAME")-1)
                         WHERE 
@@ -1014,7 +1014,7 @@ class ProcessCMData(object):
                 0 as modified_by,
                 0 as added_by
                 FROM 
-                ericsson_cm_2g."NREL" t1
+                ericsson_cm."NREL" t1
                 INNER JOIN live_network.cells t2 ON t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
                 LEFT JOIN live_network.cells t3 on t3."name" = t1."NREL_NAME" AND t3.tech_pk = 1
                 INNER JOIN live_network.sites t4 on t4.pk = t2.site_pk AND  t4.tech_pk = 1
@@ -1765,7 +1765,7 @@ class ProcessCMData(object):
                 INNER JOIN live_network.sites t7 ON 
                     t7.pk = t6.site_pk 
                     AND t7.vendor_pk = 1 AND t7.tech_pk = 1
-                INNER JOIN ericsson_cm_2g."INTERNAL_CELL" t8 ON 
+                INNER JOIN ericsson_cm."INTERNAL_CELL" t8 ON 
                     t8."CI" = t3."EXT2GCELLID"
                 WHERE 
                     t4.site_pk = '{0}'
