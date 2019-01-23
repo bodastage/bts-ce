@@ -232,7 +232,6 @@ class ZTECM(object):
               AND t8.is_current_load = true
               ON CONFLICT ON CONSTRAINT uq_live_gsm_cells_data
               DO NOTHING
-              DO NOTHING
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
