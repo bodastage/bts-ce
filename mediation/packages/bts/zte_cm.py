@@ -59,7 +59,7 @@ class ZTECM(object):
             'BSC' AS node_type,
             t1."userLabel" AS "name" , 
             3 AS vendor_pk, -- 1=Ericsson, 2=Huawei, 3=ZTE
-            1 AS tech_pk , -- 1=gsm, 2-umts,3=lte
+            2 AS tech_pk , -- 1=gsm, 2-umts,3=lte
             0 AS added_by,
             0 AS modified_by
             FROM zte_cm."SubNetwork_2" t1
