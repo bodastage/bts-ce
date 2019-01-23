@@ -67,7 +67,7 @@ class ZTECM(object):
             LEFT OUTER  JOIN live_network.nodes t2 ON t1."userLabel" = t2."name"
             WHERE 
             t2."name" IS NULL
-     		AND t3.is_current_load = true
+            AND t3.is_current_load = true
             AND t1."userDefinedNetworkType" = 'AN'
          ON CONFLICT ON CONSTRAINT unique_nodes
          DO NOTHING
@@ -186,7 +186,6 @@ class ZTECM(object):
 
         session.close()
 
-
     def extract_zte_2g_cell_params(self):
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
@@ -221,7 +220,7 @@ class ZTECM(object):
              null AS tch_carriers,
              t1."mcc"::integer as mcc,
              t1."mnc"::integer as mnc,
-           0 AS modified_by,
+             0 AS modified_by,
              0 AS added_by,
              t1."DATETIME" AS date_added,
              t1."DATETIME" AS date_modified            
@@ -232,14 +231,13 @@ class ZTECM(object):
               WHERE 
               t5."name" ='{0}'
               AND t8.is_current_load = true
-            ON CONFLICT ON CONSTRAINT uq_live_cells
-            DO NOTHING
+              ON CONFLICT ON CONSTRAINT uq_live_cells_data
+              DO NOTHING
         """
 
         self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
         session.close()
-
 
     def extract_zte_3g_sites(self):
         Session = sessionmaker(bind=self.db_engine)
@@ -338,7 +336,6 @@ class ZTECM(object):
 
         session.close()
 
-
     def extract_zte_3g_cell_params(self):
         """Extract Ericsson UMTS cell parameters"""
 
@@ -389,7 +386,7 @@ class ZTECM(object):
                 t1."secondarySchPower"::integer as secondary_sch_power,
                 t3.site_pk, -- site pk
                 2, -- umts
-                1, -- Ericsson
+                3, -- Ericsson
                 t1."uarfcnDl"::integer,
                 t1."uarfcnUl"::integer,
                 t1."uraList",
@@ -434,7 +431,7 @@ class ZTECM(object):
             0 as added_by,
             0 as modified_by,
             3, -- tech 3 -lte, 2 -umts, 1-gms
-            1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
+            3, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             CASE WHEN t1."userLabel" IS NULL THEN t1."EUtranCellFDD_id" ELSE t1."userLabel" END AS "name",
             t2.pk -- site primary key
             FROM zte_cm."EUtranCellFDD" t1
@@ -465,7 +462,7 @@ class ZTECM(object):
         #                       execution_options(autocommit=True))
 
         # The data is alot. Let's handle per site
-        site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 1 and tech_pk = 3"""
+        site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 3 and tech_pk = 3"""
 
         result = self.db_engine.execute(site_sql)
 
@@ -772,7 +769,6 @@ class ZTECM(object):
 
         session.close()
 
-
     def extract_zte_3g3g_nbrs(self):
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
@@ -1021,7 +1017,7 @@ class ZTECM(object):
 
         metadata = MetaData()
         Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
-        for site in session.query(Site).filter_by(vendor_pk=3).filter_by(tech_pk=2).yield_per(5):
+        for site in session.query(Site).filter_by(vendor_pk=3).filter_by(tech_pk=3).yield_per(5):
             (site_pk, site_name) = (site[0], site[1])
 
             sql = """
