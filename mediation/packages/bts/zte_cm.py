@@ -231,7 +231,7 @@ class ZTECM(object):
               WHERE 
               t5."name" ='{0}'
               AND t8.is_current_load = true
-              ON CONFLICT ON CONSTRAINT uq_live_cells_data
+              ON CONFLICT ON CONSTRAINT uq_live_gsm_cells_data
               DO NOTHING
         """
 
@@ -473,7 +473,7 @@ class ZTECM(object):
 
             sql = """
                         INSERT INTO live_network.lte_cells_data
-                        (pk, name, cell_pk, uarfcn_dl, uarfcn_ul, mcc, mnc, tac, pci, ecgi, rach_root_sequence, max_tx_power, latitude, longitude,
+                        (pk, name, cell_pk, dl_earfcn, ul_earfcn, mcc, mnc, tac, pci, ecgi, rach_root_sequence, max_tx_power, latitude, longitude,
                         height, dl_bandwidth, ul_bandwidth, ta, ta_mode, tx_elements, rx_elements, scheduler, azimuth, mechanical_tilt, electrical_tilt, cell_range,
                         site_pk, tech_pk, vendor_pk, modified_by, added_by, date_added, date_modified)
                         SELECT 
