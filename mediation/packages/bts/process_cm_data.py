@@ -71,8 +71,8 @@ class ProcessCMData(object):
              (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
              SELECT 
              NEXTVAL('live_network.seq_nodes_pk'),
-             "varDateTime" as date_added, 
-             "varDateTime" as date_modified, 
+             "DATETIME" as date_added, 
+             "DATETIME" as date_modified, 
              'BSC' as node_type,
              t1."BSC_NAME" as "name" , 
              1 as vendor_pk, -- 1=Ericsson, 2=Huawei
@@ -99,8 +99,8 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             1, -- tech 3 -lte, 2 -umts, 1-gms
@@ -131,8 +131,8 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             nextval('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             1, -- tech 3 -lte, 2 -umts, 1-gms
@@ -426,8 +426,8 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             nextval('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             2, -- tech 3 -lte, 2 -umts, 1-gms
@@ -538,8 +538,8 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             NEXTVAL('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             3, -- tech 3 -lte, 2 -umts, 1-gms
@@ -839,8 +839,8 @@ class ProcessCMData(object):
                         t1."MNC"::integer,
                         0 as modified_by,
                         0 as added_by,
-                        t1."varDateTime" as date_added,
-                        t1."varDateTime" as date_modified
+                        t1."DATETIME" as date_added,
+                        t1."DATETIME" as date_modified
                         FROM ericsson_cm."INTERNAL_CELL" t1
                         INNER JOIN live_network.cells t2 on t2."name" = t1."CELL_NAME" AND t2.vendor_pk = 1 AND t2.tech_pk = 1
                         INNER JOIN live_network.sites t3 on t3."name" = LEFT(t1."CELL_NAME", LENGTH(t1."CELL_NAME")-1)
@@ -882,8 +882,8 @@ class ProcessCMData(object):
             t6.vendor_pk as nbrvendor_pk ,
             t6.pk as nbrcell_pk,
             -- meta fields 
-            t1."varDateTime" ,
-            t1."varDateTime" ,
+            t1."DATETIME" ,
+            t1."DATETIME" ,
             0, -- system
             0
             FROM ericsson_cm_3g."UtranRelation" t1 
@@ -1009,8 +1009,8 @@ class ProcessCMData(object):
                 1 as nbrtech_pk,
                 1 as nbrvendor_pk,
                 t3.pk as nbrcell_pk,
-                t1."varDateTime" as date_added,
-                t1."varDateTime" as date_modified,
+                t1."DATETIME" as date_added,
+                t1."DATETIME" as date_modified,
                 0 as modified_by,
                 0 as added_by
                 FROM 
@@ -1038,8 +1038,8 @@ class ProcessCMData(object):
              (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
              SELECT 
              NEXTVAL('live_network.seq_nodes_pk'),
-             "varDateTime" as date_added, 
-             "varDateTime" as date_modified, 
+             "DATETIME" as date_added, 
+             "DATETIME" as date_modified, 
              'BSC' as node_type,
              t1."neid" as "name" , 
              2 as vendor_pk, -- 1=Ericsson, 2=Huawei
@@ -1067,8 +1067,8 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             1 as tech_pk, -- tech 3 -lte, 2 -umts, 1-gms
@@ -1098,8 +1098,8 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             nextval('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             1, -- tech 3 -lte, 2 -umts, 1-gms
@@ -1185,8 +1185,8 @@ class ProcessCMData(object):
                         t1."MNC",
                         0 as modified_by,
                         0 as added_by,
-                        t1."varDateTime" as date_added,
-                        t1."varDateTime" as date_modified
+                        t1."DATETIME" as date_added,
+                        t1."DATETIME" as date_modified
                         FROM hua_cm_2g.gcell t1
                         INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 1
                         INNER JOIN hua_cm_2g.gcellbasicpara t3 on t3."CELLID" = t1."CELLID" AND t3.neid = t1.neid 
@@ -1214,8 +1214,8 @@ class ProcessCMData(object):
             (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
             SELECT 
             NEXTVAL('live_network.seq_nodes_pk'),
-            "varDateTime" as date_added, 
-            "varDateTime" as date_modified, 
+            "DATETIME" as date_added, 
+            "DATETIME" as date_modified, 
             'RNC' as node_type,
             "neid" as "name" , 
             2 as vendor_pk, -- 1=Ericsson, 2=Huawei, 3-ZTE
@@ -1277,8 +1277,8 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             2, -- tech 3 -lte, 2 -umts, 1-gms
@@ -1339,8 +1339,8 @@ class ProcessCMData(object):
                 (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
                 SELECT 
                 nextval('live_network.seq_cells_pk'),
-                t1."varDateTime" as date_added, 
-                t1."varDateTime" as date_modified, 
+                t1."DATETIME" as date_added, 
+                t1."DATETIME" as date_modified, 
                 0 as added_by,
                 0 as modified_by,
                 2, -- tech 3 -lte, 2 -umts, 1-gms
@@ -1396,8 +1396,8 @@ class ProcessCMData(object):
                 height, site_sector_carrier, mcc,mnc,ura,localcellid)
                 SELECT 
                 NEXTVAL('live_network.seq_umts_cells_data_pk'),
-                t1."varDateTime" as date_added, 
-                t1."varDateTime" as date_modified, 
+                t1."DATETIME" as date_added, 
+                t1."DATETIME" as date_modified, 
                 0 as added_by,
                 0 as modified_by,
                 t5."BCHPOWER"::integer as bch_power,
@@ -1457,8 +1457,8 @@ class ProcessCMData(object):
             (pk, date_added,date_modified, tech_pk, vendor_pk, "name", added_by, modified_by)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            "varDateTime" as date_added, 
-            "varDateTime" as date_modified, 
+            "DATETIME" as date_added, 
+            "DATETIME" as date_modified, 
             3 as tech_pk , -- 1=gsm, 2-umts,3=lte,
             2 as vendor_pk, -- 1=Ericsson, 2=Huawei
             t1."ENODEBFUNCTIONNAME",
@@ -1486,8 +1486,8 @@ class ProcessCMData(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             NEXTVAL('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             3, -- tech 3 -lte, 2 -umts, 1-gms
@@ -1567,8 +1567,8 @@ class ProcessCMData(object):
                         t2.vendor_pk as vendor_pk,
                         0 as modified_by, 
                         0 as added_by, 
-                        t1."varDateTime" as date_added, 
-                        t1."varDateTime" as date_modified
+                        t1."DATETIME" as date_added, 
+                        t1."DATETIME" as date_modified
                         FROM hua_cm_4g.cell t1
                         INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 3
                         INNER JOIN public.lte_frequency_bands t3 on t3.band_id = t1."FREQBAND"::integer
@@ -1617,8 +1617,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as nbrcell_pk,
-                t1."varDateTime" as date_added,
-                t1."varDateTime" as date_modified,
+                t1."DATETIME" as date_added,
+                t1."DATETIME" as date_modified,
                 0 as modified_by,
                 0 as added_by
                 from hua_cm_2g.g2gncell t1
@@ -1671,8 +1671,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -1741,8 +1741,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as svrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -1818,8 +1818,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -1882,8 +1882,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -1946,8 +1946,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2010,8 +2010,8 @@ class ProcessCMData(object):
                     t6.tech_pk as nbrtech_pk,
                     t6.vendor_pk as nbrvendor_pk,
                     t6.pk as nbrcell_pk,
-                    t1."varDateTime" ,
-                    t1."varDateTime" ,
+                    t1."DATETIME" ,
+                    t1."DATETIME" ,
                     0, -- system
                     0
                     FROM 
@@ -2076,8 +2076,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as svrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2142,8 +2142,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as svrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2207,8 +2207,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as svrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2276,8 +2276,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as svrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2340,8 +2340,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as svrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2405,8 +2405,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as svrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2476,8 +2476,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2539,8 +2539,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2599,8 +2599,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2663,8 +2663,8 @@ class ProcessCMData(object):
                 t6.tech_pk as nbrtech_pk,
                 t6.vendor_pk as nbrvendor_pk,
                 t6.pk as nbrcell_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM 
@@ -2726,8 +2726,8 @@ class ProcessCMData(object):
                 1 as nbrtech_pk,
                 1 as nbrvendor_pk,
                 t3.pk as nbrcell_pk,
-                t1."varDateTime" as date_added,
-                t1."varDateTime" as date_modified,
+                t1."DATETIME" as date_added,
+                t1."DATETIME" as date_modified,
                 0 as modified_by,
                 0 as added_by
                 FROM 
@@ -2837,8 +2837,8 @@ class ProcessCMData(object):
                 t3.pk as svrcell_pk,
                 t3.tech_pk as svrtech_pk,
                 t3.vendor_pk as svrvendor_pk,
-                t1."varDateTime" ,
-                t1."varDateTime" ,
+                t1."DATETIME" ,
+                t1."DATETIME" ,
                 0, -- system
                 0
                 FROM
