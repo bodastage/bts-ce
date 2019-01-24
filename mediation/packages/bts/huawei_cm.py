@@ -5,6 +5,7 @@ import os
 import subprocess
 import logging
 
+
 class HuaweiCM(object):
     """Process Huawie configuration management data"""
 
@@ -733,7 +734,7 @@ class HuaweiCM(object):
                 huawei_cm."UINTRAFREQNCELL" t1
                 --LOAD
                 INNER JOIN cm_loads t8 on t8.pk = t1."LOADID"
-                
+
                 INNER JOIN huawei_cm."UCELL" t2 on 
                     t2."FILENAME"  = t1."FILENAME" 
                     AND t2."LOADID" = t1."LOADID"
@@ -833,21 +834,21 @@ class HuaweiCM(object):
         session.close()
 
     def extract_live_network_3g3g_interfreq_nbrs_external(self):
-            """Extract Huawei 3g-3g interfreq relations on different RNCs"""
-            """
-            Extract  Huawei 3G- Huawei 3G neighbour relations on different RNCs and different frequencies
-            """
-            Session = sessionmaker(bind=self.db_engine)
-            session = Session()
+        """Extract Huawei 3g-3g interfreq relations on different RNCs"""
+        """
+        Extract  Huawei 3G- Huawei 3G neighbour relations on different RNCs and different frequencies
+        """
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
 
-            metadata = MetaData()
-            Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
-            for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
-                (site_pk, site_name) = (site[0], site[1])
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=2).yield_per(5):
+            (site_pk, site_name) = (site[0], site[1])
 
-                print("Extracting Huawei 3G- Huawei 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+            print("Extracting Huawei 3G- Huawei 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
-                sql = """
+            sql = """
                     INSERT INTO live_network.relations 
                     (pk, svrnode_pk,svrsite_pk, svrtech_pk, svrvendor_pk, svrcell_pk,nbrnode_pk,nbrsite_pk,nbrtech_pk, nbrvendor_pk,nbrcell_pk,date_added,date_modified, added_by, modified_by)
                     SELECT 
@@ -892,9 +893,9 @@ class HuaweiCM(object):
                      t4.site_pk = '{0}'
                 """.format(site_pk)
 
-                self.db_engine.execute(text(sql).execution_options(autocommit=True))
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
 
-            session.close()
+        session.close()
 
     def extract_live_network_3g3g_intrafreq_nbrs_with_all_vendors(self):
         """ H// 3G - E// 3G nbrs with the same frequency"""
@@ -911,7 +912,7 @@ class HuaweiCM(object):
             (site_pk, site_name) = (site[0], site[1])
 
             print(
-            "Extracting Huawei 3G- Vendor 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+                "Extracting Huawei 3G- Vendor 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -977,7 +978,7 @@ class HuaweiCM(object):
             (site_pk, site_name) = (site[0], site[1])
 
             print(
-            "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+                "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1046,7 +1047,7 @@ class HuaweiCM(object):
             (site_pk, site_name) = (site[0], site[1])
 
             print(
-            "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+                "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1111,7 +1112,7 @@ class HuaweiCM(object):
             (site_pk, site_name) = (site[0], site[1])
 
             print(
-            "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+                "Extracting Huawei 3G- Ericsson 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1171,7 +1172,7 @@ class HuaweiCM(object):
             (site_pk, site_name) = (site[0], site[1])
 
             print(
-            "Extracting Huawei 3G - 4G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+                "Extracting Huawei 3G - 4G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1222,7 +1223,7 @@ class HuaweiCM(object):
             (site_pk, site_name) = (site[0], site[1])
 
             print(
-            "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+                "Extracting Huawei 4G - 2G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1501,7 +1502,7 @@ class HuaweiCM(object):
             (site_pk, site_name) = (site[0], site[1])
 
             print(
-            "Extracting Huawei 3G- Vendor 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+                "Extracting Huawei 3G- Vendor 3G relations for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.relations 
@@ -1673,9 +1674,9 @@ class HuaweiCM(object):
         result = self.db_engine.execute(site_sql)
 
         for row in result:
-            (site_pk,site_name)=row
+            (site_pk, site_name) = row
 
-            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk,site_name))
+            print("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
 
             sql = """
                 INSERT INTO live_network.umts_cells_data
@@ -1815,7 +1816,7 @@ class HuaweiCM(object):
                         null AS latitude,
                         null AS longitude,
                         null AS height,
-                        t1."DLBANDWIDTH"::integer AS dl_bandwidth,
+                        t1."DLBANDWIDTH" AS dl_bandwidth,
                         null AS ul_bandwidth,
                         null AS ta,
                         null AS ta_mode,

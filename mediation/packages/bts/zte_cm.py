@@ -399,13 +399,13 @@ class ZTECM(object):
                 t1."localCellId"::integer as localcellid
                 FROM 
                 zte_cm."UtranCellFDD" t1
+                INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
                 INNER JOIN zte_cm."RncFunction" t7 on  t7."SubNetwork_2_id" = t1."SubNetwork_2_id" 
                     AND t7."meContext_id" = t1."meContext_id"
                     AND t7."RncFunction_id" = t1."RncFunction_id" 
-                INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
                 INNER JOIN live_network.cells t3 on t3."name" = t1."userLabel"
-                WHERE t6."MeContext_id" = '{0}'
-                t9.is_current_load = true
+                WHERE t7."meContext_id" = '{0}'
+                AND t9.is_current_load = true
                 ;
             """.format(site_name)
 
