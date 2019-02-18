@@ -40,8 +40,8 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 * Login with username: **btsuser@bodastage.org** and password: **password**
 
 ## Installing a new release 
-At the momemnt, we don't have upgrade scripts. You have to remote the previous version and install the new one. 
-This is achieved using 2 commands,
+At the moment, we don't have upgrade scripts. You have to remove the previous version and install the new one. 
+This is achieved using the following 2 commands,
 
 * From the old version's directory, run 
 	```batch 
