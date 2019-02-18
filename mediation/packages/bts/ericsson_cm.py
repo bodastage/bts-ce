@@ -58,8 +58,8 @@ class EricssonCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             2, -- tech 3 -lte, 2 -umts, 1-gms
@@ -90,8 +90,8 @@ class EricssonCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             nextval('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             2, -- tech 3 -lte, 2 -umts, 1-gms
