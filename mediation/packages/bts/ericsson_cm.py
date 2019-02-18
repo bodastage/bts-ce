@@ -21,7 +21,7 @@ class EricssonCM(object):
             WITH rncs as (
             SELECT
             DISTINCT
-                 "varDateTime" ,
+                 "DATETIME" ,
             "SubNetwork_2_id" as name
             FROM ericsson_bulkcm."NodeBFunction" t1
             )
@@ -29,8 +29,8 @@ class EricssonCM(object):
              (pk,date_added, date_modified, type,"name", vendor_pk, tech_pk, added_by, modified_by)
              SELECT 
              NEXTVAL('live_network.seq_nodes_pk'),
-             "varDateTime" as date_added, 
-             "varDateTime" as date_modified, 
+             "DATETIME" as date_added, 
+             "DATETIME" as date_modified, 
              'RNC' as node_type,
              t1."name" as "name" , 
              1 as vendor_pk, -- 1=Ericsson, 2=Huawei, 3-ZTE
@@ -58,8 +58,8 @@ class EricssonCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, node_pk)
             SELECT 
             NEXTVAL('live_network.seq_sites_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             2, -- tech 3 -lte, 2 -umts, 1-gms
@@ -90,8 +90,8 @@ class EricssonCM(object):
             (pk, date_added,date_modified,added_by, modified_by, tech_pk, vendor_pk, name, site_pk)
             SELECT 
             nextval('live_network.seq_cells_pk'),
-            t1."varDateTime" as date_added, 
-            t1."varDateTime" as date_modified, 
+            t1."DATETIME" as date_added, 
+            t1."DATETIME" as date_modified, 
             0 as added_by,
             0 as modified_by,
             2, -- tech 3 -lte, 2 -umts, 1-gms
