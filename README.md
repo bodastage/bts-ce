@@ -13,7 +13,7 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 * CM managed object browsing 
 * Automatic network baseline generation
 * Radio Access Network (RAN) audit (relations, conflicts, parameter values vs baseline )
-
+* Reporting
 
 
 ## Requirements 
