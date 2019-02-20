@@ -10,3 +10,6 @@
 [submodule "bts-ce-docs"]
 	path = bts-ce-docs
 	url = https://github.com/bodastage/bts-ce-docs.git
+[submodule "bts-ce-reports"]
+	path = bts-ce-reports
+	url = https://github.com/bodastage/bts-ce-reports.git
