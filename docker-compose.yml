@@ -51,8 +51,8 @@ services:
           - BTS_MQ_HOST=msgbroker
           - BTS_MQ_VHOST=/bs
         volumes:
-          - ./bts-ee-api:/app
-          - ./bts-ee-database:/migrations
+          - ./bts-ce-api:/app
+          - ./bts-ce-database:/migrations
           - ./mediation/data/reports:/reports
         depends_on:
             - bts-database
