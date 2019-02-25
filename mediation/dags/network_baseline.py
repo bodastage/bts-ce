@@ -13,17 +13,8 @@ from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
-from cm_sub_dag_parse_and_import_eri_3g4g import parse_and_import_eri_3g4g
-from cm_sub_dag_parse_and_import_eri_2g import parse_and_import_eri_2g
-from cm_sub_dag_parse_and_import_huawei_gexport import parse_and_import_huawei_gexport
-from cm_sub_dag_parse_and_import_huawei_mml import parse_and_import_huawei_mml
-from cm_sub_dag_parse_and_import_huawei_nbi import parse_and_import_huawei_nbi
-from cm_sub_dag_parse_and_import_huawei_cfgsyn import parse_and_import_huawei_cfgsyn
-from cm_sub_dag_parse_and_import_zte_bulkcm import parse_and_import_zte_bulkcm
-from cm_sub_dag_parse_and_import_huawei_rnp import parse_and_import_huawei_rnp
 from airflow.utils.trigger_rule import TriggerRule
 from cm_sub_dag_extract_externals import extract_network_externals
-from cm_sub_dag_run_network_audits import run_network_audits
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
 sys.path.append('/mediation/packages')
