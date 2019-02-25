@@ -1,0 +1,37 @@
+{
+ "rabbit_version": "3.7.4",
+ "users": [
+  {
+   "name": "btsuser",
+   "password": "Password@7",
+   "tags": "administrator"
+  }
+ ],
+ "vhosts": [
+	  {
+	   "name": "\/bs"
+	  }
+ ],
+ "permissions": [
+  {
+   "user": "btsuser",
+   "vhost": "\/bs",
+   "configure": ".*",
+   "write": ".*",
+   "read": ".*"
+  }
+ ],
+ "parameters": [],
+ "policies": [],
+ "queues": [
+    {
+      "name": "reports",
+      "vhost": "/bs",
+      "durable": true,
+      "auto_delete": true,
+      "arguments": {}
+    }
+ ],
+ "exchanges": [],
+ "bindings": []
+}
