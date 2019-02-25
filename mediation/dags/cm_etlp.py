@@ -37,7 +37,6 @@ from cm_sub_dag_parse_and_import_zte_bulkcm import parse_and_import_zte_bulkcm
 from cm_sub_dag_parse_and_import_huawei_rnp import parse_and_import_huawei_rnp
 from airflow.utils.trigger_rule import TriggerRule
 from cm_sub_dag_extract_externals import extract_network_externals
-from cm_sub_dag_run_network_audits import run_network_audits
 
 sys.path.append('/mediation/packages')
 
@@ -73,13 +72,6 @@ dag = DAG(
     catchup = False,
     dagrun_timeout=timedelta(minutes=24*60)) # dag runs out after 1 day of running
 
-
-sub_dag_run_network_audits_task = SubDagOperator(
-  subdag=run_network_audits('cm_etlp', 'run_network_audits', start_date=dag.start_date,
-                 schedule_interval=dag.schedule_interval),
-  task_id='run_network_audits',
-  dag=dag,
-)
 
 sub_dag_extract_network_externals_task = SubDagOperator(
   subdag=extract_network_externals('cm_etlp', 'extract_network_externals', start_date=dag.start_date,
@@ -153,19 +145,6 @@ t4 = BashOperator(
     bash_command='echo 0;',
     # bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ 2>/dev/null',
     dag=dag)
-
-
-# Run network baseline
-def generate_eri_3g4g_network_baseline():
-    networkBaseLine = NetworkBaseLine(dbhost=os.environ.get('POSTGRES_HOST'));
-    networkBaseLine.run('1', '2')
-
-
-t6 = PythonOperator(
-    task_id='generate_eri_3g4g_network_baseline',
-    python_callable=generate_eri_3g4g_network_baseline,
-    dag=dag)
-
 
 
 # Process ericsson RNCs
@@ -958,7 +937,6 @@ dag.set_dependency('join_ericsson_supported','end_cm_etlp')
 dag.set_dependency('process_ericsson','parse_and_import_ericsson_bulkcm')
 
 dag.set_dependency('parse_and_import_ericsson_bulkcm','backup_3g4g_raw_files')
-dag.set_dependency('parse_and_import_ericsson_bulkcm','generate_eri_3g4g_network_baseline')
 dag.set_dependency('parse_and_import_ericsson_bulkcm','process_eri_rncs')
 dag.set_dependency('parse_and_import_ericsson_bulkcm','process_eri_enodebs')
 dag.set_dependency('process_eri_rncs','extract_ericsson_3g_sites')
@@ -966,7 +944,6 @@ dag.set_dependency('extract_ericsson_3g_sites','extract_ericsson_3g_cells')
 dag.set_dependency('process_eri_enodebs','extract_ericsson_4g_cells')
 dag.set_dependency('extract_ericsson_3g_cells','cell_extraction_done')
 
-dag.set_dependency('generate_eri_3g4g_network_baseline','ericsson_cm_done')
 dag.set_dependency('backup_3g4g_raw_files','ericsson_cm_done')
 
 
@@ -1170,7 +1147,3 @@ dag.set_dependency('cell_extraction_done','end_cm_etlp')
 
 dag.set_dependency('cell_extraction_done', 'extract_network_externals')
 dag.set_dependency('extract_network_externals', 'end_cm_etlp')
-
-
-# Network audits
-dag.set_dependency('end_cm_etlp', 'run_network_audits')
