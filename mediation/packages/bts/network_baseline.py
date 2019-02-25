@@ -2,15 +2,22 @@ import psycopg2
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
-
+import logging
 
 # @todo: use logger
 class NetworkBaseLine(object):
 
-    def __init__(self, dbname = None, dbuser = None, dbpass = None, dbhost = None):
+    def __init__(self, db_name = None, db_user = None, db_pass = None, db_host = None):
         ''' Constructor for this class. '''
-        pass
- 
+        self.engine = create_engine('postgresql://{}:{}@{}/{}'.format(db_user, db_pass, db_host, db_name))
+        self.logger =logging.getLogger('network-baseline')
+
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
  
     def run(self,vendor_id, tech_id):
         """Run network baseline"""
@@ -605,7 +612,6 @@ class NetworkBaseLine(object):
             print(sql)
             cur.execute(sql)
 
-
     def generate_huawei_2g_node_level_discrepancies(self):
         """Generate Huawei 2G baseline discrepancies for node level parameters"""
         engine = create_engine('postgresql://bodastage:password@database/bts')
@@ -825,4 +831,673 @@ class NetworkBaseLine(object):
             print(sql)
             cur.execute(sql)
 
+    def run_huawei_baseline(self):
+        """
+        Run baseline for all Huawei technologies
 
+        :return:
+        """
+
+        insert_qry = """
+            INSERT INTO baseline.network_baseline
+            (date_time, vendor, nename, mo, parameter, pvalue)
+            SELECT 
+                date_time,
+                vendor, 
+                nename, 
+                mo, 
+                parameter,
+                pvalue
+            FROM 
+                baseline.parameter_value_counts t1
+            WHERE 
+            (vendor, nename, mo, parameter, occurence) IN 
+            (
+                SELECT 
+                    vendor, nename, mo, parameter, MAX(occurence)
+                FROM baseline.parameter_value_counts t2
+                GROUP BY vendor, nename, mo, parameter
+            )
+            ON CONFLICT ON CONSTRAINT uq_network_baseline
+            DO UPDATE 
+            SET date_modified = NOW()::TIMESTAMP
+        """
+        self.engine.execute(text(insert_qry))
+
+        # Delete old values
+        delete_qry = """
+        DELETE FROM  baseline.network_baseline
+        WHERE 
+        (vendor, nename, mo, parameter, occurence) NOT IN 
+        (
+            SELECT 
+                vendor, nename, mo, parameter, MAX(occurence)
+            FROM baseline.parameter_value_counts t2
+            GROUP BY vendor, nename, mo, parameter
+        )
+        """
+        self.engine.execute(text(delete_qry))
+
+    def compute_huawei_4g_value_counts(self):
+        """
+        Compute Huawei baseline for 4G.
+
+        The baseline is computed by grouping values per tracking area.
+
+        :return:
+        """
+
+        tech = '4G'
+
+        # List of parameters to ignore
+        ignore_list = ['LOADID', 'VARDATE', 'DATETIME', 'REGION', 'NENAME', 'CELLID', 'ID', 'FILENAME', 'TECHNOLOGY', 'VENDOR', 'VERSION', 'NETYPE', 'CELLNAME']
+
+        self.logger.info("Processing Huawei baseline for {}...".format(tech))
+
+        # Get list of mos configured in process_config
+        result = self.engine.execute(text("SELECT * FROM baseline.process_config WHERE process = true AND technology = :tech"), tech)
+        for row in result:
+            vendor = row['vendor']
+            technology = row['technology']
+            mo = row['mo']
+
+            self.logger.info("vendor:{}, technology:{}, mo:{}".format(vendor, technology, mo))
+
+            # Get field names from information_schema
+            field_qry = """
+                SELECT t1.column_name as field 
+                FROM
+                    information_schema.columns t1
+                    LEFT JOIN baseline.parameter_ignore_list t2 
+                        ON t1.table_name = t2.mo
+                        AND t1.column_name = t2.parameter
+                        AND t2.vendor  = 'HUAWEI'
+                WHERE 
+                    table_schema = 'huawei_cm'
+                    AND table_name = :mo
+                    AND t2.parameter is NULL
+                    AND UPPER(t1.column_name) NOT IN ('{}')
+            """.format("','".join(ignore_list))
+
+            field_result = self.engine.execute(text(field_qry), mo=mo)
+
+            # self.logger.info([row[0] for row in field_result])
+
+            # self.logger.info(field_qry)
+
+            self.logger.info('Processing parameters...')
+            for f in field_result:
+                parameter = f[0]
+
+                self.logger.info("Processing baseline for {}.{}...".format(mo, parameter))
+
+                value_qry = """
+                INSERT INTO  baseline.parameter_value_counts
+                (date_time, vendor, nename, mo, parameter, pvalue, occurence)
+                SELECT 
+                    MAX(t1."DATETIME") AS date_time,
+                    'HUAWEI' as vendor,
+                    t4."TAC" AS AS nename,
+                    '{0}' AS mo,
+                    '{1}' AS parameter,
+                    t1."{1}" AS pvalue,
+                    COUNT(t1."{1}") AS occurence
+                FROM huawei_cm."{0}" t1
+                INNER JOIN cm_loads t5 on t5.pk = t1."LOADID"
+                INNER JOIN huawei_cm."CELL" t2
+                    ON t2."LOCALCELLID" = t1."LOCALCELLID"
+                    AND t2."LOADID" = t1."LOADID"
+                INNER JOIN huawei_cm."ENODEBFUNCTION" t3 
+                    ON t3."ENODEBFUNCTIONNAME" =  t2."ENODEBFUNCTIONNAME"
+                    AND t3."LOADID" = t1."LOADID"
+                INNER JOIN huawei_cm."CNOPERATORTA" t4 
+                    ON t4."ENODEBFUNCTIONNAME"  = t3."ENODEBFUNCTIONNAME"
+                    AND t4."LOADID" = t1."LOADID"
+                    
+                WHERE 
+                    t1."{1}" IS NOT NULL
+                    AND t5.is_current_load = true
+                GROUP BY 
+                    GROUP BY t4."TAC", t1."{1}"
+
+                """.format(mo, parameter)
+
+                # self.logger.info(value_qry)
+
+                self.engine.execute(text(value_qry))
+
+    def compute_huawei_2g3g_value_counts(self, tech='2G'):
+        """
+        Runs baseline for Huawei 2G, 3G, or 2G/3G
+
+        The is implemented by the same function because the MOs are defined on a controller i.e. BSC and RNC which
+        are picked from the SYS MO.
+
+        :param: string The technology the mo exists on. It could be 2G,3G,2G/3G
+        :return:
+        """
+
+        # List of parameters to ignore
+        ignore_list=['LOADID','VARDATE', 'DATETIME', 'REGION', 'NENAME', 'CELLID', 'ID', 'FILENAME', 'TECHNOLOGY', 'VENDOR', 'VERSION', 'NETYPE', 'CELLNAME']
+
+        self.logger.info("Processing Huawei baseline for {}...".format(tech))
+
+        # Get list of mos configured in process_config
+        result = self.engine.execute(text("SELECT * FROM baseline.process_config WHERE process = true AND technology = :tech"), tech)
+        for row in result:
+            vendor = row['vendor']
+            technology = row['technology']
+            mo = row['mo']
+
+            self.logger.info("vendor:{}, technology:{}, mo:{}".format(vendor, technology, mo))
+
+            # Get field names from information_schema
+            field_qry = """
+                SELECT t1.column_name as field 
+                FROM
+                    information_schema.columns t1
+                    LEFT JOIN baseline.parameter_ignore_list t2 
+                        ON t1.table_name = t2.mo
+                        AND t1.column_name = t2.parameter
+                        AND t2.vendor  = 'HUAWEI'
+                WHERE 
+                    table_schema = 'huawei_cm'
+                    AND table_name = :mo
+                    AND t2.parameter is NULL
+                    AND UPPER(t1.column_name) NOT IN ('{}')
+            """.format("','".join(ignore_list))
+
+            field_result = self.engine.execute(text(field_qry), mo=mo)
+
+            # self.logger.info([row[0] for row in field_result])
+
+            # self.logger.info(field_qry)
+
+            self.logger.info('Processing parameters...')
+            for f in field_result:
+                parameter = f[0]
+
+                self.logger.info("Processing baseline for {}.{}...".format(mo, parameter))
+
+                value_qry = """
+                INSERT INTO  baseline.parameter_value_counts
+                (date_time, vendor, nename, mo, parameter, pvalue, occurence)
+                SELECT 
+                    MAX(t1."DATETIME") AS date_time,
+                    'HUAWEI' as vendor,
+                    t2."SYSOBJECTID" AS nename,
+                    '{0}' AS mo,
+                    '{1}' AS parameter,
+                    t1."{1}" AS pvalue,
+                    COUNT(t1."{1}") AS occurence
+                FROM
+                    huawei_cm."{0}" t1
+                    INNER JOIN huawei_cm."SYS" t2 
+                        ON t2."FILENAME" = t1."FILENAME"
+                        AND t2."LOADID" = t1."LOADID"
+                    INNER JOIN cm_loads t3 on t3.pk = t1."LOADID"
+                WHERE t3.is_current_load = true AND t1."{1}" IS NOT NULL
+                GROUP BY 
+                    t2."SYSOBJECTID", t1."{1}",
+                        
+                """.format(mo, parameter)
+
+                self.engine.execute(text(value_qry))
+
+    def compute_ericsson_2g_value_counts(self):
+        """
+        Runs baseline for Huawei 2G, 3G, or 2G/3G
+
+        The is implemented by the same function because the MOs are defined on a controller i.e. BSC and RNC which
+        are picked from the SYS MO.
+
+1        :return:
+        """
+
+        tech = '2G'
+
+        # List of parameters to ignore
+        ignore_list = ['LOADID', 'VARDATE', 'DATETIME', 'REGION', 'NENAME', 'CELLID', 'ID', 'FILENAME', 'TECHNOLOGY', 'VENDOR', 'VERSION', 'NETYPE', 'CELLNAME']
+
+        self.logger.info("Processing Huawei baseline for {}...".format(tech))
+
+        # Get list of mos configured in process_config
+        result = self.engine.execute(text("SELECT * FROM baseline.process_config WHERE process = true AND technology = :tech"), tech)
+        for row in result:
+            vendor = row['vendor']
+            technology = row['technology']
+            mo = row['mo']
+
+            self.logger.info("vendor:{}, technology:{}, mo:{}".format(vendor, technology, mo))
+
+            # Get field names from information_schema
+            field_qry = """
+                SELECT t1.column_name as field 
+                FROM
+                    information_schema.columns t1
+                    LEFT JOIN baseline.parameter_ignore_list t2 
+                        ON t1.table_name = t2.mo
+                        AND t1.column_name = t2.parameter
+                        AND t2.vendor  = 'ERICSSON'
+                WHERE 
+                    table_schema = 'ericsson_cm'
+                    AND table_name = :mo
+                    AND t2.parameter is NULL
+                    AND UPPER(t1.column_name) NOT IN ('{}')
+            """.format("','".join(ignore_list))
+
+            field_result = self.engine.execute(text(field_qry), mo=mo)
+
+            # self.logger.info([row[0] for row in field_result])
+
+            # self.logger.info(field_qry)
+
+            self.logger.info('Processing parameters...')
+            for f in field_result:
+                parameter = f[0]
+
+                self.logger.info("Processing baseline for {}.{}...".format(mo, parameter))
+
+                value_qry = """
+                INSERT INTO  baseline.parameter_value_counts
+                (date_time, vendor, nename, mo, parameter, pvalue, occurence)
+                SELECT 
+                    MAX(t1."DATETIME") AS date_time,
+                    'ERICSSON' as vendor,
+                    t2."BSC_NAME" AS nename,
+                    '{0}' AS mo,
+                    '{1}' AS parameter,
+                    t1."{1}" AS pvalue,
+                    COUNT(t1."{1}") AS occurence
+                FROM
+                    ericsson_cm."{0}" t1
+                    INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
+                GROUP BY 
+                    t1."BSC_NAME", t1."{1}"
+
+                """.format(mo, parameter)
+
+                self.engine.execute(text(value_qry))
+
+
+    def compute_ericsson_3g_value_counts(self):
+        """
+        Runs baseline for Huawei 2G, 3G, or 2G/3G
+
+        The is implemented by the same function because the MOs are defined on a controller i.e. BSC and RNC which
+        are picked from the SYS MO.
+
+        :param: string tech The technology.
+        :return:
+        """
+
+        tech  = "3G"
+
+        # List of parameters to ignore
+        ignore_list = ['LOADID', 'VARDATE', 'DATETIME', 'REGION', 'NENAME', 'CELLID', 'ID', 'FILENAME', 'TECHNOLOGY', 'VENDOR', 'VERSION', 'NETYPE', 'CELLNAME']
+
+        self.logger.info("Processing Ericsson baseline for {}...".format(tech))
+
+        # Get list of mos configured in process_config
+        result = self.engine.execute(text("SELECT * FROM baseline.process_config WHERE process = true AND technology = :tech"), tech)
+        for row in result:
+            vendor = row['vendor']
+            technology = row['technology']
+            mo = row['mo']
+
+            self.logger.info("vendor:{}, technology:{}, mo:{}".format(vendor, technology, mo))
+
+            # Get field names from information_schema
+            field_qry = """
+                SELECT t1.column_name as field 
+                FROM
+                    information_schema.columns t1
+                    LEFT JOIN baseline.parameter_ignore_list t2 
+                        ON t1.table_name = t2.mo
+                        AND t1.column_name = t2.parameter
+                        AND t2.vendor  = 'ERICSSON'
+                WHERE 
+                    table_schema = 'ericsson_cm'
+                    AND table_name = :mo
+                    AND t2.parameter is NULL
+                    AND UPPER(t1.column_name) NOT IN ('{}')
+            """.format("','".join(ignore_list))
+
+            field_result = self.engine.execute(text(field_qry), mo=mo)
+
+
+            self.logger.info('Processing parameters...')
+            for f in field_result:
+                parameter = f[0]
+
+                self.logger.info("Processing baseline for {}.{}...".format(mo, parameter))
+
+                value_qry = """
+                INSERT INTO  baseline.parameter_value_counts
+                (date_time, vendor, nename, mo, parameter, pvalue, occurence)
+                SELECT 
+                    MAX(t1."DATETIME") AS date_time,
+                    'ERICSSON' as vendor,
+                    t2."SubNetwork_2_id" AS nename,
+                    '{0}' AS mo,
+                    '{1}' AS parameter,
+                    t1."{1}" AS pvalue,
+                    COUNT(t1."{1}") AS occurence
+                FROM
+                    ericsson_cm."{0}" t1
+                    INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
+                GROUP BY 
+                    t1."SubNetwork_2_id", t1."{1}"
+
+                """.format(mo, parameter)
+
+                self.engine.execute(text(value_qry))
+
+
+    def compute_ericsson_4g_value_counts(self):
+        """
+        Runs baseline for Huawei 2G, 3G, or 2G/3G
+
+        The is implemented by the same function because the MOs are defined on a controller i.e. BSC and RNC which
+        are picked from the SYS MO.
+
+        :param: string tech The technology.
+        :return:
+        """
+
+        tech = "4G"
+
+        # List of parameters to ignore
+        ignore_list = ['LOADID', 'VARDATE', 'DATETIME', 'REGION', 'NENAME', 'CELLID', 'ID', 'FILENAME', 'TECHNOLOGY', 'VENDOR', 'VERSION', 'NETYPE', 'CELLNAME']
+
+        self.logger.info("Processing Ericsson baseline for {}...".format(tech))
+
+        # Get list of mos configured in process_config
+        result = self.engine.execute(text("SELECT * FROM baseline.process_config WHERE process = true AND technology = :tech"), tech)
+        for row in result:
+            vendor = row['vendor']
+            technology = row['technology']
+            mo = row['mo']
+
+            self.logger.info("vendor:{}, technology:{}, mo:{}".format(vendor, technology, mo))
+
+            # Get field names from information_schema
+            field_qry = """
+                    SELECT t1.column_name as field 
+                    FROM
+                        information_schema.columns t1
+                        LEFT JOIN baseline.parameter_ignore_list t2 
+                            ON t1.table_name = t2.mo
+                            AND t1.column_name = t2.parameter
+                            AND t2.vendor  = 'ERICSSON'
+                    WHERE 
+                        table_schema = 'ericsson_cm'
+                        AND table_name = :mo
+                        AND t2.parameter is NULL
+                        AND UPPER(t1.column_name) NOT IN ('{}')
+                """.format("','".join(ignore_list))
+
+            field_result = self.engine.execute(text(field_qry), mo=mo)
+
+            self.logger.info('Processing parameters...')
+            for f in field_result:
+                parameter = f[0]
+
+                self.logger.info("Processing baseline for {}.{}...".format(mo, parameter))
+
+                value_qry = """
+                    INSERT INTO  baseline.parameter_value_counts
+                    (date_time, vendor, nename, mo, parameter, pvalue, occurence)
+                    SELECT 
+                        MAX(t1."DATETIME") AS date_time,
+                        'ERICSSON' as vendor,
+                        t2."SubNetwork_2_id" AS nename,
+                        '{0}' AS mo,
+                        '{1}' AS parameter,
+                        t1."{1}" AS pvalue,
+                        COUNT(t1."{1}") AS occurence
+                    FROM
+                        ericsson_cm."{0}" t1
+                        INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                    WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
+                    GROUP BY 
+                        t1."SubNetwork_2_id", t1."{1}",
+    
+                    """.format(mo, parameter)
+
+                self.engine.execute(text(value_qry))
+
+
+    def compute_zte_2g_value_counts(self):
+        """
+        Runs baseline for Huawei 2G, 3G, or 2G/3G
+
+        The is implemented by the same function because the MOs are defined on a controller i.e. BSC and RNC which
+        are picked from the SYS MO.
+
+        :param: string tech The technology.
+        :return:
+        """
+
+        tech = "2G"
+
+        # List of parameters to ignore
+        ignore_list = ['LOADID', 'VARDATE', 'DATETIME', 'REGION', 'NENAME', 'CELLID', 'ID', 'FILENAME', 'TECHNOLOGY', 'VENDOR', 'VERSION', 'NETYPE', 'CELLNAME']
+
+        self.logger.info("Processing Ericsson baseline for {}...".format(tech))
+
+        # Get list of mos configured in process_config
+        result = self.engine.execute(text("SELECT * FROM baseline.process_config WHERE process = true AND technology = :tech"), tech)
+        for row in result:
+            vendor = row['vendor']
+            technology = row['technology']
+            mo = row['mo']
+
+            self.logger.info("vendor:{}, technology:{}, mo:{}".format(vendor, technology, mo))
+
+            # Get field names from information_schema
+            field_qry = """
+                    SELECT t1.column_name as field 
+                    FROM
+                        information_schema.columns t1
+                        LEFT JOIN baseline.parameter_ignore_list t2 
+                            ON t1.table_name = t2.mo
+                            AND t1.column_name = t2.parameter
+                            AND t2.vendor  = 'ZTE'
+                    WHERE 
+                        table_schema = 'zte_cm'
+                        AND table_name = :mo
+                        AND t2.parameter is NULL
+                        AND UPPER(t1.column_name) NOT IN ('{}')
+                """.format("','".join(ignore_list))
+
+            field_result = self.engine.execute(text(field_qry), mo=mo)
+
+            self.logger.info('Processing parameters...')
+            for f in field_result:
+                parameter = f[0]
+
+                self.logger.info("Processing baseline for {}.{}...".format(mo, parameter))
+
+                value_qry = """
+                    INSERT INTO  baseline.parameter_value_counts
+                    (date_time, vendor, nename, mo, parameter, pvalue, occurence)
+                    SELECT 
+                        MAX(t1."DATETIME") AS date_time,
+                        'ZTE' as vendor,
+                        t2."SubNetwork_2_id" AS nename,
+                        '{0}' AS mo,
+                        '{1}' AS parameter,
+                        t1."{1}" AS pvalue,
+                        COUNT(t1."{1}") AS occurence
+                    FROM
+                        zte_cm."{0}" t1
+                        INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                    WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
+                    GROUP BY 
+                        t1."SubNetwork_2_id", t1."{1}",
+    
+                    """.format(mo, parameter)
+
+                self.engine.execute(text(value_qry))
+
+
+    def compute_zte_3g_value_counts(self):
+        """
+        Runs baseline for Huawei 2G, 3G, or 2G/3G
+
+        The is implemented by the same function because the MOs are defined on a controller i.e. BSC and RNC which
+        are picked from the SYS MO.
+
+        :param: string tech The technology.
+        :return:
+        """
+
+        tech = "3G"
+
+        # List of parameters to ignore
+        ignore_list = ['LOADID', 'VARDATE', 'DATETIME', 'REGION', 'NENAME', 'CELLID', 'ID', 'FILENAME', 'TECHNOLOGY', 'VENDOR', 'VERSION', 'NETYPE', 'CELLNAME']
+
+        self.logger.info("Processing ZTE baseline for {}...".format(tech))
+
+        # Get list of mos configured in process_config
+        result = self.engine.execute(text("SELECT * FROM baseline.process_config WHERE process = true AND technology = :tech"), tech)
+        for row in result:
+            vendor = row['vendor']
+            technology = row['technology']
+            mo = row['mo']
+
+            self.logger.info("vendor:{}, technology:{}, mo:{}".format(vendor, technology, mo))
+
+            # Get field names from information_schema
+            field_qry = """
+                         SELECT t1.column_name as field 
+                         FROM
+                             information_schema.columns t1
+                             LEFT JOIN baseline.parameter_ignore_list t2 
+                                 ON t1.table_name = t2.mo
+                                 AND t1.column_name = t2.parameter
+                                 AND t2.vendor  = 'ZTE'
+                         WHERE 
+                             table_schema = 'zte_cm'
+                             AND table_name = :mo
+                             AND t2.parameter is NULL
+                             AND UPPER(t1.column_name) NOT IN ('{}')
+                     """.format("','".join(ignore_list))
+
+            field_result = self.engine.execute(text(field_qry), mo=mo)
+
+            self.logger.info('Processing parameters...')
+            for f in field_result:
+                parameter = f[0]
+
+                self.logger.info("Processing baseline for {}.{}...".format(mo, parameter))
+
+                value_qry = """
+                         INSERT INTO  baseline.parameter_value_counts
+                         (date_time, vendor, nename, mo, parameter, pvalue, occurence)
+                         SELECT 
+                             MAX(t1."DATETIME") AS date_time,
+                             'ZTE' as vendor,
+                             t2."SubNetwork_2_id" AS nename,
+                             '{0}' AS mo,
+                             '{1}' AS parameter,
+                             t1."{1}" AS pvalue,
+                             COUNT(t1."{1}") AS occurence
+                         FROM
+                             zte_cm."{0}" t1
+                             INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                         WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
+                         GROUP BY 
+                             t1."SubNetwork_2_id", t1."{1}",
+    
+                         """.format(mo, parameter)
+
+                self.engine.execute(text(value_qry))
+
+
+    def compute_zte_4g_value_counts(self):
+        """
+        Runs baseline for Huawei 2G, 3G, or 2G/3G
+
+        The is implemented by the same function because the MOs are defined on a controller i.e. BSC and RNC which
+        are picked from the SYS MO.
+
+        :param: string tech The technology.
+        :return:
+        """
+
+        tech = "4G"
+
+        # List of parameters to ignore
+        ignore_list = ['LOADID', 'VARDATE', 'DATETIME', 'REGION', 'NENAME', 'CELLID', 'ID', 'FILENAME', 'TECHNOLOGY', 'VENDOR', 'VERSION', 'NETYPE', 'CELLNAME']
+
+        self.logger.info("Processing ZTE baseline for {}...".format(tech))
+
+        # Get list of mos configured in process_config
+        result = self.engine.execute(text("SELECT * FROM baseline.process_config WHERE process = true AND technology = :tech"), tech)
+        for row in result:
+            vendor = row['vendor']
+            technology = row['technology']
+            mo = row['mo']
+
+            self.logger.info("vendor:{}, technology:{}, mo:{}".format(vendor, technology, mo))
+
+            # Get field names from information_schema
+            field_qry = """
+                    SELECT t1.column_name as field 
+                    FROM
+                        information_schema.columns t1
+                        LEFT JOIN baseline.parameter_ignore_list t2 
+                            ON t1.table_name = t2.mo
+                            AND t1.column_name = t2.parameter
+                            AND t2.vendor  = 'ZTE'
+                    WHERE 
+                        table_schema = 'zte_cm'
+                        AND table_name = :mo
+                        AND t2.parameter is NULL
+                        AND UPPER(t1.column_name) NOT IN ('{}')
+                """.format("','".join(ignore_list))
+
+            field_result = self.engine.execute(text(field_qry), mo=mo)
+
+            self.logger.info('Processing parameters...')
+            for f in field_result:
+                parameter = f[0]
+
+                self.logger.info("Processing baseline for {}.{}...".format(mo, parameter))
+
+                value_qry = """
+                    INSERT INTO  baseline.parameter_value_counts
+                    (date_time, vendor, nename, mo, parameter, pvalue, occurence)
+                    SELECT 
+                        MAX(t1."DATETIME") AS date_time,
+                        'ZTE' as vendor,
+                        t2."SubNetwork_2_id" AS nename,
+                        '{0}' AS mo,
+                        '{1}' AS parameter,
+                        t1."{1}" AS pvalue,
+                        COUNT(t1."{1}") AS occurence
+                    FROM
+                        zte_cm."{0}" t1
+                        INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                    WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
+                    GROUP BY 
+                        t1."SubNetwork_2_id", t1."{1}",
+    
+                    """.format(mo, parameter)
+
+                self.engine.execute(text(value_qry))
+
+
+    def delete_counts(self):
+        """
+        Delete entries from the parameter value counts table
+
+        :return:
+        """
+
+        sql = "TRUNCATE TABLE baseline.parameter_value_counts"
+        self.engine.execute(text(qry))
