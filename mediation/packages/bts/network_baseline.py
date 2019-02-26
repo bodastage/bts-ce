@@ -1499,5 +1499,5 @@ class NetworkBaseLine(object):
         :return:
         """
 
-        sql = "TRUNCATE TABLE baseline.parameter_value_counts"
+        qry = "TRUNCATE TABLE baseline.parameter_value_counts"
         self.engine.execute(text(qry))
