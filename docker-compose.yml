@@ -57,6 +57,7 @@ services:
             - bts-msgbroker
         links:
           - "bts-database:database"
+          - "bts-msgbroker:msgbroker"
         network_mode: "bridge"
         container_name: "bts-ce-api"
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]

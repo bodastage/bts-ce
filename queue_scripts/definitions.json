@@ -28,7 +28,7 @@
       "name": "reports",
       "vhost": "/bs",
       "durable": true,
-      "auto_delete": true,
+      "auto_delete": false,
       "arguments": {}
     }
  ],
