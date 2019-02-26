@@ -153,8 +153,8 @@ zte_4g_value_counts = PythonOperator(
     dag=dag)
 
 ext_dep = ExternalTaskSensor(
-    external_dag_id='cm_etlp',
-    external_task_id='end_cm_etlp',
+    external_dag_id='cm_load',
+    external_task_id='end_cm_load',
     task_id='start_baseline',
     dag=dag)
 
