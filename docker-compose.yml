@@ -24,15 +24,13 @@ services:
             - "15674:15674"
             - "61613:61613"
             - "15670:15670"
-        environment:
-          - RABBITMQ_DEFAULT_VHOST=/bs
-          - RABBITMQ_DEFAULT_USER=btsuser
-          - RABBITMQ_DEFAULT_PASS=Password@7
         network_mode: "bridge"
         container_name: "bts-ce-msgbroker"
         command: bash -c "./queue_setup.sh"
-#        command: bash -c "rabbitmq-server; rabbitmq-plugins enable rabbitmq_web_stomp"
+        hostname: rmq
         volumes:
+            - ./queue_scripts/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
+            - ./queue_scripts/definitions.json:/etc/rabbitmq/definitions.json:ro
             - ./queue_scripts/queue_setup.sh:/queue_setup.sh
     bts-api:
         image: registry.gitlab.com/bts-ce/bts-ce-api
