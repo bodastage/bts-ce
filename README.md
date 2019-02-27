@@ -13,7 +13,7 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 * CM managed object browsing 
 * Automatic network baseline generation
 * Radio Access Network (RAN) audit (relations, conflicts, parameter values vs baseline )
-
+* Reporting
 
 
 ## Requirements 
@@ -39,8 +39,18 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 * Open web broswer and paste the URL http://localhost on windows or http://192.168.99.100
 * Login with username: **btsuser@bodastage.org** and password: **password**
 
-> If you are on a metered internet connection, note that the setup process will download about 1GB of dependent packages
+## Installing a new release 
+At the moment, we don't have upgrade scripts. You have to remove the previous version and install the new one. 
+This is achieved using the following 2 commands,
 
+* From the old version's directory, run 
+	```batch 
+	bts rm
+	```
+* From the new version's directory, run 
+	```batch 
+	bts create
+	```
 
 ## Supported Web Browsers
 

@@ -98,7 +98,7 @@ class EricssonCM(object):
             1, -- 1- Ericsson, 2 - Huawei, 3 - ZTE, 4-Nokia
             t1."userLabel",
             t4.pk -- site primary key
-            FROM ericsson_cm_3g."UtranCell" t1
+            FROM ericsson_cm."UtranCell" t1
             INNER JOIN ericsson_bulkcm."NodeBFunction" t2 on t2."nodeBFunctionIubLink" = t1."utranCellIubLink"
             INNER JOIN live_network.nodes t3 on t3."name" = t1."MeContext_id" 
                     AND t3.vendor_pk = 1
@@ -144,7 +144,7 @@ class EricssonCM(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_2g."EXTERNAL_CELL" t1
+        ericsson_cm."EXTERNAL_CELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."BSC_NAME"
         LEFT JOIN live_network.cells t3 on t3."name" = t1."CELL_NAME"
         LEFT JOIN live_network.gsm_external_cells t4 on t4."name" = t1."CELL_NAME" 
@@ -183,7 +183,7 @@ class EricssonCM(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_2g."UTRAN_EXTERNAL_CELL" t1
+        ericsson_cm."UTRAN_EXTERNAL_CELL" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = t1."BSC_NAME"
         LEFT JOIN live_network.cells t3 on t3."name" = t1."CELL_NAME"
         LEFT JOIN live_network.umts_external_cells t4 on t4."name" = t1."CELL_NAME" 
@@ -226,7 +226,7 @@ class EricssonCM(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_3g."ExternalGsmCell" t1
+        ericsson_cm."ExternalGsmCell" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = 'SubNetwork' and t2.vendor_pk = 1 and t2.tech_pk = 2
         LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
         LEFT JOIN live_network.gsm_external_cells t4 on t4."name" = t1."userLabel" 
@@ -265,7 +265,7 @@ class EricssonCM(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_3g."ExternalUtranCell" t1
+        ericsson_cm."ExternalUtranCell" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = 'SubNetwork' and t2.vendor_pk = 1 AND tech_pk = 2
         LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
         LEFT JOIN live_network.umts_external_cells t4 on t4."name" = t1."userLabel" 
@@ -300,7 +300,7 @@ class EricssonCM(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_3g."ExternalEUtranCellFDD" t1
+        ericsson_cm."ExternalEUtranCellFDD" t1
         LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
         LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."userLabel" 
             AND t4.ci = t1."localCellId"::integer
@@ -338,7 +338,7 @@ class EricssonCM(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_3g."ExternalGsmCell" t1
+        ericsson_cm."ExternalGsmCell" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = 'SubNetwork' and t2.vendor_pk = 1 and t2.tech_pk = 3
         LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
         LEFT JOIN live_network.gsm_external_cells t4 on t4."name" = t1."userLabel" 
@@ -377,7 +377,7 @@ class EricssonCM(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_3g."ExternalUtranCell" t1
+        ericsson_cm."ExternalUtranCell" t1
         LEFT JOIN live_network.nodes t2 ON t2."name" = 'SubNetwork' and t2.vendor_pk = 1 AND tech_pk = 3
         LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
         LEFT JOIN live_network.umts_external_cells t4 on t4."name" = t1."userLabel" 
@@ -412,7 +412,7 @@ class EricssonCM(object):
         now()::timestamp as date_added,
         now()::timestamp as date_modified
         FROM
-        ericsson_cm_3g."ExternalEUtranCellFDD" t1
+        ericsson_cm."ExternalEUtranCellFDD" t1
         LEFT JOIN live_network.cells t3 on t3."name" = t1."userLabel"
         LEFT JOIN live_network.lte_external_cells t4 on t4."name" = t1."userLabel" 
             AND t4.ci = t1."localCellId"::integer

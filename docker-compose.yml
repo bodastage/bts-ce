@@ -26,7 +26,12 @@ services:
             - "15670:15670"
         network_mode: "bridge"
         container_name: "bts-ce-msgbroker"
-        command: bash -c "rabbitmq-server; rabbitmq-plugins enable rabbitmq_web_stomp"
+        command: bash -c "./queue_setup.sh"
+        hostname: rmq
+        volumes:
+            - ./queue_scripts/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
+            - ./queue_scripts/definitions.json:/etc/rabbitmq/definitions.json:ro
+            - ./queue_scripts/queue_setup.sh:/queue_setup.sh
     bts-api:
         image: registry.gitlab.com/bts-ce/bts-ce-api
         ports:
@@ -39,14 +44,20 @@ services:
           - BTS_DB_USER=bodastage
           - BTS_DB_PASS=password
           - BTS_DB_PORT=5432
+          - BTS_MQ_USER=btsuser
+          - BTS_MQ_PASS=Password@7
+          - BTS_MQ_HOST=msgbroker
+          - BTS_MQ_VHOST=/bs
         volumes:
           - ./bts-ce-api:/app
           - ./bts-ce-database:/migrations
+          - ./mediation/data/reports:/reports
         depends_on:
             - bts-database
             - bts-msgbroker
         links:
           - "bts-database:database"
+          - "bts-msgbroker:msgbroker"
         network_mode: "bridge"
         container_name: "bts-ce-api"
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
@@ -77,6 +88,10 @@ services:
             - BTS_DB_USER=bodastage
             - BTS_DB_PASS=password
             - BTS_DB_PORT=5432
+            - BTS_MQ_USER=btsuser
+            - BTS_MQ_PASS=Password@7
+            - BTS_MQ_HOST=msgbroker
+            - BTS_MQ_VHOST=/bs
         volumes:
            - ./mediation/dags:/usr/local/airflow/dags
            - ./mediation:/mediation
@@ -87,6 +102,7 @@ services:
         network_mode: "bridge"
         container_name: "bts-ce-mediation"
         links:
+            - "bts-msgbroker:msgbroker"
             - "bts-database:database"
     bts-cache:
         image: redis:latest
@@ -111,3 +127,27 @@ services:
         network_mode: "bridge"
         container_name: "bts-ce-ftp"
     #    command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]
+    bts-reports:
+        image: registry.gitlab.com/bts-ce/bts-ce-reports
+        restart: always
+        environment:
+          - POSTGRES_PASSWORD=password
+          - BTS_DB_HOST=database
+          - BTS_DB_NAME=bts
+          - BTS_DB_USER=bodastage
+          - BTS_DB_PASS=password
+          - BTS_DB_PORT=5432
+          - BTS_MQ_USER=btsuser
+          - BTS_MQ_PASS=Password@7
+          - BTS_MQ_HOST=msgbroker
+          - BTS_MQ_VHOST=/bs
+        network_mode: "bridge"
+        container_name: "bts-ce-reports"
+        volumes:
+           - ./mediation/data/reports:/reports
+        depends_on:
+            - bts-msgbroker
+            - bts-api
+        links:
+          - "bts-msgbroker:msgbroker"
+          - "bts-database:database"

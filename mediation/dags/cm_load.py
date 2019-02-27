@@ -37,7 +37,6 @@ from cm_sub_dag_parse_and_import_zte_bulkcm import parse_and_import_zte_bulkcm
 from cm_sub_dag_parse_and_import_huawei_rnp import parse_and_import_huawei_rnp
 from airflow.utils.trigger_rule import TriggerRule
 from cm_sub_dag_extract_externals import extract_network_externals
-from cm_sub_dag_run_network_audits import run_network_audits
 
 sys.path.append('/mediation/packages')
 
@@ -64,7 +63,7 @@ args = {
 
 
 dag = DAG(
-    dag_id='cm_etlp',
+    dag_id='cm_load',
     default_args=args,
     schedule_interval=schedule_interval,
     start_date=datetime(2017, 1, 1),
@@ -74,36 +73,29 @@ dag = DAG(
     dagrun_timeout=timedelta(minutes=24*60)) # dag runs out after 1 day of running
 
 
-sub_dag_run_network_audits_task = SubDagOperator(
-  subdag=run_network_audits('cm_etlp', 'run_network_audits', start_date=dag.start_date,
-                 schedule_interval=dag.schedule_interval),
-  task_id='run_network_audits',
-  dag=dag,
-)
-
 sub_dag_extract_network_externals_task = SubDagOperator(
-  subdag=extract_network_externals('cm_etlp', 'extract_network_externals', start_date=dag.start_date,
+  subdag=extract_network_externals('cm_load', 'extract_network_externals', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='extract_network_externals',
   dag=dag,
 )
 
 sub_dag_parse_and_import_eri_3g4g_cm_files = SubDagOperator(
-  subdag=parse_and_import_eri_3g4g('cm_etlp', 'parse_and_import_ericsson_bulkcm', start_date=dag.start_date,
+  subdag=parse_and_import_eri_3g4g('cm_load', 'parse_and_import_ericsson_bulkcm', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_and_import_ericsson_bulkcm',
   dag=dag,
 )
 
 sub_dag_parse_and_import_eri_2g_cm_files = SubDagOperator(
-  subdag=parse_and_import_eri_2g('cm_etlp', 'parser_and_import_ericsson_2g', start_date=dag.start_date,
+  subdag=parse_and_import_eri_2g('cm_load', 'parser_and_import_ericsson_2g', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parser_and_import_ericsson_2g',
   dag=dag,
 )
 
 sub_dag_parse_and_import_huawei_rnp_cm_files = SubDagOperator(
-  subdag=parse_and_import_huawei_rnp('cm_etlp', 'parse_and_import_huawei_rnp', start_date=dag.start_date,
+  subdag=parse_and_import_huawei_rnp('cm_load', 'parse_and_import_huawei_rnp', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_and_import_huawei_rnp',
   dag=dag,
@@ -111,28 +103,28 @@ sub_dag_parse_and_import_huawei_rnp_cm_files = SubDagOperator(
 
 
 sub_dag_parse_and_import_huawei_gexport_cm_files = SubDagOperator(
-  subdag=parse_and_import_huawei_gexport('cm_etlp', 'parse_and_import_huawei_gexport', start_date=dag.start_date,
+  subdag=parse_and_import_huawei_gexport('cm_load', 'parse_and_import_huawei_gexport', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_and_import_huawei_gexport',
   dag=dag,
 )
 
 sub_dag_parse_and_import_huawei_mml_cm_files = SubDagOperator(
-  subdag=parse_and_import_huawei_mml('cm_etlp', 'parse_and_import_huawei_mml', start_date=dag.start_date,
+  subdag=parse_and_import_huawei_mml('cm_load', 'parse_and_import_huawei_mml', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_and_import_huawei_mml',
   dag=dag,
 )
 
 sub_dag_parse_and_import_huawei_nbi_cm_files = SubDagOperator(
-  subdag=parse_and_import_huawei_nbi('cm_etlp', 'parse_and_import_huawei_nbi', start_date=dag.start_date,
+  subdag=parse_and_import_huawei_nbi('cm_load', 'parse_and_import_huawei_nbi', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_and_import_huawei_nbi',
   dag=dag,
 )
 
 sub_dag_parse_and_import_huawei_cfgsyn_cm_files = SubDagOperator(
-  subdag=parse_and_import_huawei_cfgsyn('cm_etlp', 'parse_and_import_huawei_cfgsyn', start_date=dag.start_date,
+  subdag=parse_and_import_huawei_cfgsyn('cm_load', 'parse_and_import_huawei_cfgsyn', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_and_import_huawei_cfgsyn',
   dag=dag,
@@ -141,7 +133,7 @@ sub_dag_parse_and_import_huawei_cfgsyn_cm_files = SubDagOperator(
 
 
 sub_dag_parse_and_import_zte_cm_files = SubDagOperator(
-  subdag=parse_and_import_zte_bulkcm('cm_etlp', 'parse_and_import_zte_bulkcm', start_date=dag.start_date,
+  subdag=parse_and_import_zte_bulkcm('cm_load', 'parse_and_import_zte_bulkcm', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
   task_id='parse_and_import_zte_bulkcm',
   dag=dag,
@@ -153,19 +145,6 @@ t4 = BashOperator(
     bash_command='echo 0;',
     # bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ 2>/dev/null',
     dag=dag)
-
-
-# Run network baseline
-def generate_eri_3g4g_network_baseline():
-    networkBaseLine = NetworkBaseLine(dbhost=os.environ.get('POSTGRES_HOST'));
-    networkBaseLine.run('1', '2')
-
-
-t6 = PythonOperator(
-    task_id='generate_eri_3g4g_network_baseline',
-    python_callable=generate_eri_3g4g_network_baseline,
-    dag=dag)
-
 
 
 # Process ericsson RNCs
@@ -389,7 +368,7 @@ def start_cm_etlp():
 
 
 t_start_cm_etlp = PythonOperator(
-    task_id='start_cm_etlp',
+    task_id='start_cm_load',
     python_callable=start_cm_etlp,
     dag=dag)
 
@@ -402,13 +381,13 @@ def end_cm_etlp():
     process_cm_data.mark_cm_load_as_completed('SUCCESS')
 
 t_end_cm_etlp = PythonOperator(
-    task_id='end_cm_etlp',
+    task_id='end_cm_load',
     python_callable=end_cm_etlp,
     dag=dag)
 
 
 # End Extaction Transformation Load Process
-t33 = DummyOperator(task_id='end_cm_etlp', dag=dag)
+t33 = DummyOperator(task_id='end_cm_load', dag=dag)
 
 def process_huawei_cm():
     """If Huawei is supported, detect file formats and backup previous csv files"""
@@ -949,16 +928,15 @@ join_nokia_supported_task = DummyOperator(
 )
 
 # Build dependency graph
-# dag.set_dependency('start_cm_etlp','is_ericsson_supported')
-dag.set_dependency('start_cm_etlp','process_ericsson')
+# dag.set_dependency('start_cm_load','is_ericsson_supported')
+dag.set_dependency('start_cm_load','process_ericsson')
 
 dag.set_dependency('ericsson_cm_done','join_ericsson_supported')
-dag.set_dependency('join_ericsson_supported','end_cm_etlp')
+dag.set_dependency('join_ericsson_supported','end_cm_load')
 
 dag.set_dependency('process_ericsson','parse_and_import_ericsson_bulkcm')
 
 dag.set_dependency('parse_and_import_ericsson_bulkcm','backup_3g4g_raw_files')
-dag.set_dependency('parse_and_import_ericsson_bulkcm','generate_eri_3g4g_network_baseline')
 dag.set_dependency('parse_and_import_ericsson_bulkcm','process_eri_rncs')
 dag.set_dependency('parse_and_import_ericsson_bulkcm','process_eri_enodebs')
 dag.set_dependency('process_eri_rncs','extract_ericsson_3g_sites')
@@ -966,7 +944,6 @@ dag.set_dependency('extract_ericsson_3g_sites','extract_ericsson_3g_cells')
 dag.set_dependency('process_eri_enodebs','extract_ericsson_4g_cells')
 dag.set_dependency('extract_ericsson_3g_cells','cell_extraction_done')
 
-dag.set_dependency('generate_eri_3g4g_network_baseline','ericsson_cm_done')
 dag.set_dependency('backup_3g4g_raw_files','ericsson_cm_done')
 
 
@@ -1029,9 +1006,9 @@ dag.set_dependency('extract_ericsson_2g_cells','cell_extraction_done')
 # ###########################################################################
 # Huawei
 # ##########################################################################
-dag.set_dependency('start_cm_etlp','process_huawei_cm')
+dag.set_dependency('start_cm_load','process_huawei_cm')
 dag.set_dependency('huawei_cm_done','join_huawei_supported')
-dag.set_dependency('join_huawei_supported','end_cm_etlp')
+dag.set_dependency('join_huawei_supported','end_cm_load')
 
 dag.set_dependency('process_huawei_cm','parse_and_import_huawei_mml')
 dag.set_dependency('parse_and_import_huawei_mml','huawei_parsing_done')
@@ -1107,7 +1084,7 @@ dag.set_dependency('parse_and_import_huawei_cfgsyn','huawei_parsing_done')
 
 # ZTE
 # ##############################################
-dag.set_dependency('start_cm_etlp','process_zte')
+dag.set_dependency('start_cm_load','process_zte')
 dag.set_dependency('process_zte','parse_and_import_zte_bulkcm')
 dag.set_dependency('parse_and_import_zte_bulkcm','zte_parsing_done')
 
@@ -1155,22 +1132,18 @@ dag.set_dependency('extract_zte_4g3g_nbrs','zte_cm_done')
 dag.set_dependency('extract_zte_4g4g_nbrs','zte_cm_done')
 
 dag.set_dependency('zte_cm_done','join_zte_supported')
-dag.set_dependency('join_zte_supported','end_cm_etlp')
+dag.set_dependency('join_zte_supported','end_cm_load')
 # Nokia
 # ##############################################
-dag.set_dependency('start_cm_etlp','process_nokia')
+dag.set_dependency('start_cm_load','process_nokia')
 
 dag.set_dependency('process_nokia','join_nokia_supported')
-dag.set_dependency('join_nokia_supported','end_cm_etlp')
+dag.set_dependency('join_nokia_supported','end_cm_load')
 
 
 # After
-dag.set_dependency('cell_extraction_done','end_cm_etlp')
+dag.set_dependency('cell_extraction_done','end_cm_load')
 
 
 dag.set_dependency('cell_extraction_done', 'extract_network_externals')
-dag.set_dependency('extract_network_externals', 'end_cm_etlp')
-
-
-# Network audits
-dag.set_dependency('end_cm_etlp', 'run_network_audits')
+dag.set_dependency('extract_network_externals', 'end_cm_load')
