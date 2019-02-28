@@ -13,6 +13,7 @@ from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM, ZTE
 
 huawei_cm = HuaweiCM()
 ericsson_cm = EricssonCM()
+zte_cm = ZTECM()
 
 
 def extract_network_externals(parent_dag_name, child_dag_name, start_date, schedule_interval):
