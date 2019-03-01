@@ -3,12 +3,14 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 import logging
+import os
 
 # @todo: use logger
 class NetworkBaseLine(object):
 
-    def __init__(self, db_name = None, db_user = None, db_pass = None, db_host = None):
+    def __init__(self, db_name='bts', db_user='bodastage', db_pass='password', db_host='database'):
         ''' Constructor for this class. '''
+
         self.engine = create_engine('postgresql://{}:{}@{}/{}'.format(db_user, db_pass, db_host, db_name))
         self.logger =logging.getLogger('network-baseline')
 
