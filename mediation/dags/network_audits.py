@@ -81,10 +81,10 @@ def inconsistent_lte_externals():
 
 def generate_missing_one_way_relations():
     network_audit = NetworkAudit()
-    network_audit.generate_incosistent_lte_externals()
+    network_audit.generate_missing_one_way_relations()
 
 
-def genearate_missing_cosite_relations():
+def generate_missing_cosite_relations():
     network_audit = NetworkAudit()
     network_audit.generate_missing_cosite_relations()
 
@@ -109,21 +109,21 @@ generate_missing_one_way_relations_task = PythonOperator(
     python_callable=generate_missing_one_way_relations,
     dag=dag)
 
-genearate_missing_cosite_relations_task = PythonOperator(
-    task_id='genearate_missing_cosite_relations',
-    python_callable=genearate_missing_cosite_relations,
+generate_missing_cosite_relations_task = PythonOperator(
+    task_id='generate_missing_cosite_relations',
+    python_callable=generate_missing_cosite_relations,
     dag=dag)
 
 dag.set_dependency('start_network_audits', 'generate_inconsistent_gsm_externals')
 dag.set_dependency('start_network_audits', 'generate_inconsistent_umts_externals')
 dag.set_dependency('start_network_audits', 'generate_inconsistent_lte_externals')
 dag.set_dependency('start_network_audits', 'generate_missing_one_way_relations')
-dag.set_dependency('start_network_audits', 'genearate_missing_cosite_relations')
+dag.set_dependency('start_network_audits', 'generate_missing_cosite_relations')
 
 dag.set_dependency('generate_inconsistent_gsm_externals', 'end_network_audits')
 dag.set_dependency('generate_inconsistent_umts_externals', 'end_network_audits')
 dag.set_dependency('generate_inconsistent_lte_externals', 'end_network_audits')
 dag.set_dependency('generate_missing_one_way_relations', 'end_network_audits')
-dag.set_dependency('genearate_missing_cosite_relations', 'end_network_audits')
+dag.set_dependency('generate_missing_cosite_relations', 'end_network_audits')
 
 
