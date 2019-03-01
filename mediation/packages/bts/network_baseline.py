@@ -838,7 +838,7 @@ class NetworkBaseLine(object):
 
         insert_qry = """
             INSERT INTO baseline.network_baseline
-            (date_time, vendor, nename, mo, parameter, pvalue)
+            (date_time, vendor, nename, mo, parameter, bvalue)
             SELECT 
                 date_time,
                 vendor, 
@@ -864,15 +864,16 @@ class NetworkBaseLine(object):
 
         # Delete old values
         delete_qry = """
-        DELETE FROM  baseline.network_baseline
-        WHERE 
-        (vendor, nename, mo, parameter, occurence) NOT IN 
-        (
-            SELECT 
-                vendor, nename, mo, parameter, MAX(occurence)
-            FROM baseline.parameter_value_counts t2
-            GROUP BY vendor, nename, mo, parameter
-        )
+           DELETE FROM  baseline.network_baseline
+            WHERE 
+            (vendor, nename, mo, parameter, bvalue) NOT IN 
+            (
+                SELECT 
+                    vendor, nename, mo, parameter, bvalue 
+                FROM baseline.parameter_value_counts t2
+                GROUP BY vendor, nename, mo, parameter
+            )
+            
         """
         self.engine.execute(text(delete_qry))
 
