@@ -21,8 +21,6 @@ sys.path.append('/mediation/packages')
 
 from bts import NetworkBaseLine, Utils
 
-
-
 schedule_interval = "@daily" # # bts_utils.get_setting('cm_dag_schedule_interval')
 
 args = {
