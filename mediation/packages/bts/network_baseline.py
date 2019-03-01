@@ -831,9 +831,9 @@ class NetworkBaseLine(object):
             print(sql)
             cur.execute(sql)
 
-    def run_huawei_baseline(self):
+    def run_network_baseline(self):
         """
-        Run baseline for all Huawei technologies
+        Run baseline for all technologies
 
         :return:
         """
@@ -911,7 +911,6 @@ class NetworkBaseLine(object):
                     LEFT JOIN baseline.parameter_ignore_list t2 
                         ON t1.table_name = t2.mo
                         AND t1.column_name = t2.parameter
-                        AND t2.vendor  = 'HUAWEI'
                 WHERE 
                     table_schema = 'huawei_cm'
                     AND table_name = :mo
@@ -999,7 +998,6 @@ class NetworkBaseLine(object):
                     LEFT JOIN baseline.parameter_ignore_list t2 
                         ON t1.table_name = t2.mo
                         AND t1.column_name = t2.parameter
-                        AND t2.vendor  = 'HUAWEI'
                 WHERE 
                     table_schema = 'huawei_cm'
                     AND table_name = :mo
@@ -1078,7 +1076,6 @@ class NetworkBaseLine(object):
                     LEFT JOIN baseline.parameter_ignore_list t2 
                         ON t1.table_name = t2.mo
                         AND t1.column_name = t2.parameter
-                        AND t2.vendor  = 'ERICSSON'
                 WHERE 
                     table_schema = 'ericsson_cm'
                     AND table_name = :mo
@@ -1156,7 +1153,6 @@ class NetworkBaseLine(object):
                     LEFT JOIN baseline.parameter_ignore_list t2 
                         ON t1.table_name = t2.mo
                         AND t1.column_name = t2.parameter
-                        AND t2.vendor  = 'ERICSSON'
                 WHERE 
                     table_schema = 'ericsson_cm'
                     AND table_name = :mo
@@ -1231,7 +1227,6 @@ class NetworkBaseLine(object):
                         LEFT JOIN baseline.parameter_ignore_list t2 
                             ON t1.table_name = t2.mo
                             AND t1.column_name = t2.parameter
-                            AND t2.vendor  = 'ERICSSON'
                     WHERE 
                         table_schema = 'ericsson_cm'
                         AND table_name = :mo
@@ -1305,7 +1300,6 @@ class NetworkBaseLine(object):
                         LEFT JOIN baseline.parameter_ignore_list t2 
                             ON t1.table_name = t2.mo
                             AND t1.column_name = t2.parameter
-                            AND t2.vendor  = 'ZTE'
                     WHERE 
                         table_schema = 'zte_cm'
                         AND table_name = :mo
@@ -1379,7 +1373,6 @@ class NetworkBaseLine(object):
                              LEFT JOIN baseline.parameter_ignore_list t2 
                                  ON t1.table_name = t2.mo
                                  AND t1.column_name = t2.parameter
-                                 AND t2.vendor  = 'ZTE'
                          WHERE 
                              table_schema = 'zte_cm'
                              AND table_name = :mo
@@ -1453,7 +1446,6 @@ class NetworkBaseLine(object):
                         LEFT JOIN baseline.parameter_ignore_list t2 
                             ON t1.table_name = t2.mo
                             AND t1.column_name = t2.parameter
-                            AND t2.vendor  = 'ZTE'
                     WHERE 
                         table_schema = 'zte_cm'
                         AND table_name = :mo
