@@ -955,7 +955,8 @@ class NetworkBaseLine(object):
                     t1."{1}" IS NOT NULL
                     AND t5.is_current_load = true
                 GROUP BY t4."TAC", t1."{1}"
-
+                ON CONFLICT ON CONSTRAINT uq_parameter_value_counts
+                DO NOTHING
                 """.format(mo, parameter)
 
                 # self.logger.info(value_qry)
@@ -1036,7 +1037,9 @@ class NetworkBaseLine(object):
                 WHERE t3.is_current_load = true AND t1."{1}" IS NOT NULL
                 GROUP BY 
                     t2."SYSOBJECTID", t1."{1}"
-
+                ON CONFLICT ON CONSTRAINT uq_parameter_value_counts
+                DO NOTHING
+                
                 """.format(mo, parameter)
 
                 self.engine.execute(text(value_qry))
@@ -1111,7 +1114,8 @@ class NetworkBaseLine(object):
                 WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
                 GROUP BY 
                     t1."BSC_NAME", t1."{1}"
-
+                ON CONFLICT ON CONSTRAINT uq_parameter_value_counts
+                DO NOTHING
                 """.format(mo, parameter)
 
                 self.engine.execute(text(value_qry))
@@ -1182,7 +1186,8 @@ class NetworkBaseLine(object):
                 WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
                 GROUP BY 
                     t1."SubNetwork_2_id", t1."{1}"
-
+                ON CONFLICT ON CONSTRAINT uq_parameter_value_counts
+                DO NOTHING
                 """.format(mo, parameter)
 
                 self.engine.execute(text(value_qry))
@@ -1253,7 +1258,8 @@ class NetworkBaseLine(object):
                     WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
                     GROUP BY 
                         t1."SubNetwork_2_id", t1."{1}"
-
+                    ON CONFLICT ON CONSTRAINT uq_parameter_value_counts
+                    DO NOTHING
                     """.format(mo, parameter)
 
                 self.engine.execute(text(value_qry))
@@ -1323,8 +1329,9 @@ class NetworkBaseLine(object):
                         INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
                     WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
                     GROUP BY 
-                        t1."SubNetwork_2_id", t1."{1}",
-
+                        t1."SubNetwork_2_id", t1."{1}"
+                        ON CONFLICT ON CONSTRAINT uq_parameter_value_counts
+                        DO NOTHING
                     """.format(mo, parameter)
 
                 self.engine.execute(text(value_qry))
@@ -1395,8 +1402,9 @@ class NetworkBaseLine(object):
                              INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
                          WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
                          GROUP BY 
-                             t1."SubNetwork_2_id", t1."{1}",
-
+                             t1."SubNetwork_2_id", t1."{1}"
+                        ON CONFLICT ON CONSTRAINT uq_parameter_value_counts
+                        DO NOTHING
                          """.format(mo, parameter)
 
                 self.engine.execute(text(value_qry))
@@ -1466,8 +1474,9 @@ class NetworkBaseLine(object):
                         INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
                     WHERE t2.is_current_load = true AND t1."{1}" IS NOT NULL
                     GROUP BY 
-                        t1."SubNetwork_2_id", t1."{1}",
-
+                        t1."SubNetwork_2_id", t1."{1}"
+                ON CONFLICT ON CONSTRAINT uq_parameter_value_counts
+                DO NOTHING
                     """.format(mo, parameter)
 
                 self.engine.execute(text(value_qry))
