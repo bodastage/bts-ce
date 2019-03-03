@@ -74,6 +74,10 @@ Rem Run setup
 Rem -------------------------
 If "%~1"=="setup" ( 
     Echo Running BTS-CE setup...
+
+    Echo Creating default folders...
+	Call create_folders.bat >Nul 2>&1
+
 	Echo. 
 	Powershell -ExecutionPolicy ByPass -File win\Setup.ps1
 )
@@ -173,7 +177,10 @@ If "%~1"=="create" (
 	    docker-compose up -d %~2
 		Exit /b 0
 	)
-	
+
+    Echo Creating default folders...
+	Call create_folders.bat >Nul 2>&1
+
     docker-compose up -d
 )
 

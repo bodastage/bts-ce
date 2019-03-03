@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#   Copyright 2018 Bodastage Solutions
+#   Copyright 2019 Bodastage Solutions
 #
 #   Licensed under the Apache License, Version 2.0 (the "License")
 #   and "Commons Clause" License Condition v1.0;
@@ -17,7 +17,7 @@
 #   limitations under the License.
 #
 #
-#    Management utility for BTS-EE
+#    Management utility for BTS-CE
 #	
 # set -x 
 
@@ -41,7 +41,7 @@ fi
 
 function show_help(){
 
-echo "Boda Telecom Suite EE - Management Utility"
+echo "Boda Telecom Suite CE - Management Utility"
 echo "-----------------------------------------------------"
 echo "bts version                        -- Application version"
 echo "bts setup                          -- Setup application, create and start services"
@@ -82,8 +82,8 @@ function run_setup(){
 function show_version(){
 	 version=$(cat $cur_dir/VERSION 2>/dev/null)
 	 echo "Version: $version"
-	 echo "Boda Telecom Suite - Enterprise Edition"
-	 echo "Copyright 2017-2018. Bodastage Solutions. http://www.bodastage.com"
+	 echo "Boda Telecom Suite - Community Edition"
+	 echo "Copyright 2017-2019. Bodastage Solutions. http://www.bodastage.com"
 }
 
 
@@ -194,7 +194,10 @@ do
 			docker-compose up -d $2
 			exit 0
 		fi
-		 
+
+        # Create the default folders
+        $cur_dir/create_folders.sh
+
 		docker-compose up -d
 	    exit 0
 	 ;;
@@ -209,6 +212,9 @@ do
 		exit 0
 	 ;;
 	 setup)
+        # Create the default folders
+        $cur_dir/create_folders.sh
+
 		run_setup
 		$cur_dir/bts.sh create
 		exit 0
