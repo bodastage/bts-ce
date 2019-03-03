@@ -37,6 +37,8 @@ from cm_sub_dag_parse_and_import_zte_bulkcm import parse_and_import_zte_bulkcm
 from cm_sub_dag_parse_and_import_huawei_rnp import parse_and_import_huawei_rnp
 from airflow.utils.trigger_rule import TriggerRule
 from cm_sub_dag_extract_externals import extract_network_externals
+from cm_sub_dag_cm_load_house_keeping import run_house_keeping_tasks
+
 
 sys.path.append('/mediation/packages')
 
@@ -79,6 +81,14 @@ sub_dag_extract_network_externals_task = SubDagOperator(
   task_id='extract_network_externals',
   dag=dag,
 )
+
+sub_dag_cm_load_house_keeping_task = SubDagOperator(
+  subdag=run_house_keeping_tasks('cm_load', 'cm_load_house_keeping', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='cm_load_house_keeping',
+  dag=dag,
+)
+
 
 sub_dag_parse_and_import_eri_3g4g_cm_files = SubDagOperator(
   subdag=parse_and_import_eri_3g4g('cm_load', 'parse_and_import_ericsson_bulkcm', start_date=dag.start_date,
@@ -1147,3 +1157,5 @@ dag.set_dependency('cell_extraction_done','end_cm_load')
 
 dag.set_dependency('cell_extraction_done', 'extract_network_externals')
 dag.set_dependency('extract_network_externals', 'end_cm_load')
+
+dag.set_dependency('end_cm_load', 'cm_load_house_keeping')
