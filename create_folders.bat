@@ -1,3 +1,4 @@
+@Echo off
 Rem create mediation directories
 Set MEDIATION_DIR=mediation\data\cm
 mkdir %MEDIATION_DIR%
