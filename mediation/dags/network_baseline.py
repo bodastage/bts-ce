@@ -206,6 +206,9 @@ dag.set_dependency('zte_3g_value_counts', 'compute_network_baseline')
 dag.set_dependency('zte_4g_value_counts', 'compute_network_baseline')
 
 
-dag.set_dependency('compute_network_baseline', 'end_baseline')
+dag.set_dependency('compute_network_baseline', 'run_network_baseline_audit')
+
+dag.set_dependency('run_network_baseline_audit', 'end_baseline')
+
 
 
