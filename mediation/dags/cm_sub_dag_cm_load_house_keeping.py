@@ -37,23 +37,23 @@ def run_house_keeping_tasks(parent_dag_name, child_dag_name, start_date, schedul
 
     backup_huawei_cm_dumps_task = BashOperator(
         task_id='backup_huawei_cm_dumps',
-        bash_command='mv -f /mediation/data/cm/huawei/raw/{nbi,mml,gexport,cfgsyn}/* /mediation/data/cm/huawei/raw/backup/ 2>/dev/null',
+        bash_command='mv -f /mediation/data/cm/huawei/raw/{nbi,mml,gexport,cfgsyn}/* /mediation/data/cm/huawei/raw/backup/ 2>/dev/null || true',
         dag=dag)
 
 
     backup_ericsson_cm_dumps_task = BashOperator(
         task_id='backup_ericsson_cm_dumps',
-        bash_command='mv -f /mediation/data/cm/ericsson/raw/{bulkcm,eaw,cnaiv2}/* /mediation/data/cm/ericsson/raw/backup/ 2>/dev/null',
+        bash_command='mv -f /mediation/data/cm/ericsson/raw/{bulkcm,eaw,cnaiv2}/* /mediation/data/cm/ericsson/raw/backup/ 2>/dev/null || true',
         dag=dag)
 
     backup_zte_cm_dumps_task = BashOperator(
         task_id='backup_zte_cm_dumps',
-        bash_command='mv -f /mediation/data/cm/zte/raw/{bulkcm,icm}/* /mediation/data/cm/zte/raw/backup/ 2>/dev/null',
+        bash_command='mv -f /mediation/data/cm/zte/raw/{bulkcm,icm}/* /mediation/data/cm/zte/raw/backup/ 2>/dev/null || true',
         dag=dag)
 
     backup_nokia_cm_dumps_task = BashOperator(
         task_id='backup_nokia_cm_dumps',
-        bash_command='mv -f /mediation/data/cm/nokia/raw/{raml2}/* /mediation/data/cm/nokia/raw/backup/ 2>/dev/null',
+        bash_command='mv -f /mediation/data/cm/nokia/raw/{raml2}/* /mediation/data/cm/nokia/raw/backup/ 2>/dev/null || true',
         dag=dag)
 
 
