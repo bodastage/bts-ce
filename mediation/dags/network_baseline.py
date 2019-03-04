@@ -161,16 +161,14 @@ compute_baseline = PythonOperator(
     python_callable=compute_network_baseline,
     dag=dag)
 
-def network_baseline_audit():
+def run_network_baseline_audit():
     nb.run_baseline_audit()
 
 
-run_network_baseline_audit = PythonOperator(
+network_baseline_audit = PythonOperator(
     task_id='run_network_baseline_audit',
-    python_callable=compute_network_baseline,
+    python_callable=run_network_baseline_audit,
     dag=dag)
-
-
 
 ext_dep = ExternalTaskSensor(
     external_dag_id='cm_load',
