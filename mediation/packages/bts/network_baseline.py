@@ -1494,7 +1494,18 @@ class NetworkBaseLine(object):
     def run_huawei_2g3g_audit(self, tech='2G'):
 
         vendor = 'HUAWEI'
-        result = self.engine.execute(text("SELECT * FROM baseline.network_baseline WHERE technology = :tech AND vendor = :vendor"), tech=tech, vendor=vendor)
+        result = self.engine.execute(text("""
+            SELECT 
+            * 
+            FROM baseline.network_baseline t1
+            INNER JOIN baseline.process_config t2 
+                ON t2.mo = t1.mo 
+                AND t2.vendor =  t1.vendor
+            WHERE
+                t1.vendor = :vendor
+                AND t2.tech = :tech
+        """), tech=tech, vendor=vendor)
+
         for row in result:
             vendor = row[2]
             nename = row[3]
@@ -1576,7 +1587,19 @@ class NetworkBaseLine(object):
 
         tech  = '4G'
         vendor = 'HUAWEI'
-        result = self.engine.execute(text("SELECT * FROM baseline.network_baseline WHERE technology = :tech AND vendor = :vendor"), tech=tech, vendor=vendor)
+
+        result = self.engine.execute(text("""
+            SELECT 
+            * 
+            FROM baseline.network_baseline t1
+            INNER JOIN baseline.process_config t2 
+                ON t2.mo = t1.mo 
+                AND t2.vendor =  t1.vendor
+            WHERE
+                t1.vendor = :vendor
+                AND t2.tech = :tech
+        """), tech=tech, vendor=vendor)
+
         for row in result:
             vendor = row[2]
             nename = row[3]
@@ -1668,7 +1691,19 @@ class NetworkBaseLine(object):
 
         tech  = '2G'
         vendor = 'ERICSSON'
-        result = self.engine.execute(text("SELECT * FROM baseline.network_baseline WHERE technology = :tech AND vendor = :vendor"), tech=tech, vendor=vendor)
+
+        result = self.engine.execute(text("""
+            SELECT 
+            * 
+            FROM baseline.network_baseline t1
+            INNER JOIN baseline.process_config t2 
+                ON t2.mo = t1.mo 
+                AND t2.vendor =  t1.vendor
+            WHERE
+                t1.vendor = :vendor
+                AND t2.tech = :tech
+        """), tech=tech, vendor=vendor)
+
         for row in result:
             vendor = row[2]
             nename = row[3]
@@ -1683,7 +1718,6 @@ class NetworkBaseLine(object):
             SELECT 
             NEXTVAL('network_audit.seq_network_baseline_pk'),
             '{0}' AS "VENDOR",
-            '{1}' AS "TECHNOLOGY",
             '{2}' AS nename,
             '{3}' AS mo,
             '{4}' AS parameter,
@@ -1745,7 +1779,19 @@ class NetworkBaseLine(object):
 
         tech  = '3G'
         vendor = 'ERICSSON'
-        result = self.engine.execute(text("SELECT * FROM baseline.network_baseline WHERE technology = :tech AND vendor = :vendor"), tech=tech, vendor=vendor)
+
+        result = self.engine.execute(text("""
+            SELECT 
+            * 
+            FROM baseline.network_baseline t1
+            INNER JOIN baseline.process_config t2 
+                ON t2.mo = t1.mo 
+                AND t2.vendor =  t1.vendor
+            WHERE
+                t1.vendor = :vendor
+                AND t2.tech = :tech
+        """), tech=tech, vendor=vendor)
+
         for row in result:
             vendor = row[2]
             nename = row[3]
@@ -1821,7 +1867,18 @@ class NetworkBaseLine(object):
 
         tech  = '4G'
         vendor = 'ERICSSON'
-        result = self.engine.execute(text("SELECT * FROM baseline.network_baseline WHERE technology = :tech AND vendor = :vendor"), tech=tech, vendor=vendor)
+        result = self.engine.execute(text("""
+            SELECT 
+            * 
+            FROM baseline.network_baseline t1
+            INNER JOIN baseline.process_config t2 
+                ON t2.mo = t1.mo 
+                AND t2.vendor =  t1.vendor
+            WHERE
+                t1.vendor = :vendor
+                AND t2.tech = :tech
+        """), tech=tech, vendor=vendor)
+
         for row in result:
             vendor = row[2]
             nename = row[3]
@@ -1897,7 +1954,19 @@ class NetworkBaseLine(object):
 
         tech  = '2G'
         vendor = 'ZTE'
-        result = self.engine.execute(text("SELECT * FROM baseline.network_baseline WHERE technology = :tech AND vendor = :vendor"), tech=tech, vendor=vendor)
+
+        result = self.engine.execute(text("""
+            SELECT 
+            * 
+            FROM baseline.network_baseline t1
+            INNER JOIN baseline.process_config t2 
+                ON t2.mo = t1.mo 
+                AND t2.vendor =  t1.vendor
+            WHERE
+                t1.vendor = :vendor
+                AND t2.tech = :tech
+        """), tech=tech, vendor=vendor)
+
         for row in result:
             vendor = row[2]
             nename = row[3]
@@ -1973,7 +2042,19 @@ class NetworkBaseLine(object):
 
         tech  = '3G'
         vendor = 'ZTE'
-        result = self.engine.execute(text("SELECT * FROM baseline.network_baseline WHERE technology = :tech AND vendor = :vendor"), tech=tech, vendor=vendor)
+
+        result = self.engine.execute(text("""
+            SELECT 
+            * 
+            FROM baseline.network_baseline t1
+            INNER JOIN baseline.process_config t2 
+                ON t2.mo = t1.mo 
+                AND t2.vendor =  t1.vendor
+            WHERE
+                t1.vendor = :vendor
+                AND t2.tech = :tech
+        """), tech=tech, vendor=vendor)
+
         for row in result:
             vendor = row[2]
             nename = row[3]
@@ -2049,7 +2130,19 @@ class NetworkBaseLine(object):
 
         tech  = '4G'
         vendor = 'ZTE'
-        result = self.engine.execute(text("SELECT * FROM baseline.network_baseline WHERE technology = :tech AND vendor = :vendor"), tech=tech, vendor=vendor)
+
+        result = self.engine.execute(text("""
+            SELECT 
+            * 
+            FROM baseline.network_baseline t1
+            INNER JOIN baseline.process_config t2 
+                ON t2.mo = t1.mo 
+                AND t2.vendor =  t1.vendor
+            WHERE
+                t1.vendor = :vendor
+                AND t2.tech = :tech
+        """), tech=tech, vendor=vendor)
+
         for row in result:
             vendor = row[2]
             nename = row[3]
