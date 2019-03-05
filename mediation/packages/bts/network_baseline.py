@@ -1503,7 +1503,7 @@ class NetworkBaseLine(object):
                 AND t2.vendor =  t1.vendor
             WHERE
                 t1.vendor = :vendor
-                AND t2.tech = :tech
+                AND t2.technology = :tech
         """), tech=tech, vendor=vendor)
 
         for row in result:
@@ -1516,7 +1516,7 @@ class NetworkBaseLine(object):
 
             sql = """
             INSERT INTO network_audit.network_baseline
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
+            (pk, vendor, technology, nename, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('network_audit.seq_network_baseline_pk'),
             '{0}' AS "VENDOR",
@@ -1538,50 +1538,49 @@ class NetworkBaseLine(object):
                     AND t2."LOADID" = t1."LOADID"
                 INNER JOIN cm_loads t3 on t3.pk = t1."LOADID"
             WHERE t3.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
+                AND t1."{4}" IS NOT NULL
                 AND t2."SYSOBJECTID" = '{2}'
                 AND t1."{4}" != '{5}'
-            ON CONFLICT unique_network_baseline
+            ON CONFLICT ON CONSTRAINT unique_network_baseline
             DO
             UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.network_baseline.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
                        date_modified = network_audit.network_baseline.date_modified
             """.format(vendor, tech, nename,mo, parameter, bvalue)
             self.engine.execute(text(sql))
 
-        # Delete old
-        sql = """
-            DELETE FROM 
-            network_audit.network_baseline t1
-            WHERE 
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue)
-            NOT IN  (
-                SELECT 
-                '{0}' AS "VENDOR",
-                '{1}' AS "TECHNOLOGY",
-                '{2}' AS nename,
-                '{3}' AS mo,
-                '{4}' AS parameter,
-                '{5}' as bvalue,
-                t1."{4}" as nvalue 
-                FROM
-                    huawei_cm."{3}" t1
-                    INNER JOIN huawei_cm."SYS" t2 
-                        ON t2."FILENAME" = t1."FILENAME"
-                        AND t2."LOADID" = t1."LOADID"
-                    INNER JOIN cm_loads t3 on t3.pk = t1."LOADID"
-                WHERE t3.is_current_load = true 
-                    AND t1."{1}" IS NOT NULL
-                    AND t2."SYSOBJECTID" = '{2}'
-                    AND t1."{4}" != '{5}'
+            # Delete old
+            sql = """
+                DELETE FROM 
+                network_audit.network_baseline t1
+                WHERE 
+                (vendor, technology, nename, mo, parameter, bvalue, nvalue)
+                NOT IN  (
+                    SELECT 
+                    '{0}' AS "VENDOR",
+                    '{1}' AS "TECHNOLOGY",
+                    '{2}' AS nename,
+                    '{3}' AS mo,
+                    '{4}' AS parameter,
+                    '{5}' as bvalue,
+                    t1."{4}" as nvalue 
+                    FROM
+                        huawei_cm."{3}" t1
+                        INNER JOIN huawei_cm."SYS" t2 
+                            ON t2."FILENAME" = t1."FILENAME"
+                            AND t2."LOADID" = t1."LOADID"
+                        INNER JOIN cm_loads t3 on t3.pk = t1."LOADID"
+                    WHERE t3.is_current_load = true 
+                        AND t1."{4}" IS NOT NULL
+                        AND t2."SYSOBJECTID" = '{2}'
+                        AND t1."{4}" != '{5}'
                 )
-            )
-            AND  t1.vendor = '{0}'
-            AND t1.technology = '{1}'
-            AND t1.nemame = '{2}'
-            AND t1.mo = '{3}'
-            AND t1.parameter = '{4}'
-        """.format(vendor, tech, nename,mo, parameter, bvalue)
-        self.engine.execute(sql)
+                AND  t1.vendor = '{0}'
+                AND t1.technology = '{1}'
+                AND t1.nename = '{2}'
+                AND t1.mo = '{3}'
+                AND t1.parameter = '{4}'
+            """.format(vendor, tech, nename,mo, parameter, bvalue)
+            self.engine.execute(sql)
 
     def run_huawei_4g_audit(self):
 
@@ -1597,7 +1596,7 @@ class NetworkBaseLine(object):
                 AND t2.vendor =  t1.vendor
             WHERE
                 t1.vendor = :vendor
-                AND t2.tech = :tech
+                AND t2.technology = :tech
         """), tech=tech, vendor=vendor)
 
         for row in result:
@@ -1610,7 +1609,7 @@ class NetworkBaseLine(object):
 
             sql = """
             INSERT INTO network_audit.network_baseline
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
+            (pk, vendor, technology, nename, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('network_audit.seq_network_baseline_pk'),
             '{0}' AS "VENDOR",
@@ -1637,55 +1636,54 @@ class NetworkBaseLine(object):
                 ON t4."ENODEBFUNCTIONNAME"  = t3."ENODEBFUNCTIONNAME"
                 AND t4."LOADID" = t1."LOADID"
             WHERE t3.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
+                AND t1."{4}" IS NOT NULL
                 AND t2."TAC" = '{2}'
                 AND t1."{4}" != '{5}'
-            ON CONFLICT unique_network_baseline
+            ON CONFLICT ON CONSTRAINT unique_network_baseline
             DO
             UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.network_baseline.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
                        date_modified = network_audit.network_baseline.date_modified
             """.format(vendor, tech, nename,mo, parameter, bvalue)
             self.engine.execute(text(sql))
 
-        # Delete old
-        sql = """
-            DELETE FROM 
-            network_audit.network_baseline t1
-            WHERE 
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue)
-            NOT IN  (
-                SELECT 
-                '{0}' AS "VENDOR",
-                '{1}' AS "TECHNOLOGY",
-                '{2}' AS nename,
-                '{3}' AS mo,
-                '{4}' AS parameter,
-                '{5}' as bvalue,
-                t1."{4}" as nvalue 
-                FROM huawei_cm."{3}" t1
-                INNER JOIN cm_loads t5 on t5.pk = t1."LOADID"
-                INNER JOIN huawei_cm."CELL" t2
-                    ON t2."CELLID" = t1."LOCALCELLID"
-                    AND t2."LOADID" = t1."LOADID"
-                INNER JOIN huawei_cm."ENODEBFUNCTION" t3 
-                    ON t3."ENODEBFUNCTIONNAME" =  t2."ENODEBFUNCTIONNAME"
-                    AND t3."LOADID" = t1."LOADID"
-                INNER JOIN huawei_cm."CNOPERATORTA" t4 
-                    ON t4."ENODEBFUNCTIONNAME"  = t3."ENODEBFUNCTIONNAME"
-                    AND t4."LOADID" = t1."LOADID"
-                WHERE t3.is_current_load = true 
-                    AND t1."{1}" IS NOT NULL
-                    AND t2."TAC" = '{2}'
-                    AND t1."{4}" != '{5}'
+            # Delete old
+            sql = """
+                DELETE FROM 
+                network_audit.network_baseline t1
+                WHERE 
+                (vendor, technology, nename, mo, parameter, bvalue, nvalue)
+                NOT IN  (
+                    SELECT 
+                    '{0}' AS "VENDOR",
+                    '{1}' AS "TECHNOLOGY",
+                    '{2}' AS nename,
+                    '{3}' AS mo,
+                    '{4}' AS parameter,
+                    '{5}' as bvalue,
+                    t1."{4}" as nvalue 
+                    FROM huawei_cm."{3}" t1
+                    INNER JOIN cm_loads t5 on t5.pk = t1."LOADID"
+                    INNER JOIN huawei_cm."CELL" t2
+                        ON t2."CELLID" = t1."LOCALCELLID"
+                        AND t2."LOADID" = t1."LOADID"
+                    INNER JOIN huawei_cm."ENODEBFUNCTION" t3 
+                        ON t3."ENODEBFUNCTIONNAME" =  t2."ENODEBFUNCTIONNAME"
+                        AND t3."LOADID" = t1."LOADID"
+                    INNER JOIN huawei_cm."CNOPERATORTA" t4 
+                        ON t4."ENODEBFUNCTIONNAME"  = t3."ENODEBFUNCTIONNAME"
+                        AND t4."LOADID" = t1."LOADID"
+                    WHERE t3.is_current_load = true 
+                        AND t1."{4}" IS NOT NULL
+                        AND t2."TAC" = '{2}'
+                        AND t1."{4}" != '{5}'
                 )
-            )
-            AND  t1.vendor = '{0}'
-            AND t1.technology = '{1}'
-            AND t1.nemame = '{2}'
-            AND t1.mo = '{3}'
-            AND t1.parameter = '{4}'
-        """.format(vendor, tech, nename,mo, parameter, bvalue)
-        self.engine.execute(sql)
+                AND  t1.vendor = '{0}'
+                AND t1.technology = '{1}'
+                AND t1.nename = '{2}'
+                AND t1.mo = '{3}'
+                AND t1.parameter = '{4}'
+            """.format(vendor, tech, nename,mo, parameter, bvalue)
+            self.engine.execute(sql)
 
     def run_ericsson_2g_audit(self):
 
@@ -1701,7 +1699,7 @@ class NetworkBaseLine(object):
                 AND t2.vendor =  t1.vendor
             WHERE
                 t1.vendor = :vendor
-                AND t2.tech = :tech
+                AND t2.technology = :tech
         """), tech=tech, vendor=vendor)
 
         for row in result:
@@ -1714,7 +1712,7 @@ class NetworkBaseLine(object):
 
             sql = """
             INSERT INTO network_audit.network_baseline
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
+            (pk, vendor, technology, nename, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('network_audit.seq_network_baseline_pk'),
             '{0}' AS "VENDOR",
@@ -1732,48 +1730,46 @@ class NetworkBaseLine(object):
                 ericsson_cm."{3}" t1
                 INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
             WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
+                AND t1."{4}" IS NOT NULL
                 AND t1."BSC_NAME" = '{2}'
-
                 AND t1."{4}" != '{5}'
-            ON CONFLICT unique_network_baseline
+            ON CONFLICT ON CONSTRAINT unique_network_baseline
             DO
             UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.network_baseline.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
                        date_modified = network_audit.network_baseline.date_modified
             """.format(vendor, tech, nename,mo, parameter, bvalue)
             self.engine.execute(text(sql))
 
-        # Delete old
-        sql = """
-            DELETE FROM 
-            network_audit.network_baseline t1
-            WHERE 
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue)
-            NOT IN  (
-                SELECT 
-                '{0}' AS "VENDOR",
-                '{1}' AS "TECHNOLOGY",
-                '{2}' AS nename,
-                '{3}' AS mo,
-                '{4}' AS parameter,
-                '{5}' as bvalue,
-                t1."{4}" as nvalue 
-            FROM
-                ericsson_cm."{3}" t1
-                INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
-            WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
-                AND t1."BSC_NAME" = '{2}'
+            # Delete old
+            sql = """
+                DELETE FROM 
+                network_audit.network_baseline t1
+                WHERE 
+                (vendor, technology, nename, mo, parameter, bvalue, nvalue)
+                NOT IN  (
+                    SELECT 
+                    '{0}' AS "VENDOR",
+                    '{1}' AS "TECHNOLOGY",
+                    '{2}' AS nename,
+                    '{3}' AS mo,
+                    '{4}' AS parameter,
+                    '{5}' as bvalue,
+                    t1."{4}" as nvalue 
+                FROM
+                    ericsson_cm."{3}" t1
+                    INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                WHERE t2.is_current_load = true 
+                    AND t1."{4}" IS NOT NULL
+                    AND t1."BSC_NAME" = '{2}'
                     AND t1."{4}" != '{5}'
                 )
-            )
-            AND  t1.vendor = '{0}'
-            AND t1.technology = '{1}'
-            AND t1.nemame = '{2}'
-            AND t1.mo = '{3}'
-            AND t1.parameter = '{4}'
-        """.format(vendor, tech, nename,mo, parameter, bvalue)
-        self.engine.execute(sql)
+                AND  t1.vendor = '{0}'
+                AND t1.technology = '{1}'
+                AND t1.nename = '{2}'
+                AND t1.mo = '{3}'
+                AND t1.parameter = '{4}'
+            """.format(vendor, tech, nename,mo, parameter, bvalue)
+            self.engine.execute(sql)
 
     def run_ericsson_3g_audit(self):
 
@@ -1789,7 +1785,7 @@ class NetworkBaseLine(object):
                 AND t2.vendor =  t1.vendor
             WHERE
                 t1.vendor = :vendor
-                AND t2.tech = :tech
+                AND t2.technology = :tech
         """), tech=tech, vendor=vendor)
 
         for row in result:
@@ -1802,7 +1798,7 @@ class NetworkBaseLine(object):
 
             sql = """
             INSERT INTO network_audit.network_baseline
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
+            (pk, vendor, technology, nename, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('network_audit.seq_network_baseline_pk'),
             '{0}' AS "VENDOR",
@@ -1821,47 +1817,46 @@ class NetworkBaseLine(object):
                 ericsson_cm."{3}" t1
                 INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
             WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
+                AND t1."{4}" IS NOT NULL
                 AND t1."SubNetwork_2_id" = '{2}'
                 AND t1."{4}" != '{5}'
-            ON CONFLICT unique_network_baseline
+            ON CONFLICT ON CONSTRAINT unique_network_baseline
             DO
             UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.network_baseline.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
                        date_modified = network_audit.network_baseline.date_modified
             """.format(vendor, tech, nename,mo, parameter, bvalue)
             self.engine.execute(text(sql))
 
-        # Delete old
-        sql = """
-            DELETE FROM 
-            network_audit.network_baseline t1
-            WHERE 
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue)
-            NOT IN  (
-                SELECT 
-                '{0}' AS "VENDOR",
-                '{1}' AS "TECHNOLOGY",
-                '{2}' AS nename,
-                '{3}' AS mo,
-                '{4}' AS parameter,
-                '{5}' as bvalue,
-                t1."{4}" as nvalue 
-            FROM
-                ericsson_cm."{3}" t1
-                INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
-            WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
-                AND t1."SubNetwork_2_id" = '{2}'
-                AND t1."{4}" != '{5}'
+            # Delete old
+            sql = """
+                DELETE FROM 
+                network_audit.network_baseline t1
+                WHERE 
+                (vendor, technology, nename, mo, parameter, bvalue, nvalue)
+                NOT IN  (
+                    SELECT 
+                    '{0}' AS "VENDOR",
+                    '{1}' AS "TECHNOLOGY",
+                    '{2}' AS nename,
+                    '{3}' AS mo,
+                    '{4}' AS parameter,
+                    '{5}' as bvalue,
+                    t1."{4}" as nvalue 
+                FROM
+                    ericsson_cm."{3}" t1
+                    INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                WHERE t2.is_current_load = true 
+                    AND t1."{4}" IS NOT NULL
+                    AND t1."SubNetwork_2_id" = '{2}'
+                    AND t1."{4}" != '{5}'
                 )
-            )
-            AND  t1.vendor = '{0}'
-            AND t1.technology = '{1}'
-            AND t1.nemame = '{2}'
-            AND t1.mo = '{3}'
-            AND t1.parameter = '{4}'
-        """.format(vendor, tech, nename,mo, parameter, bvalue)
-        self.engine.execute(sql)
+                AND  t1.vendor = '{0}'
+                AND t1.technology = '{1}'
+                AND t1.nename = '{2}'
+                AND t1.mo = '{3}'
+                AND t1.parameter = '{4}'
+            """.format(vendor, tech, nename,mo, parameter, bvalue)
+            self.engine.execute(sql)
 
     def run_ericsson_4g_audit(self):
 
@@ -1876,7 +1871,7 @@ class NetworkBaseLine(object):
                 AND t2.vendor =  t1.vendor
             WHERE
                 t1.vendor = :vendor
-                AND t2.tech = :tech
+                AND t2.technology = :tech
         """), tech=tech, vendor=vendor)
 
         for row in result:
@@ -1889,7 +1884,7 @@ class NetworkBaseLine(object):
 
             sql = """
             INSERT INTO network_audit.network_baseline
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
+            (pk, vendor, technology, nename, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('network_audit.seq_network_baseline_pk'),
             '{0}' AS "VENDOR",
@@ -1908,47 +1903,47 @@ class NetworkBaseLine(object):
                 ericsson_cm."{3}" t1
                 INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
             WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
+                AND t1."{4}" IS NOT NULL
                 AND t1."SubNetwork_2_id" = '{2}'
                 AND t1."{4}" != '{5}'
-            ON CONFLICT unique_network_baseline
+            ON CONFLICT ON CONSTRAINT unique_network_baseline
             DO
             UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.network_baseline.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
                        date_modified = network_audit.network_baseline.date_modified
             """.format(vendor, tech, nename,mo, parameter, bvalue)
             self.engine.execute(text(sql))
 
-        # Delete old
-        sql = """
-            DELETE FROM 
-            network_audit.network_baseline t1
-            WHERE 
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue)
-            NOT IN  (
-                SELECT 
-                '{0}' AS "VENDOR",
-                '{1}' AS "TECHNOLOGY",
-                '{2}' AS nename,
-                '{3}' AS mo,
-                '{4}' AS parameter,
-                '{5}' as bvalue,
-                t1."{4}" as nvalue 
-            FROM
-                ericsson_cm."{3}" t1
-                INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
-            WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
-                AND t1."SubNetwork_2_id" = '{2}'
-                AND t1."{4}" != '{5}'
+            # Delete old
+            sql = """
+                DELETE FROM 
+                network_audit.network_baseline t1
+                WHERE 
+                (vendor, technology, nename, mo, parameter, bvalue, nvalue)
+                NOT IN  (
+                    SELECT 
+                    '{0}' AS "VENDOR",
+                    '{1}' AS "TECHNOLOGY",
+                    '{2}' AS nename,
+                    '{3}' AS mo,
+                    '{4}' AS parameter,
+                    '{5}' as bvalue,
+                    t1."{4}" as nvalue 
+                FROM
+                    ericsson_cm."{3}" t1
+                    INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                WHERE t2.is_current_load = true 
+                    AND t1."{4}" IS NOT NULL
+                    AND t1."SubNetwork_2_id" = '{2}'
+                    AND t1."{4}" != '{5}'
+
                 )
-            )
-            AND  t1.vendor = '{0}'
-            AND t1.technology = '{1}'
-            AND t1.nemame = '{2}'
-            AND t1.mo = '{3}'
-            AND t1.parameter = '{4}'
-        """.format(vendor, tech, nename,mo, parameter, bvalue)
-        self.engine.execute(sql)
+                AND  t1.vendor = '{0}'
+                AND t1.technology = '{1}'
+                AND t1.nename = '{2}'
+                AND t1.mo = '{3}'
+                AND t1.parameter = '{4}'
+            """.format(vendor, tech, nename,mo, parameter, bvalue)
+            self.engine.execute(sql)
 
     def run_zte_2g_audit(self):
 
@@ -1964,7 +1959,7 @@ class NetworkBaseLine(object):
                 AND t2.vendor =  t1.vendor
             WHERE
                 t1.vendor = :vendor
-                AND t2.tech = :tech
+                AND t2.technology = :tech
         """), tech=tech, vendor=vendor)
 
         for row in result:
@@ -1977,7 +1972,7 @@ class NetworkBaseLine(object):
 
             sql = """
             INSERT INTO network_audit.network_baseline
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
+            (pk, vendor, technology, nename, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('network_audit.seq_network_baseline_pk'),
             '{0}' AS "VENDOR",
@@ -1996,47 +1991,46 @@ class NetworkBaseLine(object):
                 ericsson_cm."{3}" t1
                 INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
             WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
+                AND t1."{4}" IS NOT NULL
                 AND t1."SubNetwork_2_id" = '{2}'
                 AND t1."{4}" != '{5}'
-            ON CONFLICT unique_network_baseline
+            ON CONFLICT ON CONSTRAINT unique_network_baseline
             DO
             UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.network_baseline.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
                        date_modified = network_audit.network_baseline.date_modified
             """.format(vendor, tech, nename,mo, parameter, bvalue)
             self.engine.execute(text(sql))
 
-        # Delete old
-        sql = """
-            DELETE FROM 
-            network_audit.network_baseline t1
-            WHERE 
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue)
-            NOT IN  (
-                SELECT 
-                '{0}' AS "VENDOR",
-                '{1}' AS "TECHNOLOGY",
-                '{2}' AS nename,
-                '{3}' AS mo,
-                '{4}' AS parameter,
-                '{5}' as bvalue,
-                t1."{4}" as nvalue 
-            FROM
-                ericsson_cm."{3}" t1
-                INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
-            WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
-                AND t1."SubNetwork_2_id" = '{2}'
-                AND t1."{4}" != '{5}'
+            # Delete old
+            sql = """
+                DELETE FROM 
+                network_audit.network_baseline t1
+                WHERE 
+                (vendor, technology, nename, mo, parameter, bvalue, nvalue)
+                NOT IN  (
+                    SELECT 
+                    '{0}' AS "VENDOR",
+                    '{1}' AS "TECHNOLOGY",
+                    '{2}' AS nename,
+                    '{3}' AS mo,
+                    '{4}' AS parameter,
+                    '{5}' as bvalue,
+                    t1."{4}" as nvalue 
+                FROM
+                    ericsson_cm."{3}" t1
+                    INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                WHERE t2.is_current_load = true 
+                    AND t1."{4}" IS NOT NULL
+                    AND t1."SubNetwork_2_id" = '{2}'
+                    AND t1."{4}" != '{5}'
                 )
-            )
-            AND  t1.vendor = '{0}'
-            AND t1.technology = '{1}'
-            AND t1.nemame = '{2}'
-            AND t1.mo = '{3}'
-            AND t1.parameter = '{4}'
-        """.format(vendor, tech, nename,mo, parameter, bvalue)
-        self.engine.execute(sql)
+                AND  t1.vendor = '{0}'
+                AND t1.technology = '{1}'
+                AND t1.nename = '{2}'
+                AND t1.mo = '{3}'
+                AND t1.parameter = '{4}'
+            """.format(vendor, tech, nename,mo, parameter, bvalue)
+            self.engine.execute(sql)
 
     def run_zte_3g_audit(self):
 
@@ -2052,7 +2046,7 @@ class NetworkBaseLine(object):
                 AND t2.vendor =  t1.vendor
             WHERE
                 t1.vendor = :vendor
-                AND t2.tech = :tech
+                AND t2.technology = :tech
         """), tech=tech, vendor=vendor)
 
         for row in result:
@@ -2065,7 +2059,7 @@ class NetworkBaseLine(object):
 
             sql = """
             INSERT INTO network_audit.network_baseline
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
+            (pk, vendor, technology, nename, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('network_audit.seq_network_baseline_pk'),
             '{0}' AS "VENDOR",
@@ -2084,47 +2078,47 @@ class NetworkBaseLine(object):
                 ericsson_cm."{3}" t1
                 INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
             WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
+                AND t1."{4}" IS NOT NULL
                 AND t1."SubNetwork_2_id" = '{2}'
                 AND t1."{4}" != '{5}'
-            ON CONFLICT unique_network_baseline
+            ON CONFLICT ON CONSTRAINT unique_network_baseline
             DO
             UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.network_baseline.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
                        date_modified = network_audit.network_baseline.date_modified
             """.format(vendor, tech, nename,mo, parameter, bvalue)
             self.engine.execute(text(sql))
 
-        # Delete old
-        sql = """
-            DELETE FROM 
-            network_audit.network_baseline t1
-            WHERE 
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue)
-            NOT IN  (
-                SELECT 
-                '{0}' AS "VENDOR",
-                '{1}' AS "TECHNOLOGY",
-                '{2}' AS nename,
-                '{3}' AS mo,
-                '{4}' AS parameter,
-                '{5}' as bvalue,
-                t1."{4}" as nvalue 
-            FROM
-                ericsson_cm."{3}" t1
-                INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
-            WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
-                AND t1."SubNetwork_2_id" = '{2}'
-                AND t1."{4}" != '{5}'
+            # Delete old
+            sql = """
+                DELETE FROM 
+                network_audit.network_baseline t1
+                WHERE 
+                (vendor, technology, nename, mo, parameter, bvalue, nvalue)
+                NOT IN  (
+                    SELECT 
+                    '{0}' AS "VENDOR",
+                    '{1}' AS "TECHNOLOGY",
+                    '{2}' AS nename,
+                    '{3}' AS mo,
+                    '{4}' AS parameter,
+                    '{5}' as bvalue,
+                    t1."{4}" as nvalue 
+                    FROM
+                        ericsson_cm."{3}" t1
+                        INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                    WHERE t2.is_current_load = true 
+                        AND t1."{4}" IS NOT NULL
+                        AND t1."SubNetwork_2_id" = '{2}'
+                        AND t1."{4}" != '{5}'
+
                 )
-            )
-            AND  t1.vendor = '{0}'
-            AND t1.technology = '{1}'
-            AND t1.nemame = '{2}'
-            AND t1.mo = '{3}'
-            AND t1.parameter = '{4}'
-        """.format(vendor, tech, nename,mo, parameter, bvalue)
-        self.engine.execute(sql)
+                AND  t1.vendor = '{0}'
+                AND t1.technology = '{1}'
+                AND t1.nename = '{2}'
+                AND t1.mo = '{3}'
+                AND t1.parameter = '{4}'
+            """.format(vendor, tech, nename,mo, parameter, bvalue)
+            self.engine.execute(sql)
 
     def run_zte_4g_audit(self):
 
@@ -2140,7 +2134,7 @@ class NetworkBaseLine(object):
                 AND t2.vendor =  t1.vendor
             WHERE
                 t1.vendor = :vendor
-                AND t2.tech = :tech
+                AND t2.technology = :tech
         """), tech=tech, vendor=vendor)
 
         for row in result:
@@ -2153,7 +2147,7 @@ class NetworkBaseLine(object):
 
             sql = """
             INSERT INTO network_audit.network_baseline
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
+            (pk, vendor, technology, nename, mo, parameter, bvalue, nvalue, age, modified_by, added_by, date_added, date_modified)
             SELECT 
             NEXTVAL('network_audit.seq_network_baseline_pk'),
             '{0}' AS "VENDOR",
@@ -2172,47 +2166,46 @@ class NetworkBaseLine(object):
                 ericsson_cm."{3}" t1
                 INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
             WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
+                AND t1."{4}" IS NOT NULL
                 AND t1."SubNetwork_2_id" = '{2}'
                 AND t1."{4}" != '{5}'
-            ON CONFLICT unique_network_baseline
+            ON CONFLICT ON CONSTRAINT unique_network_baseline
             DO
             UPDATE SET age = DATEDIFF( 'day', COALESCE(network_audit.network_baseline.date_added)::DATE, COALESCE(EXCLUDED.date_modified)::DATE ) ,
                        date_modified = network_audit.network_baseline.date_modified
             """.format(vendor, tech, nename,mo, parameter, bvalue)
             self.engine.execute(text(sql))
 
-        # Delete old
-        sql = """
-            DELETE FROM 
-            network_audit.network_baseline t1
-            WHERE 
-            (vendor, technology, nemame, mo, parameter, bvalue, nvalue)
-            NOT IN  (
-                SELECT 
-                '{0}' AS "VENDOR",
-                '{1}' AS "TECHNOLOGY",
-                '{2}' AS nename,
-                '{3}' AS mo,
-                '{4}' AS parameter,
-                '{5}' as bvalue,
-                t1."{4}" as nvalue 
-            FROM
-                ericsson_cm."{3}" t1
-                INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
-            WHERE t2.is_current_load = true 
-                AND t1."{1}" IS NOT NULL
-                AND t1."SubNetwork_2_id" = '{2}'
-                AND t1."{4}" != '{5}'
+            # Delete old
+            sql = """
+                DELETE FROM 
+                network_audit.network_baseline t1
+                WHERE 
+                (vendor, technology, nename, mo, parameter, bvalue, nvalue)
+                NOT IN  (
+                    SELECT 
+                    '{0}' AS "VENDOR",
+                    '{1}' AS "TECHNOLOGY",
+                    '{2}' AS nename,
+                    '{3}' AS mo,
+                    '{4}' AS parameter,
+                    '{5}' as bvalue,
+                    t1."{4}" as nvalue 
+                FROM
+                    ericsson_cm."{3}" t1
+                    INNER JOIN cm_loads t2 on t2.pk = t1."LOADID"
+                WHERE t2.is_current_load = true 
+                    AND t1."{4}" IS NOT NULL
+                    AND t1."SubNetwork_2_id" = '{2}'
+                    AND t1."{4}" != '{5}'
                 )
-            )
-            AND  t1.vendor = '{0}'
-            AND t1.technology = '{1}'
-            AND t1.nemame = '{2}'
-            AND t1.mo = '{3}'
-            AND t1.parameter = '{4}'
-        """.format(vendor, tech, nename,mo, parameter, bvalue)
-        self.engine.execute(sql)
+                AND  t1.vendor = '{0}'
+                AND t1.technology = '{1}'
+                AND t1.nename = '{2}'
+                AND t1.mo = '{3}'
+                AND t1.parameter = '{4}'
+            """.format(vendor, tech, nename,mo, parameter, bvalue)
+            self.engine.execute(sql)
 
     def run_baseline_audit(self):
         # network_baseline
