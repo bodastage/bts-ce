@@ -263,16 +263,6 @@ t15 = PythonOperator(
     dag=dag)
 
 
-# Build network tree
-def build_network_tree():
-    utils = Utils(dbhost=os.environ.get('POSTGRES_HOST'));
-    utils.build_live_network_aci_tree()
-
-
-t16 = PythonOperator(
-    task_id='build_network_tree',
-    python_callable=build_network_tree,
-    dag=dag)
 
 
 # Build network tree
@@ -1005,11 +995,7 @@ dag.set_dependency('extract_ericsson_2g2g_nbrs','ericsson_cm_done')
 dag.set_dependency('extract_ericsson_2g3g_nbrs','ericsson_cm_done')
 dag.set_dependency('extract_ericsson_2g4g_nbrs','ericsson_cm_done')
 
-# Build network tree
-dag.set_dependency('extract_ericsson_2g_cells','build_network_tree')
-dag.set_dependency('extract_ericsson_3g_cells','build_network_tree')
-dag.set_dependency('extract_ericsson_4g_cells','build_network_tree')
-dag.set_dependency('build_network_tree','ericsson_cm_done')
+
 
 dag.set_dependency('extract_ericsson_2g_cells','cell_extraction_done')
 
