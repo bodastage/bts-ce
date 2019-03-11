@@ -483,7 +483,6 @@ class NetworkAudit(object):
             age, date_added, date_modified)
             SELECT
             NEXTVAL('network_audit.seq_missing_cosite_relations_pk') AS pk,
-            
             t5.name AS svrvendor,
             t6.name AS svrtech,
             t7.name AS svrnode,

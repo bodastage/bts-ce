@@ -21,8 +21,6 @@ sys.path.append('/mediation/packages')
 
 from bts import NetworkBaseLine, Utils
 
-
-
 schedule_interval = "@daily" # # bts_utils.get_setting('cm_dag_schedule_interval')
 
 args = {
@@ -152,11 +150,33 @@ zte_4g_value_counts = PythonOperator(
     python_callable=compute_zte_4g_value_counts,
     dag=dag)
 
+
+def compute_network_baseline():
+    """Populates baseline.network_baseline with the network baseline values"""
+    nb.run_network_baseline()
+
+
+compute_baseline = PythonOperator(
+    task_id='compute_network_baseline',
+    python_callable=compute_network_baseline,
+    dag=dag)
+
+def run_network_baseline_audit():
+    nb.run_baseline_audit()
+
+
+network_baseline_audit = PythonOperator(
+    task_id='run_network_baseline_audit',
+    python_callable=run_network_baseline_audit,
+    dag=dag)
+
 ext_dep = ExternalTaskSensor(
     external_dag_id='cm_load',
     external_task_id='end_cm_load',
     task_id='start_baseline',
     dag=dag)
+
+
 
 
 dag.set_dependency('start_baseline', 'huawei_2g_value_counts')
@@ -171,14 +191,22 @@ dag.set_dependency('start_baseline', 'zte_2g_value_counts')
 dag.set_dependency('start_baseline', 'zte_3g_value_counts')
 dag.set_dependency('start_baseline', 'zte_4g_value_counts')
 
-dag.set_dependency('huawei_2g_value_counts', 'end_baseline')
-dag.set_dependency('huawei_3g_value_counts', 'end_baseline')
-dag.set_dependency('huawei_4g_value_counts', 'end_baseline')
+dag.set_dependency('huawei_2g_value_counts', 'compute_network_baseline')
+dag.set_dependency('huawei_3g_value_counts', 'compute_network_baseline')
+dag.set_dependency('huawei_4g_value_counts', 'compute_network_baseline')
 
-dag.set_dependency('ericsson_2g_value_counts', 'end_baseline')
-dag.set_dependency('ericsson_3g_value_counts', 'end_baseline')
-dag.set_dependency('ericsson_4g_value_counts', 'end_baseline')
+dag.set_dependency('ericsson_2g_value_counts', 'compute_network_baseline')
+dag.set_dependency('ericsson_3g_value_counts', 'compute_network_baseline')
+dag.set_dependency('ericsson_4g_value_counts', 'compute_network_baseline')
 
-dag.set_dependency('zte_2g_value_counts', 'end_baseline')
-dag.set_dependency('zte_3g_value_counts', 'end_baseline')
-dag.set_dependency('zte_4g_value_counts', 'end_baseline')
+dag.set_dependency('zte_2g_value_counts', 'compute_network_baseline')
+dag.set_dependency('zte_3g_value_counts', 'compute_network_baseline')
+dag.set_dependency('zte_4g_value_counts', 'compute_network_baseline')
+
+
+dag.set_dependency('compute_network_baseline', 'run_network_baseline_audit')
+
+dag.set_dependency('run_network_baseline_audit', 'end_baseline')
+
+
+
