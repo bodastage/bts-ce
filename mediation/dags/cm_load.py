@@ -34,6 +34,7 @@ from cm_sub_dag_parse_and_import_huawei_mml import parse_and_import_huawei_mml
 from cm_sub_dag_parse_and_import_huawei_nbi import parse_and_import_huawei_nbi
 from cm_sub_dag_parse_and_import_huawei_cfgsyn import parse_and_import_huawei_cfgsyn
 from cm_sub_dag_parse_and_import_zte_bulkcm import parse_and_import_zte_bulkcm
+from cm_sub_dag_parse_and_import_zte_excel import parse_and_import_zte_excel
 from cm_sub_dag_parse_and_import_huawei_rnp import parse_and_import_huawei_rnp
 from airflow.utils.trigger_rule import TriggerRule
 from cm_sub_dag_extract_externals import extract_network_externals
@@ -149,6 +150,13 @@ sub_dag_parse_and_import_zte_cm_files = SubDagOperator(
   dag=dag,
 )
 
+sub_dag_parse_and_import_zte_excel_cm_files = SubDagOperator(
+  subdag=parse_and_import_zte_excel('cm_load', 'parse_and_import_zte_excel', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_and_import_zte_excel',
+  dag=dag,
+)
+
 # Backup raw files that have been parsed
 t4 = BashOperator(
     task_id='backup_3g4g_raw_files',
@@ -166,7 +174,6 @@ t8 = PythonOperator(
     task_id='process_eri_rncs',
     python_callable=process_eri_rncs,
     dag=dag)
-
 
 # Process ericsson ENodeBs
 def process_eri_enodebs():
@@ -1082,7 +1089,9 @@ dag.set_dependency('parse_and_import_huawei_cfgsyn','huawei_parsing_done')
 # ##############################################
 dag.set_dependency('start_cm_load','process_zte')
 dag.set_dependency('process_zte','parse_and_import_zte_bulkcm')
+dag.set_dependency('process_zte','parse_and_import_zte_excel')
 dag.set_dependency('parse_and_import_zte_bulkcm','zte_parsing_done')
+dag.set_dependency('parse_and_import_zte_excel','zte_parsing_done')
 
 dag.set_dependency('zte_parsing_done','extract_zte_bscs')
 dag.set_dependency('zte_parsing_done','extract_zte_rncs')
