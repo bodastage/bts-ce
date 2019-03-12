@@ -12,7 +12,7 @@ mkdir -p $MEDIATION_DIR/ericsson/{raw,parsed}/{bulkcm,eaw,cnaiv2,backup}
 mkdir -p $MEDIATION_DIR/huawei/{raw,parsed}/{gexport,nbi,mml,cfgsyn,rnp,motree,backup}
 
 #ZTE
-mkdir -p $MEDIATION_DIR/zte/{raw,parsed}/{bulkcm,icm,backup}
+mkdir -p $MEDIATION_DIR/zte/{raw,parsed}/{bulkcm,excel,backup}
 
 #Nokia
 mkdir -p $MEDIATION_DIR/nokia/{raw,parsed}/{raml2,backup}
