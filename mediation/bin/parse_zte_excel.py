@@ -25,7 +25,7 @@ parser.add_argument('-o', '--output',
                    metavar=('<output_dir>'),
                    help='Output directory', required=True)
 
-parser.add_argument('-p', '--cfg',
+parser.add_argument('-c', '--cfg',
                    action="store", dest="parameter_file",
                    metavar=('<parameter_file>'),
                    help='Parameter file')
