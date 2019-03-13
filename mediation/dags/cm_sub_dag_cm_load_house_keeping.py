@@ -48,7 +48,7 @@ def run_house_keeping_tasks(parent_dag_name, child_dag_name, start_date, schedul
 
     backup_zte_cm_dumps_task = BashOperator(
         task_id='backup_zte_cm_dumps',
-        bash_command='mv -f /mediation/data/cm/zte/raw/{bulkcm,icm}/* /mediation/data/cm/zte/raw/backup/ 2>/dev/null || true',
+        bash_command='mv -f /mediation/data/cm/zte/raw/{bulkcm,excel}/* /mediation/data/cm/zte/raw/backup/ 2>/dev/null || true',
         dag=dag)
 
     backup_nokia_cm_dumps_task = BashOperator(
