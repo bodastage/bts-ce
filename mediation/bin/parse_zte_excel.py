@@ -81,9 +81,9 @@ if args.parameter_file is None:
 
             if m not in mo_param_list:
                 mo_param_list[m] = []
-                filename = output_dir + os.sep + m + ".csv"
-                csvfile = open(filename, 'w', newline='')
-                mo_csvwriters[m] = csv.writer(csvfile)
+                # filename = output_dir + os.sep + m + ".csv"
+                # csvfile = open(filename, 'w', newline='')
+                # mo_csvwriters[m] = csv.writer(csvfile)
 
                 nrm_worksheet = xl_workbook.sheet_by_name(m)
 
@@ -103,11 +103,13 @@ else:
             mo_param_list[mo] = params.split(",")
 
 
+
 logger.info("Collecting parameter values...")
 
 # This will contain MOs whose headers have been added to the csv files
 header_added = []
 
+print()
 # Parse file
 for f in raw_file_list:
     xl_workbook = xlrd.open_workbook(f, on_demand=True)
@@ -115,6 +117,9 @@ for f in raw_file_list:
 
     for mo in sheet_names:
         if mo in sheets_to_skip: continue
+
+        # Skip parameters not in the cfg
+        if mo not in mo_param_list: continue
 
         nrm_worksheet = xl_workbook.sheet_by_name(mo)
 
@@ -125,6 +130,13 @@ for f in raw_file_list:
             # Get headers
             if row == 0:
                 if mo not in header_added:
+
+                    # Create file
+                    filename = output_dir + os.sep + mo + ".csv"
+                    csvfile = open(filename, 'w', newline='')
+                    mo_csvwriters[mo] = csv.writer(csvfile)
+
+                    # Add header
                     mo_csvwriters[mo].writerow( ["FILENAME", "DATETIME"] + mo_param_list[mo])
                 else:
                     header_added.append(mo)
