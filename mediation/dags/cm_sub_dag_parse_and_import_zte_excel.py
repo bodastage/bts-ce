@@ -36,7 +36,7 @@ def parse_and_import_zte_excel(parent_dag_name, child_dag_name, start_date, sche
 
     parse_zte_excel_cm_files = BashOperator(
       task_id='parse_zte_excel_cm_files',
-      bash_command='java -jar /mediation/bin/parse_zte_excel.py -i /mediation/data/cm/zte/raw/excel -o /mediation/data/cm/zte/parsed/excel -c /mediation/conf/cm/zte_excel_parser.cfg',
+      bash_command='python /mediation/bin/parse_zte_excel.py -i /mediation/data/cm/zte/raw/excel -o /mediation/data/cm/zte/parsed/excel -c /mediation/conf/cm/zte_excel_parser.cfg',
       dag=dag)
 
     import_zte_excel_csv = BashOperator(
