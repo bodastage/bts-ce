@@ -103,7 +103,6 @@ else:
             mo_param_list[mo] = params.split(",")
 
 
-
 logger.info("Collecting parameter values...")
 
 # This will contain MOs whose headers have been added to the csv files
@@ -136,8 +135,11 @@ for f in raw_file_list:
                     csvfile = open(filename, 'w', newline='')
                     mo_csvwriters[mo] = csv.writer(csvfile)
 
+                    h = mo_param_list[mo]
+                    file_date = ["FILENAME", "DATETIME"]
+                    h = [ i for i in h if i not in file_date ]
                     # Add header
-                    mo_csvwriters[mo].writerow( ["FILENAME", "DATETIME"] + mo_param_list[mo])
+                    mo_csvwriters[mo].writerow( file_date + h)
                 else:
                     header_added.append(mo)
 
@@ -154,6 +156,7 @@ for f in raw_file_list:
 
             row_values =[]
             for p in mo_param_list[mo]:
+                if p in ["FILENAME", "DATETIME"]: continue
 
                 if p in params_data:
                     row_values.append(params_data[p])
