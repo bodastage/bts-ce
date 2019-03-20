@@ -26,7 +26,7 @@ services:
             - "15670:15670"
         network_mode: "bridge"
         container_name: "bts-ce-msgbroker"
-        command: bash -c "./queue_setup.sh"
+        command: bash -c "cat ./queue_setup.sh |  tr -d "\r" | bash -"
         hostname: rmq
         volumes:
             - ./queue_scripts/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
@@ -62,7 +62,7 @@ services:
         container_name: "bts-ce-api"
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
     bts-web:
-        image: registry.gitlab.com/bts-ce/bts-ce-web:v2.1.0
+        image: registry.gitlab.com/bts-ce/bts-ce-web:2.1.0
         ports:
           - "8888:80"
         network_mode: "bridge"
