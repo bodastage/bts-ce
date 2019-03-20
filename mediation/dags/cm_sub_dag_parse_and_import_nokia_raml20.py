@@ -16,7 +16,7 @@ from bts import NetworkBaseLine, Utils, ProcessCMData;
 bts_utils = Utils();
 
 
-def parse_and_import_zte_excel(parent_dag_name, child_dag_name, start_date, schedule_interval):
+def parse_and_import_nokia_raml20(parent_dag_name, child_dag_name, start_date, schedule_interval):
     """
     Parse and import ZTE xlsx files
 
@@ -34,33 +34,32 @@ def parse_and_import_zte_excel(parent_dag_name, child_dag_name, start_date, sche
         start_date=start_date,
     )
 
-    parse_zte_excel_cm_files = BashOperator(
-      task_id='parse_zte_excel_cm_files',
-      bash_command='python /mediation/bin/parse_zte_excel.py -i /mediation/data/cm/zte/raw/excel -o /mediation/data/cm/zte/parsed/excel -c /mediation/conf/cm/zte_excel_parser.cfg',
+    parse_nokia_raml20_cm_files = BashOperator(
+      task_id='parse_nokia_raml20_cm_files',
+      bash_command='java -jar /mediation/bin/boda-nokiacmdataparser.jar -i /mediation/data/cm/nokia/raw/raml20 -o /mediation/data/cm/nokia/parsed/raml20 -c /mediation/conf/cm/nokia_raml20_parser.cfg',
       dag=dag)
 
-    import_zte_excel_csv = BashOperator(
-        task_id='import_zte_excel_parsed_csv',
-        bash_command='python /mediation/bin/load_cm_data_into_db.py zte_excel /mediation/data/cm/zte/parsed/excel',
+    import_nokia_raml20_csv = BashOperator(
+        task_id='import_nokia_raml20_parsed_csv',
+        bash_command='python /mediation/bin/load_cm_data_into_db.py nokia_raml20 /mediation/data/cm/nokia/parsed/raml20',
         dag=dag)
 
-    t_run_zte_excel_insert_queries = BashOperator(
-        task_id='run_zte_excel_insert_queries',
-        bash_command='python /mediation/bin/run_cm_load_insert_queries.py zte_excel',
+    t_run_nokia_raml20_insert_queries = BashOperator(
+        task_id='run_nokia_raml20_insert_queries',
+        bash_command='python /mediation/bin/run_cm_load_insert_queries.py nokia_raml20',
         dag=dag)
 
-    # Clear 4G CM data tables
-    def clear_zte_excel_cm_tables():
+    def clear_nokia_raml20_cm_tables():
         pass
 
     t50 = PythonOperator(
-        task_id='clear_zte_excel_cm_tables',
-        python_callable=clear_zte_excel_cm_tables,
+        task_id='clear_nokia_raml20_cm_tables',
+        python_callable=clear_nokia_raml20_cm_tables,
         dag=dag)
 
 
-    dag.set_dependency('parse_zte_excel_cm_files', 'clear_zte_excel_cm_tables')
-    dag.set_dependency('clear_zte_excel_cm_tables', 'import_zte_excel_parsed_csv')
-    dag.set_dependency('import_zte_excel_parsed_csv', 'run_zte_excel_insert_queries')
+    dag.set_dependency('parse_nokia_raml20_cm_files', 'clear_nokia_raml20_cm_tables')
+    dag.set_dependency('clear_nokia_raml20_cm_tables', 'import_nokia_raml20_parsed_csv')
+    dag.set_dependency('import_nokia_raml20_parsed_csv', 'run_nokia_raml20_insert_queries')
 
     return dag

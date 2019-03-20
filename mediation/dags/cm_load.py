@@ -36,6 +36,7 @@ from cm_sub_dag_parse_and_import_huawei_cfgsyn import parse_and_import_huawei_cf
 from cm_sub_dag_parse_and_import_zte_bulkcm import parse_and_import_zte_bulkcm
 from cm_sub_dag_parse_and_import_zte_excel import parse_and_import_zte_excel
 from cm_sub_dag_parse_and_import_huawei_rnp import parse_and_import_huawei_rnp
+from cm_sub_dag_parse_and_import_nokia_raml20 import parse_and_import_nokia_raml20
 from airflow.utils.trigger_rule import TriggerRule
 from cm_sub_dag_extract_externals import extract_network_externals
 from cm_sub_dag_cm_load_house_keeping import run_house_keeping_tasks
@@ -43,13 +44,14 @@ from cm_sub_dag_cm_load_house_keeping import run_house_keeping_tasks
 
 sys.path.append('/mediation/packages')
 
-from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM, ZTECM
+from bts import NetworkBaseLine, Utils, ProcessCMData, HuaweiCM, EricssonCM, ZTECM, NokiaCM
 
 bts_utils = Utils()
 process_cm_data = ProcessCMData(dbhost=os.environ.get('POSTGRES_HOST'))
 huawei_cm = HuaweiCM()
 ericsson_cm = EricssonCM()
 zte_cm = ZTECM()
+nokia_cm = NokiaCM()
 
 schedule_interval = "@daily" # # bts_utils.get_setting('cm_dag_schedule_interval')
 
@@ -105,6 +107,13 @@ sub_dag_parse_and_import_eri_2g_cm_files = SubDagOperator(
   dag=dag,
 )
 
+sub_dag_parse_and_import_nokia_raml20_cm_files = SubDagOperator(
+  subdag=parse_and_import_nokia_raml20('cm_load', 'parse_and_import_nokia_raml20', start_date=dag.start_date,
+                 schedule_interval=dag.schedule_interval),
+  task_id='parse_and_import_nokia_raml20',
+  dag=dag,
+)
+
 sub_dag_parse_and_import_huawei_rnp_cm_files = SubDagOperator(
   subdag=parse_and_import_huawei_rnp('cm_load', 'parse_and_import_huawei_rnp', start_date=dag.start_date,
                  schedule_interval=dag.schedule_interval),
@@ -157,12 +166,6 @@ sub_dag_parse_and_import_zte_excel_cm_files = SubDagOperator(
   dag=dag,
 )
 
-# Backup raw files that have been parsed
-t4 = BashOperator(
-    task_id='backup_3g4g_raw_files',
-    bash_command='echo 0;',
-    # bash_command='mv -f /mediation/data/cm/ericsson/3g4g/raw/in/* /mediation/data/cm/ericsson/3g4g/raw/out/ 2>/dev/null',
-    dag=dag)
 
 
 # Process ericsson RNCs
@@ -928,11 +931,211 @@ task_extract_zte_4g4g_nbrs = PythonOperator(
 task_zte_cm_done = DummyOperator(task_id='zte_cm_done', dag=dag)
 
 
+def extract_nokia_bscs():
+    nokia_cm.extract_nokia_bscs()
+
+
+task_extract_nokia_bscs = PythonOperator(
+    task_id='extract_nokia_bscs',
+    python_callable=extract_nokia_bscs,
+    dag=dag)
+
+
+def extract_nokia_rncs():
+    nokia_cm.extract_nokia_rncs()
+
+
+task_extract_nokia_rncs = PythonOperator(
+    task_id='extract_nokia_rncs',
+    python_callable=extract_nokia_rncs,
+    dag=dag)
+
+
+def extract_nokia_enodes():
+    nokia_cm.extract_nokia_enodes()
+
+
+task_extract_nokia_enodes = PythonOperator(
+    task_id='extract_nokia_enodes',
+    python_callable=extract_nokia_enodes,
+    dag=dag)
+
+
+def extract_nokia_2g_sites():
+    nokia_cm.extract_nokia_2g_sites()
+
+
+task_extract_nokia_2g_sites = PythonOperator(
+    task_id='extract_nokia_2g_sites',
+    python_callable=extract_nokia_2g_sites,
+    dag=dag)
+
+def extract_nokia_2g_cells():
+    nokia_cm.extract_nokia_2g_cells()
+
+
+task_extract_nokia_2g_cells = PythonOperator(
+    task_id='extract_nokia_2g_cells',
+    python_callable=extract_nokia_2g_cells,
+    dag=dag)
+
+
+def extract_nokia_2g_cell_params():
+    nokia_cm.extract_nokia_2g_cell_params()
+
+
+task_extract_nokia_2g_cell_params = PythonOperator(
+    task_id='extract_nokia_2g_cell_params',
+    python_callable=extract_nokia_2g_cell_params,
+    dag=dag)
+
+
+def extract_nokia_3g_sites():
+    nokia_cm.extract_nokia_3g_sites()
+
+
+task_extract_nokia_3g_sites = PythonOperator(
+    task_id='extract_nokia_3g_sites',
+    python_callable=extract_nokia_3g_sites,
+    dag=dag)
+
+def extract_nokia_3g_cells():
+    nokia_cm.extract_nokia_3g_cells()
+
+
+task_extract_nokia_3g_cells = PythonOperator(
+    task_id='extract_nokia_3g_cells',
+    python_callable=extract_nokia_3g_cells,
+    dag=dag)
+
+
+def extract_nokia_3g_cell_params():
+    nokia_cm.extract_nokia_3g_cell_params()
+
+
+task_extract_nokia_3g_cell_params = PythonOperator(
+    task_id='extract_nokia_3g_cell_params',
+    python_callable=extract_nokia_3g_cell_params,
+    dag=dag)
+
+
+def extract_nokia_4g_cells():
+    nokia_cm.extract_nokia_4g_cells()
+
+
+task_extract_nokia_4g_cells = PythonOperator(
+    task_id='extract_nokia_4g_cells',
+    python_callable=extract_nokia_4g_cells,
+    dag=dag)
+
+
+def extract_nokia_4g_cell_params():
+    nokia_cm.extract_nokia_4g_cell_params()
+
+
+task_extract_nokia_4g_cell_params = PythonOperator(
+    task_id='extract_nokia_4g_cell_params',
+    python_callable=extract_nokia_4g_cell_params,
+    dag=dag)
+
+
+def extract_nokia_2g2g_nbrs():
+    nokia_cm.extract_nokia_2g2g_nbrs()
+
+
+task_extract_nokia_2g2g_nbrs = PythonOperator(
+    task_id='extract_nokia_2g2g_nbrs',
+    python_callable=extract_nokia_2g2g_nbrs,
+    dag=dag)
+
+
+def extract_nokia_2g3g_nbrs():
+    nokia_cm.extract_nokia_2g3g_nbrs()
+
+
+task_extract_nokia_2g3g_nbrs = PythonOperator(
+    task_id='extract_nokia_2g3g_nbrs',
+    python_callable=extract_nokia_2g3g_nbrs,
+    dag=dag)
+
+
+def extract_nokia_2g4g_nbrs():
+    nokia_cm.extract_nokia_2g4g_nbrs()
+
+
+task_extract_nokia_2g4g_nbrs = PythonOperator(
+    task_id='extract_nokia_2g4g_nbrs',
+    python_callable=extract_nokia_2g4g_nbrs,
+    dag=dag)
+
+
+def extract_nokia_3g2g_nbrs():
+    nokia_cm.extract_nokia_3g2g_nbrs()
+
+
+task_extract_nokia_3g2g_nbrs = PythonOperator(
+    task_id='extract_nokia_3g2g_nbrs',
+    python_callable=extract_nokia_3g2g_nbrs,
+    dag=dag)
+
+
+def extract_nokia_3g3g_nbrs():
+    nokia_cm.extract_nokia_3g3g_nbrs()
+
+
+task_extract_nokia_3g3g_nbrs = PythonOperator(
+    task_id='extract_nokia_3g3g_nbrs',
+    python_callable=extract_nokia_3g3g_nbrs,
+    dag=dag)
+
+
+def extract_nokia_3g4g_nbrs():
+    nokia_cm.extract_nokia_3g4g_nbrs()
+
+
+task_extract_nokia_3g4g_nbrs = PythonOperator(
+    task_id='extract_nokia_3g4g_nbrs',
+    python_callable=extract_nokia_3g4g_nbrs,
+    dag=dag)
+
+
+def extract_nokia_4g2g_nbrs():
+    nokia_cm.extract_nokia_4g2g_nbrs()
+
+
+task_extract_nokia_4g2g_nbrs = PythonOperator(
+    task_id='extract_nokia_4g2g_nbrs',
+    python_callable=extract_nokia_4g2g_nbrs,
+    dag=dag)
+
+
+def extract_nokia_4g3g_nbrs():
+    nokia_cm.extract_nokia_4g3g_nbrs()
+
+
+task_extract_nokia_4g3g_nbrs = PythonOperator(
+    task_id='extract_nokia_4g3g_nbrs',
+    python_callable=extract_nokia_4g3g_nbrs,
+    dag=dag)
+
+
+def extract_nokia_4g4g_nbrs():
+    nokia_cm.extract_nokia_4g4g_nbrs()
+
+
+task_extract_nokia_4g4g_nbrs = PythonOperator(
+    task_id='extract_nokia_4g4g_nbrs',
+    python_callable=extract_nokia_4g4g_nbrs,
+    dag=dag)
+
+task_nokia_cm_done = DummyOperator(task_id='nokia_cm_done', dag=dag)
+
 join_nokia_supported_task = DummyOperator(
     task_id='join_nokia_supported',
     trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag
 )
+
 
 # Build dependency graph
 # dag.set_dependency('start_cm_load','is_ericsson_supported')
@@ -943,7 +1146,6 @@ dag.set_dependency('join_ericsson_supported','end_cm_load')
 
 dag.set_dependency('process_ericsson','parse_and_import_ericsson_bulkcm')
 
-dag.set_dependency('parse_and_import_ericsson_bulkcm','backup_3g4g_raw_files')
 dag.set_dependency('parse_and_import_ericsson_bulkcm','process_eri_rncs')
 dag.set_dependency('parse_and_import_ericsson_bulkcm','process_eri_enodebs')
 dag.set_dependency('process_eri_rncs','extract_ericsson_3g_sites')
@@ -951,7 +1153,6 @@ dag.set_dependency('extract_ericsson_3g_sites','extract_ericsson_3g_cells')
 dag.set_dependency('process_eri_enodebs','extract_ericsson_4g_cells')
 dag.set_dependency('extract_ericsson_3g_cells','cell_extraction_done')
 
-dag.set_dependency('backup_3g4g_raw_files','ericsson_cm_done')
 
 
 dag.set_dependency('extract_ericsson_3g_cells','extract_ericsson_3g2g_nbrs')
@@ -1138,13 +1339,58 @@ dag.set_dependency('extract_zte_4g4g_nbrs','zte_cm_done')
 
 dag.set_dependency('zte_cm_done','join_zte_supported')
 dag.set_dependency('join_zte_supported','end_cm_load')
+
 # Nokia
 # ##############################################
 dag.set_dependency('start_cm_load','process_nokia')
 
-dag.set_dependency('process_nokia','join_nokia_supported')
-dag.set_dependency('join_nokia_supported','end_cm_load')
+dag.set_dependency('process_nokia','parse_and_import_nokia_raml20')
 
+dag.set_dependency('parse_and_import_nokia_raml20','extract_nokia_bscs')
+dag.set_dependency('parse_and_import_nokia_raml20','extract_nokia_rncs')
+dag.set_dependency('parse_and_import_nokia_raml20','extract_nokia_enodes')
+
+dag.set_dependency('extract_nokia_bscs','extract_nokia_2g_sites')
+dag.set_dependency('extract_nokia_2g_sites','extract_nokia_2g_cells')
+dag.set_dependency('extract_nokia_2g_cells','extract_nokia_2g_cell_params')
+dag.set_dependency('extract_nokia_2g_cell_params','nokia_cm_done')
+
+dag.set_dependency('extract_nokia_rncs','extract_nokia_3g_sites')
+dag.set_dependency('extract_nokia_3g_sites','extract_nokia_3g_cells')
+dag.set_dependency('extract_nokia_3g_cells','extract_nokia_3g_cell_params')
+dag.set_dependency('extract_nokia_3g_cell_params','nokia_cm_done')
+
+dag.set_dependency('extract_nokia_enodes','extract_nokia_4g_cells')
+dag.set_dependency('extract_nokia_4g_cells','extract_nokia_4g_cell_params')
+dag.set_dependency('extract_nokia_4g_cell_params','nokia_cm_done')
+
+dag.set_dependency('extract_nokia_2g_cells','extract_nokia_2g2g_nbrs')
+dag.set_dependency('extract_nokia_2g_cells','extract_nokia_2g3g_nbrs')
+dag.set_dependency('extract_nokia_2g_cells','extract_nokia_2g4g_nbrs')
+
+dag.set_dependency('extract_nokia_3g_cells','extract_nokia_3g2g_nbrs')
+dag.set_dependency('extract_nokia_3g_cells','extract_nokia_3g3g_nbrs')
+dag.set_dependency('extract_nokia_3g_cells','extract_nokia_3g4g_nbrs')
+
+dag.set_dependency('extract_nokia_4g_cells','extract_nokia_4g2g_nbrs')
+dag.set_dependency('extract_nokia_4g_cells','extract_nokia_4g3g_nbrs')
+dag.set_dependency('extract_nokia_4g_cells','extract_nokia_4g4g_nbrs')
+
+dag.set_dependency('extract_nokia_2g2g_nbrs','nokia_cm_done')
+dag.set_dependency('extract_nokia_2g3g_nbrs','nokia_cm_done')
+dag.set_dependency('extract_nokia_2g4g_nbrs','nokia_cm_done')
+
+dag.set_dependency('extract_nokia_3g2g_nbrs','nokia_cm_done')
+dag.set_dependency('extract_nokia_3g3g_nbrs','nokia_cm_done')
+dag.set_dependency('extract_nokia_3g4g_nbrs','nokia_cm_done')
+
+
+dag.set_dependency('extract_nokia_4g2g_nbrs','nokia_cm_done')
+dag.set_dependency('extract_nokia_4g3g_nbrs','nokia_cm_done')
+dag.set_dependency('extract_nokia_4g4g_nbrs','nokia_cm_done')
+
+dag.set_dependency('nokia_cm_done','join_nokia_supported')
+dag.set_dependency('join_nokia_supported','end_cm_load')
 
 # After
 dag.set_dependency('cell_extraction_done','end_cm_load')

@@ -15,7 +15,7 @@ mkdir -p $MEDIATION_DIR/huawei/{raw,parsed}/{gexport,nbi,mml,cfgsyn,rnp,motree,b
 mkdir -p $MEDIATION_DIR/zte/{raw,parsed}/{bulkcm,excel,backup}
 
 #Nokia
-mkdir -p $MEDIATION_DIR/nokia/{raw,parsed}/{raml2,backup}
+mkdir -p $MEDIATION_DIR/nokia/{raw,parsed}/{raml20,backup}
 
 # Create mediation data
 mkdir -p mediation/data/reports

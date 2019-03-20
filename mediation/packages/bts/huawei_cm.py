@@ -10,7 +10,17 @@ class HuaweiCM(object):
     """Process Huawie configuration management data"""
 
     def __init__(self):
-        self.db_engine = create_engine('postgresql://bodastage:password@database/bts')
+
+        #@TODO: Refactor
+        sqlalchemy_db_uri = 'postgresql://{0}:{1}@{2}:{3}/{4}'.format(
+            os.getenv("BTS_DB_USER", "bodastage"),
+            os.getenv("BTS_DB_PASS", "password"),
+            os.getenv("BTS_DB_HOST", "database"),
+            os.getenv("BTS_DB_PORT", "5432"),
+            os.getenv("BTS_DB_NAME", "bts"),
+        )
+
+        self.db_engine = create_engine(sqlalchemy_db_uri)
 
     def extract_live_network_bscs(self):
         """Extact BSCs from the live network"""
