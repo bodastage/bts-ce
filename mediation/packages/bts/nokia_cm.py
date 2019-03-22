@@ -188,7 +188,79 @@ class NokiaCM(object):
         session.close()
 
     def extract_live_network_2g_cells_params(self):
-        pass
+        Session = sessionmaker(bind=self.db_engine)
+        session = Session()
+
+        # @TODO: Update live_network.gsm_cells_data instead of truncating it
+        # Truncate paramete table
+        # self.db_engine.execute(text("TRUNCATE TABLE live_network.gsm_cells_data").execution_options(autocommit=True))
+        # self.db_engine.execute(text("ALTER SEQUENCE live_network.seq_gsm_cells_data_pk RESTART WITH 1;").
+        #                       execution_options(autocommit=True))
+
+        # The data is alot. Let's handle per site
+        site_sql = """SELECT pk, "name" from live_network.sites where vendor_pk  = 2 and tech_pk = 1"""
+
+        result = self.db_engine.execute(site_sql)
+
+        # for row in result:
+        metadata = MetaData()
+        Site = Table('sites', metadata, autoload=True, autoload_with=self.db_engine, schema="live_network")
+        for site in session.query(Site).filter_by(vendor_pk=2).filter_by(tech_pk=1).yield_per(5):
+            (site_pk, site_name) = (site[0], site[1])
+
+            logging.info("Extracting cells parameters for site_pk: {0}, site_name: {1}".format(site_pk, site_name))
+
+            sql = """
+                         INSERT INTO live_network.gsm_cells_data
+                         (pk, name, cell_pk, ci, bcc, ncc, bsic, bcch, lac, latitude, longitude, cgi, azimuth, height, 
+                         mechanical_tilt, electrical_tilt, hsn, hopping_type, tch_carriers, mcc, mnc, modified_by, added_by, date_added, date_modified)
+                         SELECT 
+                         NEXTVAL('live_network.seq_gsm_cells_data_pk') as pk,
+                          t1."CELLNAME" AS name,
+                         t2.pk AS cell_pk,
+                         t1."CI"::integer AS ci,
+                         t1."BCC"::integer AS bcc,
+                         t1."NCC"::integer AS ncc,
+                         CONCAT(trim(t1."NCC"),trim(t1."BCC"))::integer AS bsic,
+                         t4."FREQ"::integer AS bcch,
+                         t1."LAC"::integer AS lac,
+                         t6."LATIINT"::float AS latitude,
+                         t6."LONGIINT"::float as longitude ,
+                         CONCAT( TRIM(t1."MCC"),'-', TRIM(t1."MNC"),'-',TRIM(t1."LAC"),'-',TRIM(t1."CI")) AS cgi,
+                         t6."ANTAANGLE"::integer AS azimuth,
+                         t6."ALTITUDE"::integer AS height,
+                         null AS mechanical_tilt,
+                         -- t1."SECTOR_ANGLE"::integer AS sector_angle,
+                         -- t6."MAXTA" AS ta
+                         -- t1."STATE" AS STATE -- ACTIVE or INACTIVE
+                         null AS electrical_tilt,
+                         null AS hsn,
+                         null AS hopping_type,
+                         null AS tch_carriers,
+                         t1."MCC"::integer as mcc,
+                         t1."MNC"::integer as mnc,
+                       0 AS modified_by,
+                         0 AS added_by,
+                         t1."DATETIME" AS date_added,
+                         t1."DATETIME" AS date_modified            
+                         FROM huawei_cm."GCELL" t1             
+                         INNER JOIN cm_loads t8 on t8.pk = t1."LOADID"
+                         INNER JOIN live_network.cells t2 on t2."name" = t1."CELLNAME" AND t2.vendor_pk = 2 AND t2.tech_pk = 1
+                         INNER JOIN huawei_cm."GCELLBASICPARA" t3 on t3."FILENAME" = t1."FILENAME" AND t3."LOADID" = t1."LOADID"
+                         INNER JOIN huawei_cm."GTRX" t4 on t4."FILENAME" = t1."FILENAME" AND t4."CELLID" = t1."CELLID" AND t4."LOADID" = t1."LOADID"
+                         INNER JOIN live_network.sites t5 on t5.pk = t2.site_pk
+                         INNER JOIN huawei_cm."GCELLLCS" t6 on t6."FILENAME" = t1."FILENAME" AND t6."CELLID" = t1."CELLID" AND t6."LOADID" = t1."LOADID"
+                         INNER JOIN huawei_cm."CELLBIND2BTS" t7 on t7."CELLID" = t1."CELLID" AND t6."FILENAME" = t1."FILENAME" AND t7."LOADID" = t1."LOADID"
+                          WHERE 
+                          t5."name" ='{0}'
+                          AND t8.is_current_load = true
+                         ;
+                     """.format(site_name)
+
+            self.db_engine.execute(text(sql).execution_options(autocommit=True))
+
+        session.close()
+
 
     def extract_live_network_3g_sites(self):
         pass
