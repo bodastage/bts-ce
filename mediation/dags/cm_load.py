@@ -932,7 +932,7 @@ task_zte_cm_done = DummyOperator(task_id='zte_cm_done', dag=dag)
 
 
 def extract_nokia_bscs():
-    nokia_cm.extract_nokia_bscs()
+    nokia_cm.extract_live_network_bscs()
 
 
 task_extract_nokia_bscs = PythonOperator(
@@ -942,7 +942,7 @@ task_extract_nokia_bscs = PythonOperator(
 
 
 def extract_nokia_rncs():
-    nokia_cm.extract_nokia_rncs()
+    nokia_cm.extract_live_network_rncs()
 
 
 task_extract_nokia_rncs = PythonOperator(
@@ -952,7 +952,7 @@ task_extract_nokia_rncs = PythonOperator(
 
 
 def extract_nokia_enodes():
-    nokia_cm.extract_nokia_enodes()
+    nokia_cm.extract_live_network_enodes()
 
 
 task_extract_nokia_enodes = PythonOperator(
@@ -962,7 +962,7 @@ task_extract_nokia_enodes = PythonOperator(
 
 
 def extract_nokia_2g_sites():
-    nokia_cm.extract_nokia_2g_sites()
+    nokia_cm.extract_live_network_2g_sites()
 
 
 task_extract_nokia_2g_sites = PythonOperator(
@@ -971,7 +971,7 @@ task_extract_nokia_2g_sites = PythonOperator(
     dag=dag)
 
 def extract_nokia_2g_cells():
-    nokia_cm.extract_nokia_2g_cells()
+    nokia_cm.extract_live_network_2g_cells()
 
 
 task_extract_nokia_2g_cells = PythonOperator(
@@ -981,7 +981,7 @@ task_extract_nokia_2g_cells = PythonOperator(
 
 
 def extract_nokia_2g_cell_params():
-    nokia_cm.extract_nokia_2g_cell_params()
+    nokia_cm.extract_live_network_2g_cell_params()
 
 
 task_extract_nokia_2g_cell_params = PythonOperator(
@@ -991,7 +991,7 @@ task_extract_nokia_2g_cell_params = PythonOperator(
 
 
 def extract_nokia_3g_sites():
-    nokia_cm.extract_nokia_3g_sites()
+    nokia_cm.extract_live_network_3g_sites()
 
 
 task_extract_nokia_3g_sites = PythonOperator(
@@ -1000,7 +1000,7 @@ task_extract_nokia_3g_sites = PythonOperator(
     dag=dag)
 
 def extract_nokia_3g_cells():
-    nokia_cm.extract_nokia_3g_cells()
+    nokia_cm.extract_live_network_3g_cells()
 
 
 task_extract_nokia_3g_cells = PythonOperator(
@@ -1010,7 +1010,7 @@ task_extract_nokia_3g_cells = PythonOperator(
 
 
 def extract_nokia_3g_cell_params():
-    nokia_cm.extract_nokia_3g_cell_params()
+    nokia_cm.extract_live_network_3g_cells_params()
 
 
 task_extract_nokia_3g_cell_params = PythonOperator(
@@ -1020,7 +1020,7 @@ task_extract_nokia_3g_cell_params = PythonOperator(
 
 
 def extract_nokia_4g_cells():
-    nokia_cm.extract_nokia_4g_cells()
+    nokia_cm.extract_live_network_4g_cells()
 
 
 task_extract_nokia_4g_cells = PythonOperator(
@@ -1030,7 +1030,7 @@ task_extract_nokia_4g_cells = PythonOperator(
 
 
 def extract_nokia_4g_cell_params():
-    nokia_cm.extract_nokia_4g_cell_params()
+    nokia_cm.extract_live_network_4g_cell_params()
 
 
 task_extract_nokia_4g_cell_params = PythonOperator(
@@ -1040,7 +1040,7 @@ task_extract_nokia_4g_cell_params = PythonOperator(
 
 
 def extract_nokia_2g2g_nbrs():
-    nokia_cm.extract_nokia_2g2g_nbrs()
+    nokia_cm.extract_live_network_2g2g_nbrs()
 
 
 task_extract_nokia_2g2g_nbrs = PythonOperator(
@@ -1050,7 +1050,7 @@ task_extract_nokia_2g2g_nbrs = PythonOperator(
 
 
 def extract_nokia_2g3g_nbrs():
-    nokia_cm.extract_nokia_2g3g_nbrs()
+    nokia_cm.extract_live_network_2g3g_nbrs()
 
 
 task_extract_nokia_2g3g_nbrs = PythonOperator(
@@ -1060,7 +1060,7 @@ task_extract_nokia_2g3g_nbrs = PythonOperator(
 
 
 def extract_nokia_2g4g_nbrs():
-    nokia_cm.extract_nokia_2g4g_nbrs()
+    nokia_cm.extract_live_network_2g4g_nbrs()
 
 
 task_extract_nokia_2g4g_nbrs = PythonOperator(
@@ -1070,7 +1070,7 @@ task_extract_nokia_2g4g_nbrs = PythonOperator(
 
 
 def extract_nokia_3g2g_nbrs():
-    nokia_cm.extract_nokia_3g2g_nbrs()
+    nokia_cm.extract_live_network_3g2g_nbrs()
 
 
 task_extract_nokia_3g2g_nbrs = PythonOperator(
@@ -1080,7 +1080,7 @@ task_extract_nokia_3g2g_nbrs = PythonOperator(
 
 
 def extract_nokia_3g3g_nbrs():
-    nokia_cm.extract_nokia_3g3g_nbrs()
+    nokia_cm.extract_live_network_3g3g_nbrs()
 
 
 task_extract_nokia_3g3g_nbrs = PythonOperator(
@@ -1090,7 +1090,7 @@ task_extract_nokia_3g3g_nbrs = PythonOperator(
 
 
 def extract_nokia_3g4g_nbrs():
-    nokia_cm.extract_nokia_3g4g_nbrs()
+    nokia_cm.extract_live_network_3g4g_nbrs()
 
 
 task_extract_nokia_3g4g_nbrs = PythonOperator(
@@ -1100,7 +1100,7 @@ task_extract_nokia_3g4g_nbrs = PythonOperator(
 
 
 def extract_nokia_4g2g_nbrs():
-    nokia_cm.extract_nokia_4g2g_nbrs()
+    nokia_cm.extract_live_network_4g2g_nbrs()
 
 
 task_extract_nokia_4g2g_nbrs = PythonOperator(
@@ -1110,7 +1110,7 @@ task_extract_nokia_4g2g_nbrs = PythonOperator(
 
 
 def extract_nokia_4g3g_nbrs():
-    nokia_cm.extract_nokia_4g3g_nbrs()
+    nokia_cm.extract_live_network_4g3g_nbrs()
 
 
 task_extract_nokia_4g3g_nbrs = PythonOperator(
@@ -1120,7 +1120,7 @@ task_extract_nokia_4g3g_nbrs = PythonOperator(
 
 
 def extract_nokia_4g4g_nbrs():
-    nokia_cm.extract_nokia_4g4g_nbrs()
+    nokia_cm.extract_live_network_4g4g_nbrs()
 
 
 task_extract_nokia_4g4g_nbrs = PythonOperator(

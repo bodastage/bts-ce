@@ -26,7 +26,7 @@ services:
             - "15670:15670"
         network_mode: "bridge"
         container_name: "bts-ce-msgbroker"
-        command: bash -c "cat ./queue_setup.sh |  tr -d "\r" | bash -"
+        command: bash -c "rabbitmq-plugins enable rabbitmq_web_stomp; rabbitmq-server stop; rabbitmq-server start"
         hostname: rmq
         volumes:
             - ./queue_scripts/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
