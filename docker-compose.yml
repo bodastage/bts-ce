@@ -123,7 +123,7 @@ services:
           - "21:21"
           - "30000-30009:30000-30009"
         volumes:
-           - /home/bodastage/bts-ce/mediation/data:/home/ftpusers/bodastage
+           - ./mediation/data:/home/ftpusers/bodastage
         network_mode: "bridge"
         container_name: "bts-ce-ftp"
     #    command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]
