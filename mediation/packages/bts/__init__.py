@@ -5,3 +5,4 @@ from .network_audit import NetworkAudit
 from .huawei_cm import HuaweiCM
 from .ericsson_cm import EricssonCM
 from .zte_cm import ZTECM
+from .nokia_cm import NokiaCM

@@ -10,6 +10,7 @@ class NetworkAudit(object):
     def __init__(self):
         ''' Constructor for this class. '''
 
+        #@TODO: Refactor
         sqlalchemy_db_uri = 'postgresql://{0}:{1}@{2}:{3}/{4}'.format(
             os.getenv("BTS_DB_USER", "bodastage"),
             os.getenv("BTS_DB_PASS", "password"),

@@ -15,7 +15,7 @@ Rem ZTE
 For %%i in (raw parsed) Do For %%j in (bulkcm excel backup) Do mkdir %MEDIATION_DIR%\zte\%%i\%%j
 
 Rem Nokia
-For %%i in (raw parsed) Do For %%j in (raml2 backup) Do mkdir %MEDIATION_DIR%\nokia\%%i\%%j
+For %%i in (raw parsed) Do For %%j in (raml20 backup) Do mkdir %MEDIATION_DIR%\nokia\%%i\%%j
 
 Rem Create reports folder
 mkdir mediation\data\reports

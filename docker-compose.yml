@@ -26,7 +26,7 @@ services:
             - "15670:15670"
         network_mode: "bridge"
         container_name: "bts-ce-msgbroker"
-        command: bash -c "./queue_setup.sh"
+        command: bash -c "rabbitmq-plugins enable rabbitmq_web_stomp; rabbitmq-server stop; rabbitmq-server start"
         hostname: rmq
         volumes:
             - ./queue_scripts/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
@@ -62,7 +62,7 @@ services:
         container_name: "bts-ce-api"
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
     bts-web:
-        image: registry.gitlab.com/bts-ce/bts-ce-web:v2.1.0
+        image: registry.gitlab.com/bts-ce/bts-ce-web:2.1.0
         ports:
           - "8888:80"
         network_mode: "bridge"
@@ -123,7 +123,7 @@ services:
           - "21:21"
           - "30000-30009:30000-30009"
         volumes:
-           - /home/bodastage/bts-ce/mediation/data:/home/ftpusers/bodastage
+           - ./mediation/data:/home/ftpusers/bodastage
         network_mode: "bridge"
         container_name: "bts-ce-ftp"
     #    command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]
