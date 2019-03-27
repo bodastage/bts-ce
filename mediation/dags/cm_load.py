@@ -518,7 +518,7 @@ t61 = PythonOperator(
 
 # Process Huawei 3G cell parameters
 def extract_huawei_3g_cell_params():
-    huawei_cm.extract_live_network_3g_cells_params()
+    huawei_cm.extract_live_network_3g_cell_params()
 
 
 t62 = PythonOperator(
@@ -951,13 +951,13 @@ task_extract_nokia_rncs = PythonOperator(
     dag=dag)
 
 
-def extract_nokia_enodes():
-    nokia_cm.extract_live_network_enodes()
+def extract_nokia_enodebs():
+    nokia_cm.extract_live_network_enodebs()
 
 
 task_extract_nokia_enodes = PythonOperator(
-    task_id='extract_nokia_enodes',
-    python_callable=extract_nokia_enodes,
+    task_id='extract_nokia_enodebs',
+    python_callable=extract_nokia_enodebs,
     dag=dag)
 
 
@@ -1010,7 +1010,7 @@ task_extract_nokia_3g_cells = PythonOperator(
 
 
 def extract_nokia_3g_cell_params():
-    nokia_cm.extract_live_network_3g_cells_params()
+    nokia_cm.extract_live_network_3g_cell_params()
 
 
 task_extract_nokia_3g_cell_params = PythonOperator(
@@ -1348,7 +1348,7 @@ dag.set_dependency('process_nokia','parse_and_import_nokia_raml20')
 
 dag.set_dependency('parse_and_import_nokia_raml20','extract_nokia_bscs')
 dag.set_dependency('parse_and_import_nokia_raml20','extract_nokia_rncs')
-dag.set_dependency('parse_and_import_nokia_raml20','extract_nokia_enodes')
+dag.set_dependency('parse_and_import_nokia_raml20','extract_nokia_enodebs')
 
 dag.set_dependency('extract_nokia_bscs','extract_nokia_2g_sites')
 dag.set_dependency('extract_nokia_2g_sites','extract_nokia_2g_cells')
@@ -1360,7 +1360,7 @@ dag.set_dependency('extract_nokia_3g_sites','extract_nokia_3g_cells')
 dag.set_dependency('extract_nokia_3g_cells','extract_nokia_3g_cell_params')
 dag.set_dependency('extract_nokia_3g_cell_params','nokia_cm_done')
 
-dag.set_dependency('extract_nokia_enodes','extract_nokia_4g_cells')
+dag.set_dependency('extract_nokia_enodebs','extract_nokia_4g_cells')
 dag.set_dependency('extract_nokia_4g_cells','extract_nokia_4g_cell_params')
 dag.set_dependency('extract_nokia_4g_cell_params','nokia_cm_done')
 
