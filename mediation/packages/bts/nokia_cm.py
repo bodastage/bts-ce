@@ -510,7 +510,8 @@ class NokiaCM(object):
 
         session.close()
 
-    def extract_live_network_4g_cells_params(self):
+
+    def extract_live_network_4g_cell_params(self):
 
         Session = sessionmaker(bind=self.db_engine)
         session = Session()
