@@ -1021,7 +1021,7 @@ class NokiaCM(object):
                     INNER JOIN live_network.sites t7 ON t7.pk = t6.site_pk AND t7.tech_pk = 2
                  WHERE
                   t3.site_pk = '{0}'
-                  AND t8.is_current_load = true
+                  AND t9.is_current_load = true
              """.format(site_pk)
 
             self.db_engine.execute(text(sql).execution_options(autocommit=True))
@@ -1126,7 +1126,7 @@ class NokiaCM(object):
                     INNER JOIN live_network.sites t7 ON t7.pk = t6.site_pk 
                  WHERE
                   t3.site_pk = '{0}'
-                  AND t8.is_current_load = true
+                  AND t9.is_current_load = true
                   AND t1."DISTNAME" ~ '.*WCEL-.*'
  
              """.format(site_pk)
@@ -1257,7 +1257,7 @@ class NokiaCM(object):
                     t1."DATETIME" AS date_modified,
                     0 as added_by, 
                     0 AS modified_by
-                FROM nokia_cm."ADJG" t1
+                FROM nokia_cm."LNADJW" t1
                     INNER JOIN cm_loads t9 on t9.pk = t1."LOADID"
                     INNER JOIN nokia_cm."WCEL" t2 ON t2."FILENAME" = t1."FILENAME" AND t2."DISTNAME" = SUBSTRING(t1."DISTNAME", '.*WCEL-\d+') AND t2."LOADID" = t1."LOADID"
                     INNER JOIN live_network.cells t3 ON t3.name = CONCAT(TRIM(t2."name"),'(',TRIM(t2."CId"),')') AND t3.vendor_pk = 4 AND t3.tech_pk = 3
@@ -1267,7 +1267,7 @@ class NokiaCM(object):
                     INNER JOIN live_network.sites t7 ON t7.pk = t6.site_pk 
                  WHERE
                   t3.site_pk = '{0}'
-                  AND t8.is_current_load = true
+                  AND t9.is_current_load = true
                   AND t1."DISTNAME" ~ '.*WCEL-.*'
 
              """.format(site_pk)
