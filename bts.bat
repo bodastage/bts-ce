@@ -20,11 +20,11 @@ Rem Author Emmanuel Robert Ssebaggala <emmanuel.ssebaggala@bodastage.com>
 
 
 Rem Check if script is running in an elevated terminal 
-net session >nul 2>&1
-If %errorLevel% == 0 (
-   Echo Do not run as an Administrator
-   Exit /b 1
-)
+Rem net session >nul 2>&1
+Rem If %errorLevel% == 0 (
+Rem    Echo Do not run as an Administrator
+Rem    Exit /b 1
+Rem )
 
 Rem Test if docker-machine is running
 @For /F "tokens=* USEBACKQ" %%F In (`docker-machine status default 2^>Nul`) Do (
@@ -182,6 +182,14 @@ If "%~1"=="create" (
 	Call create_folders.bat >Nul 2>&1
 
     docker-compose up -d
+	
+	# Forward ports 8181,8888
+	docker-machine ls | findstr "virtualbox" 1>Nul 2>Nul
+	If %errorLevel% == 0 (
+		"%ProgramFiles%\Oracle\VirtualBox\VBoxManage.exe" controlvm "default" natpf1  "btsweb,tcp,,8888,,8888" 1>Nul 2>Nul
+		"%ProgramFiles%\Oracle\VirtualBox\VBoxManage.exe" controlvm "default" natpf1  "btsapi,tcp,,8181,,8181" 1>Nul 2>Nul
+	)
+	
 )
 
 

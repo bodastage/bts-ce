@@ -34,6 +34,18 @@ def parse_and_import_nokia_raml20(parent_dag_name, child_dag_name, start_date, s
         start_date=start_date,
     )
 
+    task_clean_mo_names = BashOperator(
+        task_id='clean_raml20_mo_names',
+        bash_command="true",
+#		r"""
+#sed -i "
+#/lowerMarginCio/ s//lowerMarginCIO/g;
+#/upperMarginCio/ s//upperMarginCIO/g;
+#" /mediation/data/cm/nokia/raw/raml20/*.xml || true
+#        """,
+        dag=dag
+    )
+	
     parse_nokia_raml20_cm_files = BashOperator(
       task_id='parse_nokia_raml20_cm_files',
       bash_command='java -jar /mediation/bin/boda-nokiacmdataparser.jar -i /mediation/data/cm/nokia/raw/raml20 -o /mediation/data/cm/nokia/parsed/raml20 -c /mediation/conf/cm/nokia_raml20_parser.cfg',
@@ -57,7 +69,7 @@ def parse_and_import_nokia_raml20(parent_dag_name, child_dag_name, start_date, s
         python_callable=clear_nokia_raml20_cm_tables,
         dag=dag)
 
-
+    dag.set_dependency('clean_raml20_mo_names', 'parse_nokia_raml20_cm_files')
     dag.set_dependency('parse_nokia_raml20_cm_files', 'clear_nokia_raml20_cm_tables')
     dag.set_dependency('clear_nokia_raml20_cm_tables', 'import_nokia_raml20_parsed_csv')
     dag.set_dependency('import_nokia_raml20_parsed_csv', 'run_nokia_raml20_insert_queries')

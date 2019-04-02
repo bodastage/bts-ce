@@ -63,6 +63,7 @@ services:
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
     bts-web:
         image: registry.gitlab.com/bts-ce/bts-ce-web:2.1.0
+        restart: always
         ports:
           - "8888:80"
         network_mode: "bridge"
@@ -71,7 +72,8 @@ services:
             - bts-msgbroker
             - bts-api
     bts-mediation:
-        image: registry.gitlab.com/bts-ce/bts-ce-mediation
+#        image: registry.gitlab.com/bts-ce/bts-ce-mediation:2.1.0
+        image: bodastage/bts-ce-mediation:2.1.0
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
@@ -101,32 +103,35 @@ services:
            - bts-msgbroker
         network_mode: "bridge"
         container_name: "bts-ce-mediation"
+        security_opt:
+            - seccomp:unconfined
         links:
             - "bts-msgbroker:msgbroker"
             - "bts-database:database"
-    bts-cache:
-        image: redis:latest
-        ports:
-          - "6380:6380"
-        network_mode: "bridge"
-        container_name: "bts-ce-cache"
-    bts-ftp:
-        image: stilliard/pure-ftpd:hardened
-        restart: always
-        environment:
-          - PUBLICHOST=localhost
-          - ADDED_FLAGS=-d -d
-          - FTP_USER_NAME=bodastage
-          - FTP_USER_PASS=Password@7
-          - FTP_USER_HOME=/home/ftpusers/bodastage
-        ports:
-          - "21:21"
-          - "30000-30009:30000-30009"
-        volumes:
-           - ./mediation/data:/home/ftpusers/bodastage
-        network_mode: "bridge"
-        container_name: "bts-ce-ftp"
-    #    command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]
+#    bts-cache:
+#        image: redis:latest
+#        ports:
+#          - "6380:6380"
+#        network_mode: "bridge"
+#        container_name: "bts-ce-cache"
+#        volumes:
+#    bts-ftp:
+#        image: stilliard/pure-ftpd:hardened
+#        restart: always
+#        environment:
+#          - PUBLICHOST=localhost
+#          - ADDED_FLAGS=-d -d
+#          - FTP_USER_NAME=bodastage
+#          - FTP_USER_PASS=Password@7
+#          - FTP_USER_HOME=/home/ftpusers/bodastage
+#        ports:
+#          - "21:21"
+#          - "30000-30009:30000-30009"
+#        volumes:
+#           - ./mediation/data:/home/ftpusers/bodastage
+#        network_mode: "bridge"
+#        container_name: "bts-ce-ftp"
+#        command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]
     bts-reports:
         image: registry.gitlab.com/bts-ce/bts-ce-reports
         restart: always
@@ -151,3 +156,4 @@ services:
         links:
           - "bts-msgbroker:msgbroker"
           - "bts-database:database"
+#        command: bash -c "ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone"
