@@ -183,11 +183,12 @@ If "%~1"=="create" (
 
     docker-compose up -d
 	
-	# Forward ports 8181,8888
+	Rem Forward ports 8181,8888, 8080
 	docker-machine ls | findstr "virtualbox" 1>Nul 2>Nul
 	If %errorLevel% == 0 (
 		"%ProgramFiles%\Oracle\VirtualBox\VBoxManage.exe" controlvm "default" natpf1  "btsweb,tcp,,8888,,8888" 1>Nul 2>Nul
 		"%ProgramFiles%\Oracle\VirtualBox\VBoxManage.exe" controlvm "default" natpf1  "btsapi,tcp,,8181,,8181" 1>Nul 2>Nul
+		"%ProgramFiles%\Oracle\VirtualBox\VBoxManage.exe" controlvm "default" natpf1  "airflow-web,tcp,,8080,,8080" 1>Nul 2>Nul
 	)
 	
 )
