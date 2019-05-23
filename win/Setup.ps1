@@ -208,7 +208,7 @@ if ( $UseHyperVDriver -eq $True ){
 
 	# Create docker machine 
 	Write-Host -NoNewline "Creating docker-machine..."
-	"& '$DockerForWindows\docker-machine.exe' create -d hyperv -hyper-virtual-switch BTSExternalSwitch default" | Invoke-Expression
+	"& '$DockerForWindows\docker-machine.exe' create -d hyperv --hyperv-memory 2048 --hyperv-virtual-switch BTSExternalSwitch default" | Invoke-Expression
 	Write-Host "Done"
 	Write-Host ""
 	
