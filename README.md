@@ -19,7 +19,7 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 
 * 64 bit OS (Kernel version 3.10+ for Linux and build 10.0.14393+ for Windows)
 * [Docker](https://www.docker.com/get-docker)
-* Memery and disk space depend on the network /data size
+* Memory and disk space depend on the network /data size
 * Latest web browser
 
 ## Deployment/Installation
