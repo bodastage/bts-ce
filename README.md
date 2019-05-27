@@ -13,16 +13,15 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
 * CM managed object browsing 
 * Automatic network baseline generation
 * Radio Access Network (RAN) audit (relations, conflicts, parameter values vs baseline )
-* Reporting
-
+* Reports that support tabular and different graphical presentation of data
 
 ## Requirements 
 
-* 4GB memory
 * 64 bit OS (Kernel version 3.10+ for Linux and build 10.0.14393+ for Windows)
 * [Docker](https://www.docker.com/get-docker)
-* 5GB hard disk space
+* Memory and disk space depend on the network /data size
 * Latest web browser
+
 ## Deployment/Installation
 
 * Download latest release files (bts-ce-**version**) from https://github.com/bodastage/bts-ce/releases/latest
@@ -36,7 +35,7 @@ Boda Telecom Suite Community Edition - An open source telecommunication network 
   ```batch 
   > bts setup
   ```
-* Open web broswer and paste the URL http://localhost on windows or http://192.168.99.100
+* Open web broswer and paste the URL http://localhost:8888
 * Login with username: **btsuser@bodastage.org** and password: **password**
 
 ## Installing a new release 
@@ -66,6 +65,7 @@ This is achieved using the following 2 commands,
 - [PostgreSQL](https://www.postgresql.org/)
 - [Apache Airflow](https://airflow.apache.org/)
 - [ReactJs](http://reactjs.org/)
+- [RabbitMQ](https://www.rabbitmq.com/)
 
 ## Resources
 

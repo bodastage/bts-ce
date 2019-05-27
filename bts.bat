@@ -67,7 +67,7 @@ If "%~1"==""  (
 	Rem Echo manage list modules -- List installed modules
 	Echo -----------------------------------------------------
 	Echo Boda Telecom Suite - Community Edition
-	Echo Copyright 2017-2018. Bodastage Solutions. http://www.bodastage.com
+	Echo Copyright 2017-2019. Bodastage Solutions. http://www.bodastage.com
 )
 
 Rem Run setup 

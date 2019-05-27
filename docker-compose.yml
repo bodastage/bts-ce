@@ -33,7 +33,8 @@ services:
             - ./queue_scripts/definitions.json:/etc/rabbitmq/definitions.json:ro
             - ./queue_scripts/queue_setup.sh:/queue_setup.sh
     bts-api:
-        image: registry.gitlab.com/bts-ce/bts-ce-api
+#        image: registry.gitlab.com/bts-ce/bts-ce-api
+        image: bodastage/bts-ce-api:1.2.1
         ports:
           - 8181:8181
         restart: always
@@ -62,7 +63,8 @@ services:
         container_name: "bts-ce-api"
         command: ["/wait-for-it.sh","database:5432","--","/migrate-and-start-web-server.sh"]
     bts-web:
-        image: registry.gitlab.com/bts-ce/bts-ce-web:2.1.0
+#        image: registry.gitlab.com/bts-ce/bts-ce-web:2.1.2
+        image: bodastage/bts-ce-web:2.1.2
         restart: always
         ports:
           - "8888:80"
@@ -133,7 +135,8 @@ services:
 #        container_name: "bts-ce-ftp"
 #        command: ["pure-pw","useradd","bodastage","-f", "/etc/pure-ftpd/passwd/pureftpd.passwd", "-m", "-u", "ftpuser", "-d", "/home/ftpusers/bodastage"]
     bts-reports:
-        image: registry.gitlab.com/bts-ce/bts-ce-reports
+#        image: registry.gitlab.com/bts-ce/bts-ce-reports:0.0.1
+        image: bodastage/bts-ce-reports:0.0.1
         restart: always
         environment:
           - POSTGRES_PASSWORD=password
